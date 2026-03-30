@@ -1,0 +1,101 @@
+module.exports = {
+  async up(db, client) {
+    // player_trades
+    await db.createCollection('player_trades', {
+      validator: {
+        $jsonSchema: {
+          bsonType: 'object',
+          required: ['stats_id'],
+          properties: {
+            stats_id: { bsonType: 'string' },
+            traded_teammates: { bsonType: 'int' },
+            times_left_alive: { bsonType: 'int' },
+            date_recorded: { bsonType: 'date' },
+          },
+        },
+      },
+      validationAction: 'warn',
+    });
+
+    await db.collection('player_trades').createIndex({ stats_id: 1 });
+
+    // player_economy
+    await db.createCollection('player_economy', {
+      validator: {
+        $jsonSchema: {
+          bsonType: 'object',
+          required: ['stats_id'],
+          properties: {
+            stats_id: { bsonType: 'string' },
+            rounds_eco: { bsonType: 'int' },
+            rounds_force_buy: { bsonType: 'int' },
+            rounds_full_buy: { bsonType: 'int' },
+            rounds_pistol: { bsonType: 'int' },
+            rounds_eco_won: { bsonType: 'int' },
+            date_recorded: { bsonType: 'date' },
+          },
+        },
+      },
+      validationAction: 'warn',
+    });
+
+    await db.collection('player_economy').createIndex({ stats_id: 1 });
+
+    // player_clutches
+    await db.createCollection('player_clutches', {
+      validator: {
+        $jsonSchema: {
+          bsonType: 'object',
+          required: ['stats_id'],
+          properties: {
+            stats_id: { bsonType: 'string' },
+            clutch_1v1: {
+              bsonType: 'object',
+              properties: {
+                attempted: { bsonType: 'int' },
+                won: { bsonType: 'int' },
+              },
+            },
+            clutch_1v2: {
+              bsonType: 'object',
+              properties: {
+                attempted: { bsonType: 'int' },
+                won: { bsonType: 'int' },
+              },
+            },
+            clutch_1v3: {
+              bsonType: 'object',
+              properties: {
+                attempted: { bsonType: 'int' },
+                won: { bsonType: 'int' },
+              },
+            },
+            clutch_1v4: {
+              bsonType: 'object',
+              properties: {
+                attempted: { bsonType: 'int' },
+                won: { bsonType: 'int' },
+              },
+            },
+            clutch_1v5: {
+              bsonType: 'object',
+              properties: {
+                attempted: { bsonType: 'int' },
+                won: { bsonType: 'int' },
+              },
+            },
+          },
+        },
+      },
+      validationAction: 'warn',
+    });
+
+    await db.collection('player_clutches').createIndex({ stats_id: 1 });
+  },
+
+  async down(db, client) {
+    await db.collection('player_trades').drop();
+    await db.collection('player_economy').drop();
+    await db.collection('player_clutches').drop();
+  },
+};

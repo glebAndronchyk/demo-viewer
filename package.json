@@ -1,0 +1,23 @@
+{
+  "name": "demo-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "bun --filter @demo-viewer/client dev",
+    "dev:api": "bun --filter @demo-viewer/api dev",
+    "build": "bun -r build",
+    "migrate:up": "bun --filter @demo-viewer/migrations migrate:up",
+    "migrate:down": "bun --filter @demo-viewer/migrations migrate:down",
+    "migrate:status": "bun --filter @demo-viewer/migrations migrate:status",
+    "migrate:create": "bun --filter @demo-viewer/migrations migrate:create",
+    "type-check": "bun -r type-check"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "prettier": "^3.8.0"
+  },
+  "workspaces": [
+    "backend/*",
+    "frontend/*"
+  ]
+}

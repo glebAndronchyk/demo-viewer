@@ -1,0 +1,1390 @@
+{
+  "collections": {
+    "demoparser-db.user": {
+      "ns": "demoparser-db.user",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "string"
+          },
+          "steam_id": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "demoparser-db.match": {
+      "ns": "demoparser-db.match",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "date_uploaded": {
+            "bsonType": [
+              "date"
+            ]
+          },
+          "date_played": {
+            "bsonType": [
+              "date"
+            ]
+          },
+          "chunk_count": {
+            "bsonType": [
+              "long"
+            ]
+          },
+          "participants": {
+            "bsonType": "object",
+            "properties": {
+              "steam_id": {
+                "bsonType": [
+                  "string"
+                ]
+              },
+              "user_id": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "player_name": {
+                "bsonType": "string"
+              }
+            },
+            "required": []
+          },
+          "map_id": {
+            "bsonType": "string"
+          },
+          "visible_for_all": {
+            "bsonType": [
+              "bool"
+            ]
+          },
+          "group_id": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "crawled": {
+            "bsonType": [
+              "bool"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.match_chunk": {
+      "ns": "demoparser-db.match_chunk",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "match_id": {
+            "bsonType": "string"
+          },
+          "start_tick": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "end_tick": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "start_game_tick": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "end_game_tick": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "chunk_index": {
+            "bsonType": "string"
+          },
+          "frames": {
+            "bsonType": "object",
+            "properties": {
+              "demo_tick": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "game_tick": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "timestamp": {
+                "bsonType": [
+                  "decimal"
+                ]
+              },
+              "player_states": {
+                "bsonType": "object",
+                "properties": {
+                  "field-1": {
+                    "bsonType": "string"
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": []
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_stats": {
+      "ns": "demoparser-db.player_stats",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "participant_steam_id": {
+            "bsonType": [
+              "string"
+            ]
+          },
+          "total_kills": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "total_deaths": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "total_utility_damage": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_adr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_mvps": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "total_hs": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_assists": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "total_kpr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_impact": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_apr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "total_dpr": {
+            "bsonType": [
+              "double"
+            ]
+          },
+          "total_score": {
+            "bsonType": "string"
+          },
+          "match_id": {
+            "bsonType": "string"
+          },
+          "total_rounds_won": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_accuracy": {
+      "ns": "demoparser-db.player_accuracy",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "total_shots": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "total_hits": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "headshots": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "top_level_accuracy": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "hit_breakdown": {
+            "bsonType": "object",
+            "properties": {
+              "head": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "chest": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "stomach": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "arms": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "legs": {
+                "bsonType": [
+                  "int"
+                ]
+              }
+            },
+            "required": []
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_reaction": {
+      "ns": "demoparser-db.player_reaction",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          },
+          "avg_ttr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "min_ttr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "max_ttr": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "min_ttr_game_tick": {
+            "bsonType": [
+              "long"
+            ]
+          },
+          "max_ttr_game_tick": {
+            "bsonType": [
+              "long"
+            ]
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_behavior": {
+      "ns": "demoparser-db.player_behavior",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          },
+          "aggression_signal": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "lurking_signal": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "support_signal": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "avg_engagement_distance_units": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "avg_engagement_time": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "role": {
+            "bsonType": "string"
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          },
+          "confidence": {
+            "bsonType": [
+              "decimal"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_trades": {
+      "ns": "demoparser-db.player_trades",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "traded_teammates": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "times_left_alive_after_trade": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_economy": {
+      "ns": "demoparser-db.player_economy",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "rounds_eco": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "rounds_force_buy": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "rounds_full_buy": {
+            "bsonType": "string"
+          },
+          "rounds_pistol": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "rounds_eco_won": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_best_positions": {
+      "ns": "demoparser-db.player_best_positions",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_weapons_usage": {
+      "ns": "demoparser-db.player_weapons_usage",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "pistols_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "utility_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "melee_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "shotguns_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "smg_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "assault_rifles_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "sniper_rifles_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "machine_guns_pct": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          },
+          "stats_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.group": {
+      "ns": "demoparser-db.group",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "owner_id": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.group_member": {
+      "ns": "demoparser-db.group_member",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "user_id": {
+            "bsonType": "string"
+          },
+          "group_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.weapon_stats": {
+      "ns": "demoparser-db.weapon_stats",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "kills": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "deaths": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "hits": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "shots": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "damage": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "headshots": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "player_weapon_usage_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.player_clutches": {
+      "ns": "demoparser-db.player_clutches",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "1_v_1": {
+            "bsonType": "object",
+            "properties": {},
+            "required": []
+          },
+          "1_v_2": {
+            "bsonType": "object",
+            "properties": {
+              "attempted": {
+                "bsonType": [
+                  "int"
+                ]
+              },
+              "won": {
+                "bsonType": [
+                  "int"
+                ]
+              }
+            },
+            "required": []
+          },
+          "1_v_3": {
+            "bsonType": "object",
+            "properties": {},
+            "required": []
+          },
+          "1_v_4": {
+            "bsonType": "object",
+            "properties": {},
+            "required": []
+          },
+          "1_v_5": {
+            "bsonType": "object",
+            "properties": {},
+            "required": []
+          },
+          "stats_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.utility_schema": {
+      "ns": "demoparser-db.utility_schema",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "grenades_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "he_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "smokes_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "molotovs_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "flashes_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "incendieries_thrown": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "teammates_flashed": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "utility_damage": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "utility_value": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "enemies_flashed": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "flash_duration_avg": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "stats_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.positions_stats_schema": {
+      "ns": "demoparser-db.positions_stats_schema",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "sector_id": {
+            "bsonType": "string"
+          },
+          "time_spent_sec": {
+            "bsonType": [
+              "decimal"
+            ]
+          },
+          "kills_from": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "deaths_at": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "rounds_played": {
+            "bsonType": [
+              "int"
+            ]
+          },
+          "stats_id": {
+            "bsonType": "string"
+          },
+          "player_steam_id": {
+            "bsonType": "string"
+          },
+          "date_recorded": {
+            "bsonType": [
+              "date"
+            ]
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.map": {
+      "ns": "demoparser-db.map",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "map_name": {
+            "bsonType": "string"
+          },
+          "asset_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.asset": {
+      "ns": "demoparser-db.asset",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "path": {
+            "bsonType": "string"
+          },
+          "dimensions": {
+            "bsonType": "object",
+            "properties": {
+              "width": {
+                "bsonType": [
+                  "decimal"
+                ]
+              },
+              "height": {
+                "bsonType": [
+                  "decimal"
+                ]
+              }
+            },
+            "required": []
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    },
+    "demoparser-db.map_sector": {
+      "ns": "demoparser-db.map_sector",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "sector_name": {
+            "bsonType": "string"
+          },
+          "rect": {
+            "bsonType": "object",
+            "properties": {},
+            "required": []
+          },
+          "map_id": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    }
+  },
+  "relationships": [
+    {
+      "id": "0b845b2b-e9df-40aa-8d07-086fcd5e0666",
+      "relationship": [
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": null,
+          "fields": [
+            "participants",
+            "user_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.user",
+          "cardinality": null,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "01cef0a4-dc3a-4b7e-be42-2c5bb5e71514",
+      "relationship": [
+        {
+          "ns": "demoparser-db.match_chunk",
+          "cardinality": null,
+          "fields": [
+            "match_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "4ab5a8b2-502a-42c7-9012-d07c3ebb04b1",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "participant_steam_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": 1,
+          "fields": [
+            "participants",
+            "steam_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "31d96c21-a181-461b-acd7-57c8599b77d0",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": null,
+          "fields": [
+            "match_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "940cede2-3ced-46b1-bd3a-b2636c536d1c",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_accuracy",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "8ccb027e-7fda-4ad0-a6bf-e9b54afaf6f9",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_reaction",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "a17c527a-f4e4-446c-88fa-41839725050d",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_behavior",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "4bcfbfc3-3ce2-4def-8e27-5cba63f0dfac",
+      "relationship": [
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": null,
+          "fields": [
+            "group_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.group",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "d04ec6e3-e72b-4e5f-8267-32255ea1371b",
+      "relationship": [
+        {
+          "ns": "demoparser-db.group",
+          "cardinality": null,
+          "fields": [
+            "owner_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.user",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "b27e726b-5f16-4d08-be5b-0db3b90adbc9",
+      "relationship": [
+        {
+          "ns": "demoparser-db.group_member",
+          "cardinality": null,
+          "fields": [
+            "user_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.user",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "1637aab1-bf27-41c4-9b04-a82df5901e76",
+      "relationship": [
+        {
+          "ns": "demoparser-db.group_member",
+          "cardinality": null,
+          "fields": [
+            "group_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.group",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "42a7c522-e61f-46db-9cb9-58756e20c647",
+      "relationship": [
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": null,
+          "fields": [
+            "participants",
+            "steam_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.user",
+          "cardinality": null,
+          "fields": [
+            "steam_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "f235deb6-1dec-4338-afa8-6f0aa20d5d92",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_trades",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "4bfabf06-6b8d-493d-8f54-fcd7d41578b0",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_weapons_usage",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "873777d3-58ed-4292-a836-a7f22fbc059c",
+      "relationship": [
+        {
+          "ns": "demoparser-db.weapon_stats",
+          "cardinality": 1,
+          "fields": [
+            "player_weapon_usage_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_weapons_usage",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "19b93a25-f796-403b-bf75-4c3506323efa",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_economy",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "82532fb8-1d36-4a0d-bb79-ac467a7f43f4",
+      "relationship": [
+        {
+          "ns": "demoparser-db.player_clutches",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "69784de9-46ff-441d-a08f-8cd314b18dd3",
+      "relationship": [
+        {
+          "ns": "demoparser-db.utility_schema",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "f1a8f105-5047-4788-8da8-66b9075f23b8",
+      "relationship": [
+        {
+          "ns": "demoparser-db.positions_stats_schema",
+          "cardinality": 1,
+          "fields": [
+            "stats_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.player_stats",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "7e45ad3a-d7de-4c14-a409-b6a62e1a2f00",
+      "relationship": [
+        {
+          "ns": "demoparser-db.match",
+          "cardinality": null,
+          "fields": [
+            "map_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.map",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "12541014-36b3-434d-b4b0-72491f203fbc",
+      "relationship": [
+        {
+          "ns": "demoparser-db.map",
+          "cardinality": null,
+          "fields": [
+            "asset_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.asset",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "35dfcd1e-5e53-4125-a9bd-afdb46edbd7a",
+      "relationship": [
+        {
+          "ns": "demoparser-db.map_sector",
+          "cardinality": null,
+          "fields": [
+            "map_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.map",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    },
+    {
+      "id": "11c75f56-1926-44b5-b48d-dd5ab54f7467",
+      "relationship": [
+        {
+          "ns": "demoparser-db.positions_stats_schema",
+          "cardinality": null,
+          "fields": [
+            "sector_id"
+          ]
+        },
+        {
+          "ns": "demoparser-db.map_sector",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": false
+    }
+  ]
+}

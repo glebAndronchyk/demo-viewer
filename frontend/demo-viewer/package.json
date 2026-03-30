@@ -1,5 +1,5 @@
 {
-  "name": "demo-viewer",
+  "name": "@demo-viewer/client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
