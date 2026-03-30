@@ -10,13 +10,32 @@ import type {
   AddUserToTeamCommandResult,
 } from "../../commands/AddUserToTeamCommand.ts";
 import { addUserToTeamCommandHandler } from "../../handlers/AddUserToTeamCommandHandler.ts";
+import type {
+  RegisterOrLoginWithSteamCommand,
+  RegisterOrLoginWithSteamCommandResult,
+} from "../../commands/RegisterOrLoginWithSteamCommand.ts";
+import { registerOrLoginWithSteamHandler } from "../../handlers/RegisterOrLoginWithSteamHandler.ts";
+import type {
+  LinkMatchesToUserCommand,
+  LinkMatchesToUserCommandResult,
+} from "../../commands/LinkMatchesToUserCommand.ts";
+import { linkMatchesToUserHandler } from "../../handlers/LinkMatchesToUserHandler.ts";
 
-export type Commands = [CreateTeamCommand, AddUserToTeamCommand];
+export type Commands = [
+  CreateTeamCommand,
+  AddUserToTeamCommand,
+  RegisterOrLoginWithSteamCommand,
+  LinkMatchesToUserCommand,
+];
 
 export type CommandResultMap = {
   [K in CreateTeamCommand["type"]]: CreateTeamCommandResult;
 } & {
   [K in AddUserToTeamCommand["type"]]: AddUserToTeamCommandResult;
+} & {
+  [K in RegisterOrLoginWithSteamCommand["type"]]: RegisterOrLoginWithSteamCommandResult;
+} & {
+  [K in LinkMatchesToUserCommand["type"]]: LinkMatchesToUserCommandResult;
 };
 
 export type DomainCommandsMap = CommandsMap<Commands, CommandResultMap>;
@@ -27,6 +46,8 @@ const domainOperationsConstructor = (
   return {
     create_team: createTeamHandler(outbound),
     add_user_to_team: addUserToTeamCommandHandler(outbound),
+    register_or_login_with_steam: registerOrLoginWithSteamHandler(outbound),
+    link_matches_to_user: linkMatchesToUserHandler(outbound),
   };
 };
 
