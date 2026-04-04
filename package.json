@@ -6,10 +6,10 @@
     "dev:frontend": "bun --filter @demo-viewer/client dev",
     "dev:api": "bun --filter @demo-viewer/api dev",
     "build": "bun -r build",
-    "migrate:up": "bun --filter @demo-viewer/migrations migrate:up",
-    "migrate:down": "bun --filter @demo-viewer/migrations migrate:down",
-    "migrate:status": "bun --filter @demo-viewer/migrations migrate:status",
-    "migrate:create": "bun --filter @demo-viewer/migrations migrate:create",
+    "migrate:up": "bun --filter @demo-viewer/database migrate:up",
+    "migrate:down": "bun --filter @demo-viewer/database migrate:down",
+    "migrate:status": "bun --filter @demo-viewer/database migrate:status",
+    "migrate:create": "bun --filter @demo-viewer/database migrate:create",
     "type-check": "bun -r type-check"
   },
   "devDependencies": {

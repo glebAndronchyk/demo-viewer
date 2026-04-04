@@ -25,7 +25,7 @@ async function createMigration() {
     }
 
     const { stdout, stderr } = await execAsync(
-      `npx migrate-mongo create ${migrationName.trim()}`
+      `bunx migrate-mongo create ${migrationName.trim()}`
     );
 
     if (stderr) {
@@ -35,9 +35,9 @@ async function createMigration() {
     console.log(stdout);
     console.log('\nMigration created successfully!');
     console.log('\nNext steps:');
-    console.log('1. Edit the migration file in backend/migrations/migrations/');
+    console.log('1. Edit the migration file in backend/database/migrations/');
     console.log('2. Import schemas from @demo-viewer/database if needed');
-    console.log('3. Run migrations with: pnpm migrate:up');
+    console.log('3. Run migrations with: bun run migrate:up');
   } catch (error) {
     console.error('Failed to create migration:', error);
     process.exit(1);

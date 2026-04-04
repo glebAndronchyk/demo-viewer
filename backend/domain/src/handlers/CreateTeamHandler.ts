@@ -3,6 +3,7 @@ import type {
   CreateTeamCommandResult,
 } from "../commands/CreateTeamCommand.ts";
 import type { GenericCommandHandler } from "../lib/command_bus";
+import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
 
 export const createTeamHandler = (outbound: DomainOutbound) => {
@@ -21,3 +22,8 @@ export const createTeamHandler = (outbound: DomainOutbound) => {
 
   return handler;
 };
+
+export const createTeamRegistration = createRegistration<CreateTeamCommand, CreateTeamCommandResult>(
+  "create_team",
+  createTeamHandler,
+);

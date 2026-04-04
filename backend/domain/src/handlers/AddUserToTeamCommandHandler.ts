@@ -1,4 +1,5 @@
 import type { GenericCommandHandler } from "../lib/command_bus";
+import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
 import type {
   AddUserToTeamCommand,
@@ -24,3 +25,8 @@ export const addUserToTeamCommandHandler = (outbound: DomainOutbound) => {
 
   return handler;
 };
+
+export const addUserToTeamRegistration = createRegistration<AddUserToTeamCommand, AddUserToTeamCommandResult>(
+  "add_user_to_team",
+  addUserToTeamCommandHandler,
+);

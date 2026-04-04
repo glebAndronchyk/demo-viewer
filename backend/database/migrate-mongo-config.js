@@ -6,7 +6,7 @@ const config = {
     databaseName: process.env.MONGODB_DATABASE || 'demo-viewer',
     options: {}
   },
-  migrationsDir: 'migrations',
+  migrationsDir: './migrations',
   changelogCollectionName: 'changelog',
   migrationFileExtension: '.js',
   useFileHash: false,

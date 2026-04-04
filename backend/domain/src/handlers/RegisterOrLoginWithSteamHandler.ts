@@ -3,6 +3,7 @@ import type {
   RegisterOrLoginWithSteamCommandResult,
 } from "../commands/RegisterOrLoginWithSteamCommand.ts";
 import type { GenericCommandHandler } from "../lib/command_bus";
+import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
 
 export const registerOrLoginWithSteamHandler = (outbound: DomainOutbound) => {
@@ -40,3 +41,8 @@ export const registerOrLoginWithSteamHandler = (outbound: DomainOutbound) => {
 
   return handler;
 };
+
+export const registerOrLoginWithSteamRegistration = createRegistration<
+  RegisterOrLoginWithSteamCommand,
+  RegisterOrLoginWithSteamCommandResult
+>("register_or_login_with_steam", registerOrLoginWithSteamHandler);

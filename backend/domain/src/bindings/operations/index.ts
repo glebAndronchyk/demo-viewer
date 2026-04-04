@@ -1,54 +1,18 @@
-import type {
-  CreateTeamCommand,
-  CreateTeamCommandResult,
-} from "../../commands/CreateTeamCommand.ts";
-import { createTeamHandler } from "../../handlers/CreateTeamHandler.ts";
-import type { CommandsMap } from "../../lib/command_bus";
+import * as registrations from "../../handlers/index.ts";
+import { buildOperations, type RegistrationsToMap } from "../../lib/command_bus/buildOperations.ts";
 import type { DomainOutbound } from "../../types/DomainOutbound.ts";
-import type {
-  AddUserToTeamCommand,
-  AddUserToTeamCommandResult,
-} from "../../commands/AddUserToTeamCommand.ts";
-import { addUserToTeamCommandHandler } from "../../handlers/AddUserToTeamCommandHandler.ts";
-import type {
-  RegisterOrLoginWithSteamCommand,
-  RegisterOrLoginWithSteamCommandResult,
-} from "../../commands/RegisterOrLoginWithSteamCommand.ts";
-import { registerOrLoginWithSteamHandler } from "../../handlers/RegisterOrLoginWithSteamHandler.ts";
-import type {
-  LinkMatchesToUserCommand,
-  LinkMatchesToUserCommandResult,
-} from "../../commands/LinkMatchesToUserCommand.ts";
-import { linkMatchesToUserHandler } from "../../handlers/LinkMatchesToUserHandler.ts";
 
-export type Commands = [
-  CreateTeamCommand,
-  AddUserToTeamCommand,
-  RegisterOrLoginWithSteamCommand,
-  LinkMatchesToUserCommand,
-];
+const allRegistrations = [
+  registrations.createTeamRegistration,
+  registrations.addUserToTeamRegistration,
+  registrations.registerOrLoginWithSteamRegistration,
+  registrations.linkMatchesToUserRegistration,
+  registrations.downloadAndParseDemoRegistration,
+] as const;
 
-export type CommandResultMap = {
-  [K in CreateTeamCommand["type"]]: CreateTeamCommandResult;
-} & {
-  [K in AddUserToTeamCommand["type"]]: AddUserToTeamCommandResult;
-} & {
-  [K in RegisterOrLoginWithSteamCommand["type"]]: RegisterOrLoginWithSteamCommandResult;
-} & {
-  [K in LinkMatchesToUserCommand["type"]]: LinkMatchesToUserCommandResult;
-};
+export type DomainCommandsMap = RegistrationsToMap<typeof allRegistrations>;
 
-export type DomainCommandsMap = CommandsMap<Commands, CommandResultMap>;
-
-const domainOperationsConstructor = (
-  outbound: DomainOutbound,
-): DomainCommandsMap => {
-  return {
-    create_team: createTeamHandler(outbound),
-    add_user_to_team: addUserToTeamCommandHandler(outbound),
-    register_or_login_with_steam: registerOrLoginWithSteamHandler(outbound),
-    link_matches_to_user: linkMatchesToUserHandler(outbound),
-  };
-};
+const domainOperationsConstructor = (outbound: DomainOutbound): DomainCommandsMap =>
+  buildOperations(allRegistrations, outbound);
 
 export default domainOperationsConstructor;

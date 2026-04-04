@@ -10,6 +10,7 @@ export * from './types/performance.types';
 export * from './types/round_outcome.types';
 export * from './types/weapon.types';
 export * from './types/utility_positions.types';
+export * from './types/demo_chunk.types';
 
 // Schemas
 export * from './schemas/user.schema';
@@ -20,6 +21,7 @@ export * from './schemas/performance.schema';
 export * from './schemas/round_outcome.schema';
 export * from './schemas/weapon.schema';
 export * from './schemas/utility_positions.schema';
+export * from './schemas/demo_chunk.schema';
 
 // Models
 export * from './models/user.model';
@@ -30,3 +32,4 @@ export * from './models/performance.model';
 export * from './models/round_outcome.model';
 export * from './models/weapon.model';
 export * from './models/utility_positions.model';
+export * from './models/demo_chunk.model';

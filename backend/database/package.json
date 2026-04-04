@@ -2,18 +2,25 @@
   "name": "@demo-viewer/database",
   "version": "1.0.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "type-check": "tsc --noEmit",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "migrate:up": "migrate-mongo up",
+    "migrate:down": "migrate-mongo down",
+    "migrate:status": "migrate-mongo status",
+    "migrate:create": "bun run scripts/create-migration.ts"
   },
   "dependencies": {
-    "mongoose": "^8.0.0"
+    "mongoose": "^8.0.0",
+    "migrate-mongo": "^11.0.0",
+    "mongodb": "^6.3.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "dotenv": "^16.3.1"
   }
 }
