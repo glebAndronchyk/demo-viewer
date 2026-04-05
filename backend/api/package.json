@@ -1,0 +1,28 @@
+{
+  "name": "@demo-viewer/api",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun --inspect=localhost:6499/demo-parser-api --watch src/index.ts"
+  },
+  "dependencies": {
+    "@demo-viewer/backend-shared": "workspace:*",
+    "@demo-viewer/database": "workspace:*",
+    "@demo-viewer/demo-composer": "workspace:*",
+    "@demo-viewer/domain": "workspace:*",
+    "@elysiajs/cron": "^1.4.1",
+    "@elysiajs/jwt": "^1.4.1",
+    "axios": "^1.14.0",
+    "csgo-sharecode": "^4.0.0",
+    "elysia": "latest",
+    "globaloffensive": "^3.3.0",
+    "jose": "latest",
+    "steam-user": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/globaloffensive": "^2.3.4",
+    "@types/steam-user": "^5.1.1",
+    "bun-types": "latest"
+  },
+  "module": "src/index.js"
+}
