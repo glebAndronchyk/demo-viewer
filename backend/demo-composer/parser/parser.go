@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +12,10 @@ import (
 	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
 )
 
+// Its better to use different collections in database to reduce physical space per demo.
+// Data in demo is very repetitive and can be quantized. We dont need positions tracking in each frame and chunk,
+// events can be stored as separate dynamic object, not in the per frame order.
+// We should also introduce a snapshotting system to properly find per tick difference and reconstruct the history between the,
 type Parser struct {
 	demoFile             string
 	framesAmountPerChunk int
@@ -19,26 +23,30 @@ type Parser struct {
 	demoID               string
 	framesBuffer         []Frame
 	currentTick          int
-	playerConnections    map[uint64]bool // Track player connection states
+	playerConnections    map[uint64]bool
+	participantsSeen     map[uint64]ParticipantInfo
+	repo                 *Repository
 }
 
 // NewParser creates a new demo parser
-func NewParser(demoFile string, chunkSize int) *Parser {
+func NewParser(demoFile string, chunkSize int, repo *Repository) *Parser {
 	return &Parser{
 		demoFile:             demoFile,
 		framesAmountPerChunk: chunkSize,
 		demoID:               uuid.New().String(),
 		framesBuffer:         make([]Frame, 0, chunkSize),
 		playerConnections:    make(map[uint64]bool),
+		participantsSeen:     make(map[uint64]ParticipantInfo),
 		totalChunksProcessed: 0,
+		repo:                 repo,
 	}
 }
 
-// Parse parses the demo file and returns the complete demo data
-func (p *Parser) Parse() (*DemoData, error) {
+// Parse parses the demo file and persists data to MongoDB
+func (p *Parser) Parse() error {
 	f, err := os.Open(p.demoFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open demo file: %w", err)
+		return fmt.Errorf("failed to open demo file: %w", err)
 	}
 	defer f.Close()
 
@@ -48,7 +56,7 @@ func (p *Parser) Parse() (*DemoData, error) {
 	// Get header info
 	header, err := parser.ParseHeader()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse header: %w", err)
+		return fmt.Errorf("failed to parse header: %w", err)
 	}
 	demoHeader := DemoHeader{
 		DemoID:         p.demoID,
@@ -57,50 +65,109 @@ func (p *Parser) Parse() (*DemoData, error) {
 		ClientName:     header.ClientName,
 		Duration:       header.PlaybackTime.Seconds(),
 		TickRate:       float32(parser.TickRate()),
-		FrameRate:      0, // Not directly available in v4
+		FrameRate:      0,
 		SignonLength:   header.SignonLength,
 		PlaybackTicks:  header.PlaybackTicks,
 		PlaybackFrames: header.PlaybackFrames,
 		ParsedAt:       time.Now().UTC().Format(time.RFC3339),
 	}
 
-	os.Stdout.Write(p.getHeaderAsJson(demoHeader))
+	if err := p.repo.InsertMatch(demoHeader); err != nil {
+		return fmt.Errorf("failed to insert match: %w", err)
+	}
+
+	var chunksBatch []DemoChunk
+
+	flushBatch := func() error {
+		if err := p.repo.InsertChunkBatch(chunksBatch); err != nil {
+			return fmt.Errorf("failed to insert chunk batch: %w", err)
+		}
+		chunksBatch = chunksBatch[:0]
+		return nil
+	}
 
 	// Register event handlers
 	p.registerEventHandlers(parser)
 
+	var frameErr error
+
 	// Register frame handler to capture state on every tick
 	parser.RegisterEventHandler(func(e events.FrameDone) {
+		if frameErr != nil {
+			return
+		}
 		p.captureFrame(parser)
 
 		if len(p.framesBuffer) == p.framesAmountPerChunk {
-			os.Stdout.Write(p.getCurrentChunkAsJson(demoHeader))
+			chunk := DemoChunk{
+				MessageType:   "chunk",
+				DemoID:        demoHeader.DemoID,
+				ChunkIndex:    p.totalChunksProcessed,
+				StartTick:     p.framesBuffer[0].DemoTick,
+				EndTick:       p.framesBuffer[len(p.framesBuffer)-1].DemoTick,
+				StartGameTick: p.framesBuffer[0].GameTick,
+				EndGameTick:   p.framesBuffer[len(p.framesBuffer)-1].GameTick,
+				Frames:        append([]Frame(nil), p.framesBuffer...),
+			}
+			chunksBatch = append(chunksBatch, chunk)
 			p.flushBuffer()
 			p.totalChunksProcessed++
+
+			if len(chunksBatch) >= 50 {
+				if err := flushBatch(); err != nil {
+					frameErr = err
+				}
+			}
 		}
 	})
 
 	// Parse to end
-	err = parser.ParseToEnd()
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse demo: %w", err)
+	if err = parser.ParseToEnd(); err != nil {
+		return fmt.Errorf("failed to parse demo: %w", err)
+	}
+
+	if frameErr != nil {
+		return frameErr
 	}
 
 	// Flush remaining partial chunk
 	if len(p.framesBuffer) > 0 {
-		os.Stdout.Write(p.getCurrentChunkAsJson(demoHeader))
+		chunk := DemoChunk{
+			MessageType:   "chunk",
+			DemoID:        demoHeader.DemoID,
+			ChunkIndex:    p.totalChunksProcessed,
+			StartTick:     p.framesBuffer[0].DemoTick,
+			EndTick:       p.framesBuffer[len(p.framesBuffer)-1].DemoTick,
+			StartGameTick: p.framesBuffer[0].GameTick,
+			EndGameTick:   p.framesBuffer[len(p.framesBuffer)-1].GameTick,
+			Frames:        append([]Frame(nil), p.framesBuffer...),
+		}
+		chunksBatch = append(chunksBatch, chunk)
 		p.totalChunksProcessed++
 		p.flushBuffer()
 	}
 
-	demoParsingSummary := DemoData{
-		ChunkSize:   p.framesAmountPerChunk,
-		TotalChunks: p.totalChunksProcessed,
+	if err := flushBatch(); err != nil {
+		return err
 	}
 
-	os.Stdout.Write(p.getDemoDataAsJson(demoParsingSummary))
+	matchParticipants := make([]MatchParticipant, 0, len(p.participantsSeen))
+	for _, info := range p.participantsSeen {
+		mp := MatchParticipant{
+			PlayerName: info.Name,
+			IsBot:      info.IsBot,
+		}
+		if !info.IsBot {
+			mp.SteamID = strconv.FormatUint(info.SteamID64, 10)
+		}
+		matchParticipants = append(matchParticipants, mp)
+	}
 
-	return &demoParsingSummary, nil
+	if err := p.repo.FinalizeMatch(p.demoID, p.totalChunksProcessed, matchParticipants); err != nil {
+		return fmt.Errorf("failed to finalize match: %w", err)
+	}
+
+	return nil
 }
 
 // captureFrame captures the game state at the current frame
@@ -136,6 +203,14 @@ func (p *Parser) capturePlayerStates(gs dem.GameState) []PlayerState {
 	for _, player := range participants {
 		if player == nil {
 			continue
+		}
+
+		if _, exists := p.participantsSeen[player.SteamID64]; !exists {
+			p.participantsSeen[player.SteamID64] = ParticipantInfo{
+				SteamID64: player.SteamID64,
+				Name:      player.Name,
+				IsBot:     player.IsBot,
+			}
 		}
 
 		playerStates = append(playerStates, p.capturePlayerState(player))
@@ -598,46 +673,6 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 
 		p.addEventToCurrentFrame("item_pickup", data)
 	})
-}
-
-func (p Parser) getCurrentChunkAsJson(header DemoHeader) []byte {
-	demoChunk := DemoChunk{
-		MessageType:   "chunk",
-		DemoID:        header.DemoID,
-		ChunkIndex:    p.totalChunksProcessed,
-		StartTick:     p.framesBuffer[0].DemoTick,
-		EndTick:       p.framesBuffer[len(p.framesBuffer)-1].DemoTick,
-		StartGameTick: p.framesBuffer[0].GameTick,
-		EndGameTick:   p.framesBuffer[len(p.framesBuffer)-1].GameTick,
-		Frames:        p.framesBuffer,
-	}
-
-	b, err := json.Marshal(demoChunk)
-	if err != nil {
-		panic(err)
-	}
-
-	return append(b, '\n')
-}
-
-func (p Parser) getDemoDataAsJson(data DemoData) []byte {
-	data.MessageType = "summary"
-	b, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-
-	return append(b, '\n')
-}
-
-func (p Parser) getHeaderAsJson(header DemoHeader) []byte {
-	header.MessageType = "header"
-	b, err := json.Marshal(header)
-	if err != nil {
-		panic(err)
-	}
-
-	return append(b, '\n')
 }
 
 func (p *Parser) flushBuffer() {

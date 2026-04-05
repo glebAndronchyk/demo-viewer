@@ -1,10 +1,26 @@
 package parser
 
+// MatchParticipant is stored in the match document after parsing completes
+type MatchParticipant struct {
+	SteamID    string `bson:"steam_id,omitempty"`
+	PlayerName string `bson:"player_name"`
+	IsBot      bool   `bson:"is_bot"`
+}
+
+// ParticipantInfo contains identity information about a player (not per-tick state)
+type ParticipantInfo struct {
+	SteamID64 uint64 `bson:"steam_id_64" json:"steam_id_64"`
+	Name      string `bson:"name" json:"name"`
+	IsBot     bool   `bson:"is_bot" json:"is_bot"`
+}
+
 // DemoData represents the complete demo file parsed data for JSON export
 type DemoData struct {
-	MessageType string `bson:"message_type" json:"message_type"`
-	ChunkSize   int    `json:"chunk_size"`
-	TotalChunks int    `json:"total_chunks"`
+	MessageType  string            `bson:"message_type" json:"message_type"`
+	DemoID       string            `json:"demo_id"`
+	ChunkSize    int               `json:"chunk_size"`
+	TotalChunks  int               `json:"total_chunks"`
+	Participants []ParticipantInfo `json:"participants"`
 }
 
 // DemoChunk represents a chunk of frames for MongoDB storage

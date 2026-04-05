@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "demo-viewer",
+      "dependencies": {
+        "@elysiajs/openapi": "^1.4.14",
+      },
       "devDependencies": {
         "prettier": "^3.8.0",
         "typescript": "~5.9.3",
@@ -15,7 +18,6 @@
       "dependencies": {
         "@demo-viewer/backend-shared": "workspace:*",
         "@demo-viewer/database": "workspace:*",
-        "@demo-viewer/demo-composer": "workspace:*",
         "@demo-viewer/domain": "workspace:*",
         "@elysiajs/cron": "^1.4.1",
         "axios": "^1.14.0",
@@ -175,6 +177,8 @@
     "@doctormckay/user-agents": ["@doctormckay/user-agents@1.0.0", "", {}, "sha512-F+sL1YmebZTY2CnjoR9BXFEULpq7y8dxyLx48LZVa0BSDseXdLG/DtPISfM1iNv1XKCeiBzVNfAT/MOQ69v1Zw=="],
 
     "@elysiajs/cron": ["@elysiajs/cron@1.4.1", "", { "dependencies": { "croner": "^6.0.3" }, "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-Y+jqXtMJ+m17QzNWlWc09ugd1Fn1Wh7lqE+y9qSW8eiQZEqsRADXWmbLuXRSRaSC5dkfOyRSiwNCp6n8L/yuqA=="],
+
+    "@elysiajs/openapi": ["@elysiajs/openapi@1.4.14", "", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-kWmJWdvP8/LwHwAJXSpz6xFfYUoyUyEPRimEYABuDU1rOnS27Da1u9T2jyU7frOopxKWV/wDfDxMP8z2xdCPJw=="],
 
     "@emnapi/core": ["@emnapi/core@1.9.1", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.0", "tslib": "^2.4.0" } }, "sha512-mukuNALVsoix/w1BJwFzwXBN/dHeejQtuVzcDsfOEsdpCumXb/E9j8w11h5S54tT1xhifGfbbSm/ICrObRb3KA=="],
 

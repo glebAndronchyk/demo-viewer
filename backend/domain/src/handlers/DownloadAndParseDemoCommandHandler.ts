@@ -11,22 +11,27 @@ export const downloadAndParseDemoCommandHandler = (
     DownloadAndParseDemoCommand,
     never
   > = async (command) => {
-    const nextCodeResult =
-      await outbound.gameCoordinatorRepository.getNextAvailableShareCode(
-        command.userSteamId,
-        command.userSteamIdKey,
-        command.lastKnownShareCode,
-      );
+    // const nextCodeResult =
+    //   await outbound.gameCoordinatorRepository.getNextAvailableShareCode(
+    //     command.userSteamId,
+    //     command.userSteamIdKey,
+    //     command.lastKnownShareCode,
+    //   );
+    //
+    // const matchUrlResult =
+    //   await outbound.gameCoordinatorRepository.getMatchUrlById(
+    //     nextCodeResult.data.nextCode,
+    //   );
 
-    const matchUrlResult =
-      await outbound.gameCoordinatorRepository.getMatchUrlById(
-        nextCodeResult.data.nextCode,
-      );
+    // // todo: background parsing task
+    // await outbound.parserRepository.parseDemoFromRemote(
+    //   matchUrlResult.data.url,
+    // );
+    // // todo: background parsing task
 
+    debugger;
     // todo: background parsing task
-    await outbound.parserRepository.parseDemoFromRemote(
-      matchUrlResult.data.url,
-    );
+    await outbound.parserRepository.parseDemoFromLocal("");
     // todo: background parsing task
 
     return {} as never;

@@ -16,6 +16,11 @@ const ParticipantSchema = new Schema(
       required: true,
       trim: true,
     },
+    is_bot: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   { _id: false }
 );
@@ -60,6 +65,67 @@ export const MatchSchema = new Schema<IMatchDocument>(
       required: true,
       default: false,
     },
+    // Demo header metadata (from parser)
+    demo_id: {
+      type: String,
+      required: true,
+      default: '',
+      trim: true,
+    },
+    map_name: {
+      type: String,
+      required: true,
+      default: '',
+      trim: true,
+    },
+    server_name: {
+      type: String,
+      required: true,
+      default: '',
+      trim: true,
+    },
+    client_name: {
+      type: String,
+      required: true,
+      default: '',
+      trim: true,
+    },
+    duration: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    tick_rate: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    frame_rate: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    signon_length: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    playback_ticks: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    playback_frames: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    parsed_at: {
+      type: String,
+      required: true,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -74,3 +140,5 @@ MatchSchema.index({ 'participants.steam_id': 1 });
 MatchSchema.index({ 'participants.user_id': 1 });
 MatchSchema.index({ map_id: 1 });
 MatchSchema.index({ group_id: 1 });
+MatchSchema.index({ demo_id: 1 }, { unique: true, sparse: true });
+MatchSchema.index({ map_name: 1 });

@@ -1,0 +1,118 @@
+package parser
+
+import (
+	"context"
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+)
+
+const (
+	defaultMatchesCollection = "matches"
+	defaultChunksCollection  = "demo_chunks"
+	defaultDatabaseName      = "demo-viewer"
+)
+
+type Repository struct {
+	client           *mongo.Client
+	matchesCol       *mongo.Collection
+	chunksCol        *mongo.Collection
+}
+
+func (r *Repository) Connect(uri string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOpts := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(clientOpts)
+	if err != nil {
+		return err
+	}
+
+	if err := client.Ping(ctx, nil); err != nil {
+		return err
+	}
+
+	dbName := defaultDatabaseName
+	if clientOpts.Database != nil {
+		dbName = *clientOpts.Database
+	}
+
+	r.client = client
+	r.matchesCol = client.Database(dbName).Collection(defaultMatchesCollection)
+	r.chunksCol = client.Database(dbName).Collection(defaultChunksCollection)
+	return nil
+}
+
+func (r *Repository) InsertMatch(header DemoHeader) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	doc := bson.M{
+		"demo_id":         header.DemoID,
+		"map_name":        header.MapName,
+		"map_id":          header.MapName,
+		"server_name":     header.ServerName,
+		"client_name":     header.ClientName,
+		"duration":        header.Duration,
+		"tick_rate":       header.TickRate,
+		"frame_rate":      header.FrameRate,
+		"signon_length":   header.SignonLength,
+		"playback_ticks":  header.PlaybackTicks,
+		"playback_frames": header.PlaybackFrames,
+		"parsed_at":       header.ParsedAt,
+		"date_uploaded":   time.Now(),
+		"date_played":     time.Now(),
+		"chunk_count":     0,
+		"participants":    bson.A{},
+		"visible_for_all": false,
+		"crawled":         false,
+		"group_id":        nil,
+	}
+
+	_, err := r.matchesCol.InsertOne(ctx, doc)
+	return err
+}
+
+func (r *Repository) InsertChunkBatch(chunks []DemoChunk) error {
+	if len(chunks) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	docs := make([]interface{}, len(chunks))
+	for i, c := range chunks {
+		docs[i] = c
+	}
+
+	_, err := r.chunksCol.InsertMany(ctx, docs)
+	return err
+}
+
+func (r *Repository) FinalizeMatch(demoID string, totalChunks int, participants []MatchParticipant) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := r.matchesCol.UpdateOne(
+		ctx,
+		bson.M{"demo_id": demoID},
+		bson.M{"$set": bson.M{
+			"chunk_count":  totalChunks,
+			"participants": participants,
+		}},
+	)
+	return err
+}
+
+func (r *Repository) Disconnect() error {
+	if r.client == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return r.client.Disconnect(ctx)
+}

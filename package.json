@@ -19,5 +19,8 @@
   "workspaces": [
     "backend/*",
     "frontend/*"
-  ]
+  ],
+  "dependencies": {
+    "@elysiajs/openapi": "^1.4.14"
+  }
 }

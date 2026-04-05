@@ -1,4 +1,4 @@
-type AnyConstructor = abstract new (...args: any) => object;
+type AnyConstructor = new (...args: any) => object;
 
 interface DIService {
   type: "singleton";
@@ -10,13 +10,16 @@ interface DIService {
 export type ServiceConstructor = new (...args: any) => object;
 
 type ConstructorTuple<Params extends unknown[]> = {
-  [K in keyof Params]: abstract new (...args: any[]) => Params[K];
+  [K in keyof Params]: new (...args: any[]) => Params[K];
 };
 
 export class DIContainer {
   private _map = new Map<ServiceConstructor, DIService>();
 
-  addInstance<T extends abstract new (...args: any) => object>(service: T, instance: InstanceType<T>) {
+  addInstance<T extends new (...args: any) => object>(
+    service: T,
+    instance: InstanceType<T>,
+  ) {
     this._map.set(service, {
       type: "singleton",
       deps: [],
