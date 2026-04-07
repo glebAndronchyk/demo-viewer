@@ -9,19 +9,22 @@ import (
 )
 
 func main() {
-	demoFile := flag.String("demo", "", "Path to CS2 demo file (required)")
+	demoFile := flag.String("demo", "", "Path to CS2 demo file")
+	demoUrl := flag.String("url", "", "Path to CS2 demo url")
 	chunkSize := flag.Int("chunk-size", 1000, "Number of frames per chunk for MongoDB storage")
 	help := flag.Bool("help", false, "Show help message")
 
 	flag.Parse()
 
-	if *help || *demoFile == "" {
+	if *help || (*demoFile == "" && *demoUrl == "") {
 		flag.Usage()
 		os.Exit(0)
 	}
 
-	if _, err := os.Stat(*demoFile); os.IsNotExist(err) {
-		log.Fatalf("Demo file does not exist: %s", *demoFile)
+	if len(*demoFile) > 0 {
+		if _, err := os.Stat(*demoFile); os.IsNotExist(err) {
+			log.Fatalf("Demo file does not exist: %s", *demoFile)
+		}
 	}
 
 	connStr := os.Getenv("DB_CONNECTION_STRING")
@@ -35,12 +38,13 @@ func main() {
 	}
 	defer repo.Disconnect()
 
-	log.Printf("Started demo parsing")
-	p := parser.NewParser(*demoFile, *chunkSize, repo)
+	p := parser.NewParser(*demoFile, *demoUrl, *chunkSize, repo)
 
+	log.Printf("Started demo parsing")
 	if err := p.Parse(); err != nil {
 		log.Fatalf("Failed to parse demo: %v", err)
 	} else {
-	    log.Printf("Demo parsed successfully")
+		log.Printf("Demo parsed successfully")
 	}
+	log.Printf("Finished demo parsing")
 }

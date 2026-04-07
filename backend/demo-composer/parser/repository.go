@@ -2,6 +2,8 @@ package parser
 
 import (
 	"context"
+	"net/url"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -21,6 +23,14 @@ type Repository struct {
 	chunksCol        *mongo.Collection
 }
 
+func dbNameFromURI(uri string) string {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimPrefix(u.Path, "/")
+}
+
 func (r *Repository) Connect(uri string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -35,9 +45,9 @@ func (r *Repository) Connect(uri string) error {
 		return err
 	}
 
-	dbName := defaultDatabaseName
-	if clientOpts.Database != nil {
-		dbName = *clientOpts.Database
+	dbName := dbNameFromURI(uri)
+	if dbName == "" {
+		dbName = defaultDatabaseName
 	}
 
 	r.client = client

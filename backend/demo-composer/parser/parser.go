@@ -1,15 +1,19 @@
 package parser
 
 import (
+	"compress/bzip2"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
-	common "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
-	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
+	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
 )
 
 // Its better to use different collections in database to reduce physical space per demo.
@@ -18,6 +22,7 @@ import (
 // We should also introduce a snapshotting system to properly find per tick difference and reconstruct the history between the,
 type Parser struct {
 	demoFile             string
+	demoUrl              string
 	framesAmountPerChunk int
 	totalChunksProcessed int
 	demoID               string
@@ -28,10 +33,19 @@ type Parser struct {
 	repo                 *Repository
 }
 
+func (p *Parser) IsLocalParse() bool {
+	return len(p.demoFile) > 0
+}
+
+func (p *Parser) IsRemoteParse() bool {
+	return len(p.demoUrl) > 0
+}
+
 // NewParser creates a new demo parser
-func NewParser(demoFile string, chunkSize int, repo *Repository) *Parser {
+func NewParser(demoFile string, demoUrl string, chunkSize int, repo *Repository) *Parser {
 	return &Parser{
 		demoFile:             demoFile,
+		demoUrl:              demoUrl,
 		framesAmountPerChunk: chunkSize,
 		demoID:               uuid.New().String(),
 		framesBuffer:         make([]Frame, 0, chunkSize),
@@ -44,13 +58,25 @@ func NewParser(demoFile string, chunkSize int, repo *Repository) *Parser {
 
 // Parse parses the demo file and persists data to MongoDB
 func (p *Parser) Parse() error {
-	f, err := os.Open(p.demoFile)
-	if err != nil {
-		return fmt.Errorf("failed to open demo file: %w", err)
-	}
-	defer f.Close()
+	var reader io.Reader = nil
 
-	parser := dem.NewParser(f)
+	if p.IsRemoteParse() {
+		rc, err := p.openUrlReader(p.demoUrl)
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+		reader = rc
+	} else if p.IsLocalParse() {
+		rc, err := p.openFileReader(p.demoFile)
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+		reader = rc
+	}
+
+	parser := dem.NewParser(reader)
 	defer parser.Close()
 
 	// Get header info
@@ -168,6 +194,32 @@ func (p *Parser) Parse() error {
 	}
 
 	return nil
+}
+
+func (p Parser) openFileReader(fsPath string) (io.ReadCloser, error) {
+	f, err := os.Open(fsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open demo file: %w", err)
+	}
+	return f, nil
+}
+
+func (p Parser) openUrlReader(url string) (io.ReadCloser, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open demo url: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status %d fetching demo url", resp.StatusCode)
+	}
+	if strings.HasSuffix(url, ".bz2") {
+		return struct {
+			io.Reader
+			io.Closer
+		}{bzip2.NewReader(resp.Body), resp.Body}, nil
+	}
+	return resp.Body, nil
 }
 
 // captureFrame captures the game state at the current frame

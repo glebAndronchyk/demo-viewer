@@ -4,6 +4,7 @@ import { CommandBusService } from "../services/CommandBusService";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 import { RegisterOrLoginWithSteamCommand } from "@demo-viewer/domain/src/commands";
 import { jwtPlugin } from "../lib/elysia/plugins/jwtPlugin";
+import { UnauthorizedError } from "../lib/errors/AppErrors";
 
 export class AuthorizationController {
   constructor(
@@ -20,13 +21,12 @@ export class AuthorizationController {
         })
         .get(
           "/steam/callback",
-          async ({ jwt, query, redirect, set, cookie: { auth } }) => {
+          async ({ jwt, query, redirect, cookie: { auth } }) => {
             const steamId = await verifySteamOpenId(
               query as Record<string, string>,
             );
             if (!steamId) {
-              set.status = 401;
-              return "Steam OpenID verification failed";
+              throw new UnauthorizedError("Steam OpenID verification failed");
             }
 
             const result =
@@ -57,14 +57,14 @@ export class AuthorizationController {
             return redirect(config.frontendUrl);
           },
         )
-        .get("/me", async ({ jwt, status, cookie: { auth } }) => {
+        .get("/me", async ({ jwt, cookie: { auth } }) => {
           const data = await jwt.verify(auth.value as any);
 
           if (!data) {
-            return status(401, "Unauthorized");
+            throw new UnauthorizedError();
           }
 
-          return data;
+          return { data, error: null, isSuccess: true };
         }),
     );
   }

@@ -5,8 +5,9 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 export class ParserRepository implements ParserOutbound {
   constructor(private readonly configuration: ConfigurationInboundPort) {}
 
-  parseDemoFromRemote(url: string): Promise<object> {
-    throw new Error("Method not implemented.");
+  async parseDemoFromRemote(url: string): Promise<object> {
+    await parse({ fileUrl: url, framesInChunkCount: 100 });
+    return {};
   }
 
   async parseDemoFromLocal(path: string): Promise<object> {

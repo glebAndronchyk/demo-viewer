@@ -7,9 +7,12 @@ import type {
   SetUserSharingDataCommand,
   SetUserSharingDataCommandResult,
 } from "../commands/SetUserSharingDataCommand.ts";
+import {
+  DomainConflictError,
+  DomainNotFoundError,
+} from "../lib/errors/DomainErrors.ts";
 
 export const setUserSharingDataCommandHandler = (outbound: DomainOutbound) => {
-  // todo add decorator to catch error and remap it to BaseResponse
   const handler: GenericCommandHandler<
     SetUserSharingDataCommand,
     SetUserSharingDataCommandResult
@@ -19,11 +22,13 @@ export const setUserSharingDataCommandHandler = (outbound: DomainOutbound) => {
     );
 
     if (!userResult) {
-      return { success: false };
+      throw new DomainNotFoundError(`User not found: ${command.userId}`);
     }
 
     if (userResult.initialKnownShareCode && userResult.steamIdKey) {
-      return { success: false };
+      throw new DomainConflictError(
+        "Sharing data already configured for this user",
+      );
     }
 
     await outbound.userRepository.setUserSharingData({

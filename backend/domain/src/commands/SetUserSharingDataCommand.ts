@@ -7,5 +7,5 @@ export interface SetUserSharingDataCommand extends GenericCommand<"set_user_shar
 }
 
 export interface SetUserSharingDataCommandResult {
-  success: boolean; // todo better base repsonse
+  success: true;
 }

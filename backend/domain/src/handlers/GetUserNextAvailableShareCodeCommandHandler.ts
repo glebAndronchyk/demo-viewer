@@ -7,11 +7,14 @@ import type {
   GetUserNextAvailableShareCodeCommand,
   GetUserNextAvailableShareCodeCommandResult,
 } from "../commands/GetUserNextAvailableShareCodeCommand.ts";
+import {
+  DomainConflictError,
+  DomainNotFoundError,
+} from "../lib/errors/DomainErrors.ts";
 
 export const getUserNextAvailableShareCodeCommandHandler = (
   outbound: DomainOutbound,
 ) => {
-  // todo add decorator to catch error and remap it to BaseResponse
   const handler: GenericCommandHandler<
     GetUserNextAvailableShareCodeCommand,
     GetUserNextAvailableShareCodeCommandResult
@@ -21,14 +24,14 @@ export const getUserNextAvailableShareCodeCommandHandler = (
     );
 
     if (!userResult) {
-      return { shareCode: null };
+      throw new DomainNotFoundError(`User not found: ${command.userId}`);
     }
 
     let latestKnownShareCode =
       userResult.latestKnownShareCode || userResult.initialKnownShareCode;
 
     if (!latestKnownShareCode || !userResult.steamIdKey) {
-      return { shareCode: null }; // todo: error handling
+      throw new DomainConflictError("User has no sharing data configured");
     }
 
     const codeResult =

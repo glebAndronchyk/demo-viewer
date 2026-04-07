@@ -1,18 +1,19 @@
 import { Elysia } from "elysia";
 import { jwtPlugin } from "./jwtPlugin";
+import { ForbiddenError, UnauthorizedError } from "../../errors/AppErrors";
 
 export const userPlugin = (secret: string) => {
   return new Elysia({ name: "user-plugin" })
     .use(jwtPlugin(secret))
     .derive(
       { as: "scoped" },
-      async ({ jwt, cookie: { auth }, params, status }) => {
+      async ({ jwt, cookie: { auth }, params }) => {
         const data = await jwt.verify(auth.value as any);
         if (!data) {
-          return status(401, "Unauthorized");
+          throw new UnauthorizedError();
         }
         if ("id" in params && params.id !== data.sub) {
-          return status(403, "Forbidden");
+          throw new ForbiddenError();
         }
         return data;
       },

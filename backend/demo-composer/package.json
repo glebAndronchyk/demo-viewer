@@ -1,0 +1,14 @@
+{
+  "name": "@demo-viewer/demo-composer",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "go build -o main.bin ./cmd/main.go"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -2,11 +2,11 @@ import type { DomainOutbound } from "../types/DomainOutbound.ts";
 import type { GenericCommandHandler } from "../lib/command_bus";
 import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DownloadAndParseDemoCommand } from "../commands/DownloadAndParseDemoCommand.ts";
+import { DomainUnavailableError } from "../lib/errors/DomainErrors.ts";
 
 export const downloadAndParseDemoCommandHandler = (
   outbound: DomainOutbound,
 ) => {
-  // todo add decorator to catch error and remap it to BaseResponse
   const handler: GenericCommandHandler<
     DownloadAndParseDemoCommand,
     never
@@ -17,6 +17,10 @@ export const downloadAndParseDemoCommandHandler = (
         command.userSteamIdKey,
         command.lastKnownShareCode,
       );
+
+    if (!nextCodeResult.isSuccess) {
+      throw nextCodeResult.error;
+    }
 
     await outbound.userRepository.updateKnownShareCode(
       command.userId,
@@ -33,18 +37,14 @@ export const downloadAndParseDemoCommandHandler = (
     );
 
     if (!pingResult.isSuccess) {
-      throw pingResult.error;
+      throw new DomainUnavailableError(
+        pingResult.error?.message ?? "Demo not available for download",
+      );
     }
 
-    // // todo: background parsing task
-    // await outbound.parserRepository.parseDemoFromRemote(
-    //   matchUrlResult.data.url,
-    // );
-    // // todo: background parsing task
-
-    // todo: background parsing task
-    // await outbound.parserRepository.parseDemoFromLocal("");
-    // todo: background parsing task
+    await outbound.parserRepository.parseDemoFromRemote(
+      matchUrlResult.data.url,
+    );
 
     return {} as never;
   };

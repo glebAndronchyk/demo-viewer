@@ -5,5 +5,5 @@ export interface GetUserNextAvailableShareCodeCommand extends GenericCommand<"ge
 }
 
 export interface GetUserNextAvailableShareCodeCommandResult {
-  shareCode: string | null;
+  shareCode: string;
 }

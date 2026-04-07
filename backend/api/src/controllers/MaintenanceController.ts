@@ -2,6 +2,10 @@ import { Elysia, t } from "elysia";
 import { CommandBusService } from "../services/CommandBusService";
 import { DownloadAndParseDemoCommand } from "@demo-viewer/domain/src/commands/DownloadAndParseDemoCommand";
 import { UserRepository } from "../repository/UserRepository";
+import {
+  BadRequestError,
+  ResourceNotFoundError,
+} from "../lib/errors/AppErrors";
 
 export class MaintenanceController {
   constructor(
@@ -13,11 +17,15 @@ export class MaintenanceController {
       new Elysia({ prefix: "/maintenance" })
         .post(
           "/parse/:userId",
-          async ({ params: { userId }, status }) => {
+          async ({ params: { userId } }) => {
             const user = await userRepository.getUserById(userId);
 
-            if (!user || !user.latestKnownShareCode || !user.steamIdKey) {
-              return status(400);
+            if (!user) {
+              throw new ResourceNotFoundError("User", userId);
+            }
+
+            if (!user.latestKnownShareCode || !user.steamIdKey) {
+              throw new BadRequestError("User has no sharing data configured");
             }
 
             await commandBus.dispatch<DownloadAndParseDemoCommand>({
@@ -28,9 +36,7 @@ export class MaintenanceController {
               type: "download_and_parse_demo",
             });
 
-            return {
-              chemistry: 1,
-            };
+            return { data: { chemistry: 1 }, error: null, isSuccess: true };
           },
           {
             params: t.Object({
@@ -40,7 +46,7 @@ export class MaintenanceController {
         )
         .put(
           "/user/:userId/reset-share-code",
-          async ({ params: { userId }, status }) => {
+          async ({ params: { userId } }) => {
             await userRepository.resetUserShareCode(userId);
           },
           {

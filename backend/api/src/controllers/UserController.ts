@@ -19,21 +19,19 @@ export class UserController {
             userId: id,
           });
 
-          return result.shareCode;
+          return { data: { shareCode: result.shareCode }, error: null, isSuccess: true };
         })
         .put(
           "/set-user-sharing-data",
           async ({ params: { id }, body }) => {
-            const result = await commandBus.dispatch<SetUserSharingDataCommand>(
-              {
-                type: "set_user_sharing_data",
-                userId: id,
-                knownShareCode: body.knownShareCode,
-                steamIdKey: body.steamIdKey,
-              },
-            );
+            await commandBus.dispatch<SetUserSharingDataCommand>({
+              type: "set_user_sharing_data",
+              userId: id,
+              knownShareCode: body.knownShareCode,
+              steamIdKey: body.steamIdKey,
+            });
 
-            return result.success;
+            return { data: null, error: null, isSuccess: true };
           },
           {
             body: t.Object({

@@ -29,3 +29,4 @@ cs2-demo-parser
 # OS
 .DS_Store
 Thumbs.db
+/main.bin

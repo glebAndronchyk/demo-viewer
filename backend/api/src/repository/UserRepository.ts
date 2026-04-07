@@ -2,6 +2,7 @@ import type { UserOutboundPort } from "@demo-viewer/domain/src/ports/outbound/Us
 import { toUserEntity } from "../mappers/user.mapper";
 import { UserEntity } from "@demo-viewer/domain/src/entities/UserEntity";
 import { DatabaseService } from "../services/DatabaseService";
+import { DomainNotFoundError } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
 
 export class UserRepository implements UserOutboundPort {
   constructor(private readonly database: DatabaseService) {}
@@ -60,7 +61,7 @@ export class UserRepository implements UserOutboundPort {
     );
 
     if (!updateResult) {
-      throw new Error(`User not found: ${id}`);
+      throw new DomainNotFoundError(`User not found: ${id}`);
     }
 
     return toUserEntity(updateResult);
