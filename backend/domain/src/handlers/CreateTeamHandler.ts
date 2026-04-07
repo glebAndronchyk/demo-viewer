@@ -27,3 +27,5 @@ export const createTeamRegistration = createRegistration<CreateTeamCommand, Crea
   "create_team",
   createTeamHandler,
 );
+
+export default createTeamRegistration;

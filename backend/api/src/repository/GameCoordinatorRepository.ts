@@ -5,37 +5,50 @@ import { NextAvailableMatchResponse } from "../types/steam/response/NextAvailabl
 import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse";
 import { decodeMatchShareCode } from "csgo-sharecode";
 import GlobalOffensive from "globaloffensive";
-import SteamUser from "steam-user";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
+import { SteamBotService } from "../services/SteamBotService";
 
 export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
-  private gcConnected: boolean = false;
-  private readonly gcWaitDelayMs: number = 2000;
-  private readonly gcRetryCount: number = 5;
-
-  private readonly gc: GlobalOffensive;
   private readonly http: AxiosInstance;
+  private readonly matchListListeners = new Map<
+    string,
+    (match: GlobalOffensive.Match) => void
+  >();
 
-  constructor(private readonly configuration: ConfigurationInboundPort) {
+  constructor(
+    private readonly configuration: ConfigurationInboundPort,
+    private readonly botService: SteamBotService,
+  ) {
     this.http = axios.create();
 
-    const steamUser = new SteamUser();
-    this.gc = new GlobalOffensive(steamUser);
+    // create a single listener for all incoming gc.matchList requests
+    this.botService.gc.addListener(
+      "matchList",
+      (matches: GlobalOffensive.Match[]) => {
+        console.log(`[GC] matches received`);
 
-    // load the game
-    steamUser.gamesPlayed([this.configuration.steamApiKey]);
+        const match = matches[0];
+        if (!match) return;
 
-    this.gc.on("connectionStatus", (status) => {
-      if (status === GlobalOffensive.GCConnectionStatus.NO_SESSION) {
-        // retry session when connection lost
-        steamUser.gamesPlayed([this.configuration.steamApiKey]);
-        this.gcConnected = false;
-      }
+        const matchId = match.matchid;
 
-      if (status === GlobalOffensive.GCConnectionStatus.HAVE_SESSION) {
-        this.gcConnected = true;
-      }
-    });
+        this.matchListListeners.get(matchId)?.(match);
+        this.matchListListeners.delete(matchId);
+      },
+    );
+  }
+
+  async pingMatchUrl(url: string): Promise<BaseResponse<never>> {
+    try {
+      await axios.get(url);
+      return { isSuccess: true, data: null as never };
+    } catch (e) {
+      return {
+        isSuccess: false,
+        data: null as never,
+        error: new Error("Demo not available anymore for download"),
+      };
+    }
   }
 
   // todo: error handling
@@ -85,34 +98,26 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
   async getMatchUrlById(
     shareCode: string,
   ): Promise<BaseResponse<{ url: string }>> {
+    const {
+      data: decodedShareCode,
+      error,
+      isSuccess,
+    } = await this.decodeShareCode(shareCode);
+
+    if (!isSuccess) {
+      return {
+        isSuccess: false,
+        data: null as never,
+        error: error,
+      };
+    }
+
     const { promise, resolve } =
       Promise.withResolvers<BaseResponse<{ url: string }>>();
 
-    const { isSuccess: isGcConnected } = await this.waitForGcToConnect();
-    if (!isGcConnected)
-      return {
-        data: null as never,
-        error: new Error("Timeout during gc connection"),
-        isSuccess: false,
-      };
-
-    this.gc.requestGame(shareCode);
-
-    // wait for game to fetch // todo: handle timeout here too
-    const matchListHandler = (
-      matches: GlobalOffensive.Match[],
-      _: GlobalOffensive.MatchesData,
-    ) => {
-      const match = matches[0];
-      if (!match) {
-        return resolve({
-          data: null as never,
-          isSuccess: false,
-          error: new Error("Match not found"),
-        });
-      }
-
-      const url = match.roundstatsall[0].map; // map represents the demo_url
+    console.log(`[GC] requesting game for shareCode=${shareCode}`);
+    this.matchListListeners.set(decodedShareCode.matchId, (match) => {
+      const url = match.roundstatsall[match.roundstatsall.length - 1].map; // map represents the demo_url
       if (!url) {
         return resolve({
           data: null as never,
@@ -122,36 +127,14 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
       }
 
       resolve({ data: { url }, isSuccess: true });
-      this.gc.off("matchList", matchListHandler);
-    };
+    });
 
-    this.gc.on("matchList", matchListHandler);
+    this.botService.gc.requestGame(shareCode);
 
     return promise;
   }
 
   downloadMatchById(matchId: string): Promise<BaseResponse<{ path: string }>> {
     throw new Error("Method not implemented.");
-  }
-
-  /**
-   * Waits game coordinator to load
-   */
-  private waitForGcToConnect(): Promise<BaseResponse<never>> {
-    const { promise, resolve } = Promise.withResolvers<BaseResponse<never>>();
-    let retries = 0;
-    const interval = setInterval(() => {
-      if (this.gcConnected) {
-        clearInterval(interval);
-        return resolve({ isSuccess: true, data: null as never });
-      }
-      if (retries >= this.gcRetryCount) {
-        clearInterval(interval);
-        return resolve({ isSuccess: false, data: null as never });
-      }
-      retries++;
-    }, this.gcWaitDelayMs);
-
-    return promise;
   }
 }

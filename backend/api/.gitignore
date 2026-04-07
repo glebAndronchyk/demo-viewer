@@ -33,6 +33,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+#steam
+
+/steam/
+
 **/*.trace
 **/*.zip
 **/*.tar.gz

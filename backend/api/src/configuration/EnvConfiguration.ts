@@ -20,7 +20,7 @@ export class EnvConfiguration implements ConfigurationInboundPort {
   }
 
   get cs2AppId(): number {
-    return this.env.CS2_APP_ID;
+    return Number(this.env.CS2_APP_ID);
   }
 
   get jwtSecret(): string {
@@ -37,6 +37,16 @@ export class EnvConfiguration implements ConfigurationInboundPort {
 
   get databaseConnectionString(): string {
     return this.env.DB_CONNECTION_STRING ?? "";
+  }
+
+  // todo: load from secure storage
+  get steamGameCoordinatorBotAccountName(): string {
+    return this.env.STEAM_GAME_COORDINATOR_BOT_ACCOUNT_NAME ?? "";
+  }
+
+  // todo: load from secure storage
+  get steamGameCoordinatorBotAccountPassword(): string {
+    return this.env.STEAM_GAME_COORDINATOR_BOT_ACCOUNT_PASSWORD ?? "";
   }
 
   constructor() {

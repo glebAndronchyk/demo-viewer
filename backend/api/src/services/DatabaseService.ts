@@ -1,21 +1,18 @@
-import {
-  connectDatabase,
-  type DatabaseConnection,
-} from "@demo-viewer/database";
+import { connectDatabase, UserModel } from "@demo-viewer/database";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 
 export class DatabaseService {
-  protected constructor(connection: DatabaseConnection) {
-    return connection;
+  get UserModel() {
+    return UserModel;
   }
 
   static async connect(
     configuration: ConfigurationInboundPort,
   ): Promise<DatabaseService> {
-    const connection = await connectDatabase({
+    await connectDatabase({
       uri: configuration.databaseConnectionString,
     });
 
-    return new this(connection);
+    return new this();
   }
 }

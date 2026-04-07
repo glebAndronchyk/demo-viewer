@@ -10,5 +10,8 @@ declare module "bun" {
 
     JWT_SECRET: string;
     DB_CONNECTION_STRING: string;
+
+    STEAM_GAME_COORDINATOR_BOT_ACCOUNT_NAME: string;
+    STEAM_GAME_COORDINATOR_BOT_ACCOUNT_PASSWORD: string;
   }
 }

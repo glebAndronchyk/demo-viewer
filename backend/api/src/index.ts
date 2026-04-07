@@ -18,6 +18,8 @@ import {
 import { CollectMatchesFromUserCron } from "./cron";
 import { DatabaseService } from "./services/DatabaseService";
 import { UserController } from "./controllers/UserController";
+import { UserRepository } from "./repository/UserRepository";
+import { SteamBotService } from "./services/SteamBotService";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -25,24 +27,32 @@ const config = new EnvConfiguration();
 console.log(`Loaded config:${config.toJson()}`);
 
 const db = await DatabaseService.connect(config);
+const steamBot = await SteamBotService.create(config);
 
 const di = new DIContainer()
   .addSingleton(TypedApp)
   .addInstance(EnvConfiguration, config)
-  .addInstance(DatabaseService as any, db)
-  // repositories/services/commands
-  .addSingleton(TeamRepository)
-  .addSingleton(AuthRepository, [EnvConfiguration])
-  .addSingleton(GameCoordinatorRepository, [EnvConfiguration])
-  .addSingleton(ParserRepository, [EnvConfiguration])
+  .addInstance(DatabaseService, db)
+  .addInstance(SteamBotService, steamBot)
   .addSingleton(CommandBusService, [
     AuthRepository,
     GameCoordinatorRepository,
     ParserRepository,
     TeamRepository,
+    UserRepository,
   ])
+  // repositories/services/commands
+  .addSingleton(TeamRepository)
+  .addSingleton(AuthRepository, [EnvConfiguration])
+  .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
+  .addSingleton(ParserRepository, [EnvConfiguration])
+  .addSingleton(UserRepository, [DatabaseService])
   // controllers
-  .addSingleton(MaintenanceController, [TypedApp, CommandBusService])
+  .addSingleton(MaintenanceController, [
+    TypedApp,
+    CommandBusService,
+    UserRepository,
+  ])
   .addSingleton(AnalyticsController, [TypedApp, CommandBusService])
   .addSingleton(AuthorizationController, [
     TypedApp,
@@ -53,7 +63,7 @@ const di = new DIContainer()
   .addSingleton(ParsingController, [TypedApp, CommandBusService])
   .addSingleton(StreamingController, [TypedApp, CommandBusService])
   .addSingleton(TeamController, [TypedApp, CommandBusService])
-  .addSingleton(UserController, [TypedApp, EnvConfiguration])
+  .addSingleton(UserController, [TypedApp, EnvConfiguration, CommandBusService])
   // cron
   .addSingleton(CollectMatchesFromUserCron, [TypedApp, CommandBusService]);
 

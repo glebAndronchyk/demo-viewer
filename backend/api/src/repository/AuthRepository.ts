@@ -1,5 +1,6 @@
 import { SignJWT } from "jose";
 import { UserModel, MatchModel } from "@demo-viewer/database";
+import { toUserEntity } from "../mappers/user.mapper";
 import type {
   AuthOutboundPort,
   UserRecord,
@@ -16,20 +17,14 @@ export class AuthRepository implements AuthOutboundPort {
   async findUserBySteamId(steamId: string): Promise<UserRecord | null> {
     const user = await UserModel.findOne({ steam_id: steamId }).lean();
     if (!user) return null;
-    return {
-      id: (user._id as { toString(): string }).toString(),
-      steam_id: user.steam_id,
-      createdAt: user.createdAt,
-    };
+    const entity = toUserEntity(user);
+    return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
   }
 
   async createUser(steamId: string): Promise<UserRecord> {
     const user = await UserModel.create({ steam_id: steamId });
-    return {
-      id: (user._id as { toString(): string }).toString(),
-      steam_id: user.steam_id,
-      createdAt: user.createdAt,
-    };
+    const entity = toUserEntity(user);
+    return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
   }
 
   async linkMatchesToUser(steamId: string, userId: string): Promise<number> {

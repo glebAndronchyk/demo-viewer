@@ -34,3 +34,5 @@ export const linkMatchesToUserRegistration = createRegistration<
   LinkMatchesToUserCommand,
   LinkMatchesToUserCommandResult
 >("link_matches_to_user", linkMatchesToUserHandler);
+
+export default linkMatchesToUserRegistration;

@@ -31,4 +31,12 @@ export interface ConfigurationInboundPort {
    * URL of the frontend application
    */
   frontendUrl: string;
+  /**
+   * Bot account name
+   */
+  steamGameCoordinatorBotAccountName: string;
+  /**
+   * Bot account password
+   */
+  steamGameCoordinatorBotAccountPassword: string;
 }

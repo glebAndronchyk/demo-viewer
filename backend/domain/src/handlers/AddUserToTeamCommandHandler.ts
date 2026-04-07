@@ -30,3 +30,5 @@ export const addUserToTeamRegistration = createRegistration<AddUserToTeamCommand
   "add_user_to_team",
   addUserToTeamCommandHandler,
 );
+
+export default addUserToTeamRegistration;

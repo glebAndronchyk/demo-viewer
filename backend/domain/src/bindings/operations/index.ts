@@ -1,18 +1,21 @@
 import * as registrations from "../../handlers/index.ts";
-import { buildOperations, type RegistrationsToMap } from "../../lib/command_bus/buildOperations.ts";
+import {
+  buildOperations,
+  type RegistrationsToMap,
+} from "../../lib/command_bus/buildOperations.ts";
 import type { DomainOutbound } from "../../types/DomainOutbound.ts";
 
-const allRegistrations = [
-  registrations.createTeamRegistration,
-  registrations.addUserToTeamRegistration,
-  registrations.registerOrLoginWithSteamRegistration,
-  registrations.linkMatchesToUserRegistration,
-  registrations.downloadAndParseDemoRegistration,
-] as const;
+type Registrations = typeof registrations;
+type AllRegistrations = ReadonlyArray<Registrations[keyof Registrations]>;
 
-export type DomainCommandsMap = RegistrationsToMap<typeof allRegistrations>;
+const allRegistrations = Object.values(
+  registrations,
+) as unknown as AllRegistrations;
 
-const domainOperationsConstructor = (outbound: DomainOutbound): DomainCommandsMap =>
-  buildOperations(allRegistrations, outbound);
+export type DomainCommandsMap = RegistrationsToMap<AllRegistrations>;
+
+const domainOperationsConstructor = (
+  outbound: DomainOutbound,
+): DomainCommandsMap => buildOperations(allRegistrations, outbound);
 
 export default domainOperationsConstructor;

@@ -46,3 +46,5 @@ export const registerOrLoginWithSteamRegistration = createRegistration<
   RegisterOrLoginWithSteamCommand,
   RegisterOrLoginWithSteamCommandResult
 >("register_or_login_with_steam", registerOrLoginWithSteamHandler);
+
+export default registerOrLoginWithSteamRegistration;
