@@ -7,7 +7,7 @@ export interface ParseArgs {
   fileUrl?: string | null;
 }
 
-const parse = async (args: ParseArgs): Promise<void> => {
+const parse = (args: ParseArgs): { pid: number; promise: Promise<number> } => {
   const child = Bun.spawn(
     Boolean(args.filePath)
       ? [
@@ -26,11 +26,21 @@ const parse = async (args: ParseArgs): Promise<void> => {
         ],
     { env: { ...process.env }, stdio: ["inherit", "inherit", "inherit"] },
   );
-  const exitCode = await child.exited;
 
-  if (exitCode !== 0) {
-    throw new Error(`Demo parser exited with code ${exitCode}`);
-  }
+  child.exited
+    .then((code) => {
+      if (code !== 0) {
+        throw new Error(`Demo parser exited with code ${code}.`);
+      }
+    })
+    .catch(() => {
+      throw new Error("Parser failed to start.");
+    });
+
+  return {
+    pid: child.pid,
+    promise: child.exited,
+  };
 };
 
 export default parse;

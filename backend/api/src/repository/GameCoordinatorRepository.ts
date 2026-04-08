@@ -40,6 +40,14 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
 
   async pingMatchUrl(url: string): Promise<BaseResponse<never>> {
     try {
+      if (!url) {
+        return {
+          isSuccess: false,
+          data: null as never,
+          error: new Error("No url given to ping."),
+        };
+      }
+
       await axios.get(url);
       return { isSuccess: true, data: null as never };
     } catch (e) {
@@ -70,6 +78,14 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
         } satisfies NextAvailableMatchRequestParams,
       },
     );
+
+    if (response.data.result.nextcode === "n/a") {
+      return {
+        data: null as never,
+        isSuccess: false,
+        error: new Error("No new code available"),
+      };
+    }
 
     return {
       data: { nextCode: response.data.result.nextcode },

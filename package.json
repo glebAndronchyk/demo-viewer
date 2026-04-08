@@ -21,6 +21,7 @@
     "frontend/*"
   ],
   "dependencies": {
-    "@elysiajs/openapi": "^1.4.14"
+    "@elysiajs/openapi": "^1.4.14",
+    "@elysiajs/server-timing": "^1.4.0"
   }
 }

@@ -5,3 +5,4 @@ export { default as linkMatchesToUserRegistration } from "./LinkMatchesToUserHan
 export { default as downloadAndParseDemoRegistration } from "./DownloadAndParseDemoCommandHandler.ts";
 export { default as getUserNextAvailableShareCodeRegistration } from "./GetUserNextAvailableShareCodeCommandHandler.ts";
 export { default as setUserSharingDataCommandHandler } from "./SetUserSharingDataCommandHandler.ts";
+export { default as seekNextAvailableCodeOfNextUsersRegistration } from "./SeekNextAvailableCodeOfNextUsersCommandHandler.ts";

@@ -7,6 +7,10 @@ export interface UserOutboundPort {
     steamIdKey: string;
     knownShareCode: string;
   }): Promise<UserEntity>;
-  updateKnownShareCode: (id: string, shareCode: string) => Promise<void>;
+  updateKnownShareCode: (
+    id: string,
+    shareCode: string | null | undefined,
+  ) => Promise<void>;
   resetUserShareCode: (id: string) => Promise<void>;
+  getUsersWithSharingData(offset: number, limit: number): Promise<UserEntity[]>;
 }

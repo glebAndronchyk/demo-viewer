@@ -5,13 +5,11 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 export class ParserRepository implements ParserOutbound {
   constructor(private readonly configuration: ConfigurationInboundPort) {}
 
-  async parseDemoFromRemote(url: string): Promise<object> {
-    await parse({ fileUrl: url, framesInChunkCount: 100 });
-    return {};
+  parseDemoFromRemote(url: string) {
+    return parse({ fileUrl: url, framesInChunkCount: 100 });
   }
 
-  async parseDemoFromLocal(path: string): Promise<object> {
-    await parse({ filePath: path, framesInChunkCount: 100 });
-    return {};
+  parseDemoFromLocal(path: string) {
+    return parse({ filePath: path, framesInChunkCount: 100 });
   }
 }

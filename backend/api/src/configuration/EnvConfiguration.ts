@@ -44,9 +44,21 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.STEAM_GAME_COORDINATOR_BOT_ACCOUNT_NAME ?? "";
   }
 
+  get shareCodeSeekStep(): number {
+    return Number(this.env.SHARE_CODE_SEEK_STEP ?? 10);
+  }
+
   // todo: load from secure storage
   get steamGameCoordinatorBotAccountPassword(): string {
     return this.env.STEAM_GAME_COORDINATOR_BOT_ACCOUNT_PASSWORD ?? "";
+  }
+
+  get maxParallelRssGb(): number {
+    return parseInt(this.env.MAX_PARALLEL_RSS_GB ?? "1");
+  }
+
+  get debug(): boolean {
+    return this.env.DEBUG === "true";
   }
 
   constructor() {

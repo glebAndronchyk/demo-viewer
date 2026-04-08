@@ -20,6 +20,7 @@ import { DatabaseService } from "./services/DatabaseService";
 import { UserController } from "./controllers/UserController";
 import { UserRepository } from "./repository/UserRepository";
 import { SteamBotService } from "./services/SteamBotService";
+import { ComputeResourcesQueueService } from "./services/ComputeResourcesQueueService";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -30,8 +31,8 @@ const db = await DatabaseService.connect(config);
 const steamBot = await SteamBotService.create(config);
 
 const di = new DIContainer()
-  .addSingleton(TypedApp)
   .addInstance(EnvConfiguration, config)
+  .addSingleton(TypedApp as any, [EnvConfiguration])
   .addInstance(DatabaseService, db)
   .addInstance(SteamBotService, steamBot)
   .addSingleton(CommandBusService, [
@@ -40,6 +41,8 @@ const di = new DIContainer()
     ParserRepository,
     TeamRepository,
     UserRepository,
+    EnvConfiguration,
+    ComputeResourcesQueueService,
   ])
   // repositories/services/commands
   .addSingleton(TeamRepository)
@@ -64,8 +67,13 @@ const di = new DIContainer()
   .addSingleton(StreamingController, [TypedApp, CommandBusService])
   .addSingleton(TeamController, [TypedApp, CommandBusService])
   .addSingleton(UserController, [TypedApp, EnvConfiguration, CommandBusService])
+  .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
   // cron
-  .addSingleton(CollectMatchesFromUserCron, [TypedApp, CommandBusService]);
+  .addSingleton(CollectMatchesFromUserCron, [
+    TypedApp,
+    CommandBusService,
+    EnvConfiguration,
+  ]);
 
 di.activate();
 const cfg = di.getInstance(EnvConfiguration);

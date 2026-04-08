@@ -1,4 +1,4 @@
 export interface ParserOutbound {
-  parseDemoFromRemote(url: string): Promise<object>;
-  parseDemoFromLocal(path: string): Promise<object>;
+  parseDemoFromRemote(url: string): { pid: number; promise: Promise<number> };
+  parseDemoFromLocal(path: string): { pid: number; promise: Promise<number> };
 }

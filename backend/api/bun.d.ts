@@ -1,6 +1,7 @@
 declare module "bun" {
   interface Env {
     API_PORT: number;
+    MAX_PARALLEL_RSS_GB: string;
 
     STEAM_BASE_URL: string;
     STEAM_API_KEY: string;

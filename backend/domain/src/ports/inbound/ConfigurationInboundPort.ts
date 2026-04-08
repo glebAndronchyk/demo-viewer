@@ -39,4 +39,16 @@ export interface ConfigurationInboundPort {
    * Bot account password
    */
   steamGameCoordinatorBotAccountPassword: string;
+  /**
+   * Number of users to process per seek step
+   */
+  shareCodeSeekStep: number;
+  /**
+   * Maximum ram usage for parallel demo parsing and analytics calculation in gigabytes
+   */
+  maxParallelRssGb: number;
+  /**
+   * Enable debug logging
+   */
+  debug: boolean;
 }

@@ -1,7 +1,10 @@
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
 import type { GenericCommandHandler } from "../lib/command_bus";
 import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
-import type { DownloadAndParseDemoCommand } from "../commands/DownloadAndParseDemoCommand.ts";
+import type {
+  DownloadAndParseDemoCommand,
+  DownloadAndParseDemoCommandResult,
+} from "../commands/DownloadAndParseDemoCommand.ts";
 import { DomainUnavailableError } from "../lib/errors/DomainErrors.ts";
 
 export const downloadAndParseDemoCommandHandler = (
@@ -9,7 +12,7 @@ export const downloadAndParseDemoCommandHandler = (
 ) => {
   const handler: GenericCommandHandler<
     DownloadAndParseDemoCommand,
-    never
+    DownloadAndParseDemoCommandResult
   > = async (command) => {
     const nextCodeResult =
       await outbound.gameCoordinatorRepository.getNextAvailableShareCode(
@@ -32,6 +35,10 @@ export const downloadAndParseDemoCommandHandler = (
         nextCodeResult.data.nextCode,
       );
 
+    if (!matchUrlResult.isSuccess) {
+      throw matchUrlResult.error;
+    }
+
     const pingResult = await outbound.gameCoordinatorRepository.pingMatchUrl(
       matchUrlResult.data.url,
     );
@@ -42,11 +49,15 @@ export const downloadAndParseDemoCommandHandler = (
       );
     }
 
-    await outbound.parserRepository.parseDemoFromRemote(
-      matchUrlResult.data.url,
+    await outbound.queue.enqueue(
+      () =>
+        outbound.parserRepository.parseDemoFromRemote(matchUrlResult.data.url)
+          .promise,
     );
 
-    return {} as never;
+    return {
+      url: matchUrlResult.data.url,
+    };
   };
 
   handler.match = (c: object): c is DownloadAndParseDemoCommand => {
@@ -62,7 +73,7 @@ export const downloadAndParseDemoCommandHandler = (
 
 export const downloadAndParseDemoRegistration = createRegistration<
   DownloadAndParseDemoCommand,
-  never
+  DownloadAndParseDemoCommandResult
 >("download_and_parse_demo", downloadAndParseDemoCommandHandler);
 
 export default downloadAndParseDemoRegistration;

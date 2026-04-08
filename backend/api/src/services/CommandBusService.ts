@@ -7,6 +7,8 @@ import { GameCoordinatorRepository } from "../repository/GameCoordinatorReposito
 import { AuthRepository } from "../repository/AuthRepository";
 import { TeamRepository } from "../repository/TeamRepository";
 import { UserRepository } from "../repository/UserRepository";
+import { EnvConfiguration } from "../configuration/EnvConfiguration";
+import { ComputeResourcesQueueService } from "./ComputeResourcesQueueService";
 
 export class CommandBusService extends CommandBus<DomainCommandsMap> {
   constructor(
@@ -15,6 +17,8 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
     parserRepository: ParserRepository,
     teamRepository: TeamRepository,
     userRepository: UserRepository,
+    configuration: EnvConfiguration,
+    queue: ComputeResourcesQueueService,
   ) {
     super(
       domainOperations({
@@ -23,6 +27,8 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
         parserRepository,
         teamRepository,
         userRepository,
+        configuration,
+        queue,
       }),
     );
   }

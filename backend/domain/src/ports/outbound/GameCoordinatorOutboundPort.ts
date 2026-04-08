@@ -11,5 +11,5 @@ export interface GameCoordinatorOutboundPort {
   ): Promise<BaseResponse<{ matchId: string }>>;
   getMatchUrlById(matchId: string): Promise<BaseResponse<{ url: string }>>;
   downloadMatchById(matchId: string): Promise<BaseResponse<{ path: string }>>;
-  pingMatchUrl(url: string): Promise<BaseResponse<never>>;
+  pingMatchUrl(url?: string): Promise<BaseResponse<never>>;
 }

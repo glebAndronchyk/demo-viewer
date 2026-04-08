@@ -29,7 +29,9 @@ export class UserRepository implements UserOutboundPort {
     );
   }
 
-  async updateKnownShareCode(id: string, shareCode: string) {
+  async updateKnownShareCode(id: string, shareCode: string | null | undefined) {
+    if (!shareCode) return;
+
     await this.database.UserModel.updateOne(
       {
         _id: id,
@@ -39,6 +41,19 @@ export class UserRepository implements UserOutboundPort {
         share_code_verified_at: new Date(),
       },
     );
+  }
+
+  async getUsersWithSharingData(
+    offset: number,
+    limit: number,
+  ): Promise<UserEntity[]> {
+    const users = await this.database.UserModel.find({
+      steam_id_key: { $ne: null },
+      latest_known_share_code: { $ne: null },
+    })
+      .skip(offset)
+      .limit(limit);
+    return users.map(toUserEntity);
   }
 
   async setUserSharingData(payload: {

@@ -13,11 +13,22 @@ import {
   DomainConflictError,
   DomainUnavailableError,
 } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
+import { EnvConfiguration } from "../configuration/EnvConfiguration";
+import serverTiming from "@elysiajs/server-timing";
 
 export class App {
-  constructor() {
+  constructor(config: EnvConfiguration) {
     return new Elysia()
       .use(openapi())
+      .use(serverTiming())
+      .onRequest(({ request }) => {
+        if (config.debug) {
+          const url = new URL(request.url);
+          console.log(
+            `[API][${new Date().toISOString()}] ${request.method} ${url.pathname}${url.search}`,
+          );
+        }
+      })
       .error({
         UNAUTHORIZED: UnauthorizedError,
         FORBIDDEN: ForbiddenError,
@@ -94,7 +105,10 @@ export class App {
         set.status = 500;
         return {
           data: null,
-          error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" },
+          error: {
+            message: "Internal server error",
+            code: "INTERNAL_SERVER_ERROR",
+          },
           isSuccess: false,
         };
       })

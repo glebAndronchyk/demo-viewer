@@ -6,3 +6,7 @@ export interface DownloadAndParseDemoCommand extends GenericCommand<"download_an
   userSteamIdKey: string;
   lastKnownShareCode: string;
 }
+
+export interface DownloadAndParseDemoCommandResult {
+  url: string;
+}
