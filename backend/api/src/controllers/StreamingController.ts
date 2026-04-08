@@ -3,6 +3,8 @@ import { CommandBusService } from "../services/CommandBusService";
 
 export class StreamingController {
   constructor(app: Elysia, commandBus: CommandBusService) {
-    app.use(new Elysia({ prefix: "/streaming" }));
+    app.use(new Elysia({ prefix: "/streaming" })).ws("/match", {
+      message: (ws, message) => {},
+    });
   }
 }

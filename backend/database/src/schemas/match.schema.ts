@@ -126,6 +126,10 @@ export const MatchSchema = new Schema<IMatchDocument>(
       default: '',
       trim: true,
     },
+    share_code: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -142,3 +146,4 @@ MatchSchema.index({ map_id: 1 });
 MatchSchema.index({ group_id: 1 });
 MatchSchema.index({ demo_id: 1 }, { unique: true, sparse: true });
 MatchSchema.index({ map_name: 1 });
+MatchSchema.index({ share_code: 1 }, { unique: true, sparse: true });

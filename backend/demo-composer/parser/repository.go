@@ -82,6 +82,10 @@ func (r *Repository) InsertMatch(header DemoHeader) error {
 		"group_id":        nil,
 	}
 
+	if header.ShareCode != "" {
+		doc["share_code"] = header.ShareCode
+	}
+
 	_, err := r.matchesCol.InsertOne(ctx, doc)
 	return err
 }

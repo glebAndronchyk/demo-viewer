@@ -5,6 +5,7 @@ import type { ParserOutbound } from "../ports/outbound/ParserOutbound.ts";
 import type { UserOutboundPort } from "../ports/outbound/UserOutboundPort.ts";
 import type { ConfigurationInboundPort } from "../ports/inbound/ConfigurationInboundPort.ts";
 import type { QueueOutboundPort } from "../ports/outbound/QueueOutboundPort.ts";
+import type { MatchOutboundPort } from "../ports/outbound/MatchOutboundPort.ts";
 
 export interface DomainOutbound {
   teamRepository: TeamOutboundPort;
@@ -12,6 +13,7 @@ export interface DomainOutbound {
   gameCoordinatorRepository: GameCoordinatorOutboundPort;
   parserRepository: ParserOutbound;
   userRepository: UserOutboundPort;
+  matchRepository: MatchOutboundPort;
   configuration: ConfigurationInboundPort;
   queue: QueueOutboundPort;
 }

@@ -12,6 +12,7 @@ func main() {
 	demoFile := flag.String("demo", "", "Path to CS2 demo file")
 	demoUrl := flag.String("url", "", "Path to CS2 demo url")
 	chunkSize := flag.Int("chunk-size", 1000, "Number of frames per chunk for MongoDB storage")
+	shareCode := flag.String("share-code", "", "Steam share code for this demo (used for deduplication)")
 	help := flag.Bool("help", false, "Show help message")
 
 	flag.Parse()
@@ -38,7 +39,7 @@ func main() {
 	}
 	defer repo.Disconnect()
 
-	p := parser.NewParser(*demoFile, *demoUrl, *chunkSize, repo)
+	p := parser.NewParser(*demoFile, *demoUrl, *chunkSize, *shareCode, repo)
 
 	log.Printf("Started demo parsing")
 	if err := p.Parse(); err != nil {

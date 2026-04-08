@@ -5,8 +5,8 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 export class ParserRepository implements ParserOutbound {
   constructor(private readonly configuration: ConfigurationInboundPort) {}
 
-  parseDemoFromRemote(url: string) {
-    return parse({ fileUrl: url, framesInChunkCount: 100 });
+  parseDemoFromRemote(url: string, shareCode?: string) {
+    return parse({ fileUrl: url, framesInChunkCount: 100, shareCode });
   }
 
   parseDemoFromLocal(path: string) {

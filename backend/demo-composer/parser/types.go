@@ -40,6 +40,7 @@ type DemoChunk struct {
 type DemoHeader struct {
 	MessageType    string  `bson:"message_type" json:"message_type"` // Unique identifier for this demo
 	DemoID         string  `bson:"demo_id" json:"demo_id"`           // Unique identifier for this demo
+	ShareCode      string  `bson:"share_code,omitempty" json:"share_code,omitempty"`
 	MapName        string  `bson:"map_name" json:"map_name"`
 	ServerName     string  `bson:"server_name" json:"server_name"`
 	ClientName     string  `bson:"client_name" json:"client_name"`

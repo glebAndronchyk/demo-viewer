@@ -3,6 +3,7 @@ import { AuthRepository } from "./repository/AuthRepository";
 import { EnvConfiguration } from "./configuration/EnvConfiguration";
 import { GameCoordinatorRepository } from "./repository/GameCoordinatorRepository";
 import { ParserRepository } from "./repository/ParserRepository";
+import { MatchRepository } from "./repository/MatchRepository";
 import { DIContainer } from "@demo-viewer/backend-shared/src/lib/di/DIContainer";
 import { CommandBusService } from "./services/CommandBusService";
 import { App } from "./app/App";
@@ -41,6 +42,7 @@ const di = new DIContainer()
     ParserRepository,
     TeamRepository,
     UserRepository,
+    MatchRepository,
     EnvConfiguration,
     ComputeResourcesQueueService,
   ])
@@ -50,6 +52,7 @@ const di = new DIContainer()
   .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
   .addSingleton(ParserRepository, [EnvConfiguration])
   .addSingleton(UserRepository, [DatabaseService])
+  .addSingleton(MatchRepository)
   // controllers
   .addSingleton(MaintenanceController, [
     TypedApp,

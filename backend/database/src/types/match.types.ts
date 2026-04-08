@@ -30,6 +30,7 @@ export interface IMatch {
   playback_ticks: number;
   playback_frames: number;
   parsed_at: string;
+  share_code?: string;
 }
 
 export interface IMatchDocument extends IMatch, Document {}

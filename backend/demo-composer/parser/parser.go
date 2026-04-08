@@ -26,6 +26,7 @@ type Parser struct {
 	framesAmountPerChunk int
 	totalChunksProcessed int
 	demoID               string
+	shareCode            string
 	framesBuffer         []Frame
 	currentTick          int
 	playerConnections    map[uint64]bool
@@ -42,12 +43,13 @@ func (p *Parser) IsRemoteParse() bool {
 }
 
 // NewParser creates a new demo parser
-func NewParser(demoFile string, demoUrl string, chunkSize int, repo *Repository) *Parser {
+func NewParser(demoFile string, demoUrl string, chunkSize int, shareCode string, repo *Repository) *Parser {
 	return &Parser{
 		demoFile:             demoFile,
 		demoUrl:              demoUrl,
 		framesAmountPerChunk: chunkSize,
 		demoID:               uuid.New().String(),
+		shareCode:            shareCode,
 		framesBuffer:         make([]Frame, 0, chunkSize),
 		playerConnections:    make(map[uint64]bool),
 		participantsSeen:     make(map[uint64]ParticipantInfo),
@@ -86,6 +88,7 @@ func (p *Parser) Parse() error {
 	}
 	demoHeader := DemoHeader{
 		DemoID:         p.demoID,
+		ShareCode:      p.shareCode,
 		MapName:        header.MapName,
 		ServerName:     header.ServerName,
 		ClientName:     header.ClientName,

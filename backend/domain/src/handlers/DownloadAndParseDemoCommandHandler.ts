@@ -39,6 +39,17 @@ export const downloadAndParseDemoCommandHandler = (
       throw matchUrlResult.error;
     }
 
+    const existingMatch = await outbound.matchRepository.findByShareCode(
+      nextCodeResult.data.nextCode,
+    );
+
+    if (existingMatch) {
+      console.log(
+        `[DownloadAndParseDemo] Share code ${nextCodeResult.data.nextCode} already parsed, skipping.`,
+      );
+      return { url: null };
+    }
+
     const pingResult = await outbound.gameCoordinatorRepository.pingMatchUrl(
       matchUrlResult.data.url,
     );
@@ -51,8 +62,10 @@ export const downloadAndParseDemoCommandHandler = (
 
     await outbound.queue.enqueue(
       () =>
-        outbound.parserRepository.parseDemoFromRemote(matchUrlResult.data.url)
-          .promise,
+        outbound.parserRepository.parseDemoFromRemote(
+          matchUrlResult.data.url,
+          nextCodeResult.data.nextCode,
+        ).promise,
     );
 
     return {

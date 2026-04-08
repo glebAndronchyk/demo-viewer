@@ -8,5 +8,5 @@ export interface DownloadAndParseDemoCommand extends GenericCommand<"download_an
 }
 
 export interface DownloadAndParseDemoCommandResult {
-  url: string;
+  url: string | null;
 }
