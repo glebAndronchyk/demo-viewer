@@ -1,5 +1,20 @@
 import { Document } from 'mongoose';
 
+export interface IRound {
+  round_number: number;
+  winner: string;
+  start_demo_tick: number;
+  end_demo_tick: number;
+  start_game_tick: number;
+  end_game_tick: number;
+}
+
+export interface IMatchOutcome {
+  winner: string;
+  t_score: number;
+  ct_score: number;
+}
+
 export interface IParticipant {
   steam_id?: string;
   user_id?: string;
@@ -31,6 +46,8 @@ export interface IMatch {
   playback_frames: number;
   parsed_at: string;
   share_code?: string;
+  rounds: IRound[];
+  outcome: IMatchOutcome;
 }
 
 export interface IMatchDocument extends IMatch, Document {}

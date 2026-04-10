@@ -1,3 +1,18 @@
+export interface RoundInfo {
+  roundNumber: number;
+  winner: string;
+  startDemoTick: number;
+  endDemoTick: number;
+  startGameTick: number;
+  endGameTick: number;
+}
+
+export interface MatchOutcome {
+  winner: string;
+  tScore: number;
+  ctScore: number;
+}
+
 export interface MatchParticipant {
   steamId?: string;
   userId?: string;
@@ -29,4 +44,6 @@ export interface MatchEntity {
   playbackFrames: number;
   parsedAt: string;
   shareCode?: string;
+  rounds: RoundInfo[];
+  outcome: MatchOutcome;
 }

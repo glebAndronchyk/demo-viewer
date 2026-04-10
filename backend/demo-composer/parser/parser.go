@@ -20,6 +20,11 @@ import (
 // Data in demo is very repetitive and can be quantized. We dont need positions tracking in each frame and chunk,
 // events can be stored as separate dynamic object, not in the per frame order.
 // We should also introduce a snapshotting system to properly find per tick difference and reconstruct the history between the,
+type roundStart struct {
+	demoTick int
+	gameTick int
+}
+
 type Parser struct {
 	demoFile             string
 	demoUrl              string
@@ -32,6 +37,9 @@ type Parser struct {
 	playerConnections    map[uint64]bool
 	participantsSeen     map[uint64]ParticipantInfo
 	repo                 *Repository
+	rounds               []RoundInfo
+	currentRoundStart    roundStart
+	currentRoundNumber   int
 }
 
 func (p *Parser) IsLocalParse() bool {
@@ -55,6 +63,8 @@ func NewParser(demoFile string, demoUrl string, chunkSize int, shareCode string,
 		participantsSeen:     make(map[uint64]ParticipantInfo),
 		totalChunksProcessed: 0,
 		repo:                 repo,
+		rounds:               make([]RoundInfo, 0),
+		currentRoundNumber:   0,
 	}
 }
 
@@ -162,6 +172,22 @@ func (p *Parser) Parse() error {
 	demoHeader.SignonLength   = h.SignonLength
 	demoHeader.PlaybackTicks  = h.PlaybackTicks
 	demoHeader.PlaybackFrames = h.PlaybackFrames
+
+	finalGS := parser.GameState()
+	tScore := finalGS.TeamTerrorists().Score()
+	ctScore := finalGS.TeamCounterTerrorists().Score()
+	outcomeWinner := "Draw"
+	if tScore > ctScore {
+		outcomeWinner = "T"
+	} else if ctScore > tScore {
+		outcomeWinner = "CT"
+	}
+	demoHeader.Rounds = p.rounds
+	demoHeader.Outcome = MatchOutcome{
+		Winner:  outcomeWinner,
+		TScore:  tScore,
+		CTScore: ctScore,
+	}
 
 	// Flush remaining partial chunk
 	if len(p.framesBuffer) > 0 {
@@ -569,6 +595,14 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 
 	// Round events
 	parser.RegisterEventHandler(func(e events.RoundStart) {
+		p.currentRoundNumber++
+		if len(p.framesBuffer) > 0 {
+			last := p.framesBuffer[len(p.framesBuffer)-1]
+			p.currentRoundStart = roundStart{
+				demoTick: last.DemoTick,
+				gameTick: last.GameTick,
+			}
+		}
 		p.addEventToCurrentFrame("round_start", map[string]interface{}{
 			"time_limit": e.TimeLimit,
 			"frag_limit": e.FragLimit,
@@ -586,6 +620,23 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		case common.TeamSpectators:
 			winner = "Spectators"
 		}
+
+		endDemoTick := 0
+		endGameTick := 0
+		if len(p.framesBuffer) > 0 {
+			last := p.framesBuffer[len(p.framesBuffer)-1]
+			endDemoTick = last.DemoTick
+			endGameTick = last.GameTick
+		}
+
+		p.rounds = append(p.rounds, RoundInfo{
+			RoundNumber:   p.currentRoundNumber,
+			Winner:        winner,
+			StartDemoTick: p.currentRoundStart.demoTick,
+			EndDemoTick:   endDemoTick,
+			StartGameTick: p.currentRoundStart.gameTick,
+			EndGameTick:   endGameTick,
+		})
 
 		reason := fmt.Sprintf("%d", e.Reason)
 

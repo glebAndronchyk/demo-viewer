@@ -4,6 +4,7 @@ import type { DomainOutbound } from "../types/DomainOutbound.ts";
 import type {
   GetMatchManifestCommand,
   GetMatchManifestCommandResult,
+  ManifestRound,
 } from "../commands/GetMatchManifestCommand.ts";
 import { DomainNotFoundError } from "../lib/errors/DomainErrors.ts";
 
@@ -31,8 +32,19 @@ export const getMatchManifestCommandHandler = (outbound: DomainOutbound) => {
         userId: p.userId,
         isBot: p.isBot,
       })),
-      round: [],
-      outcome: [] as never,
+      rounds: matchResult.rounds.map((r): ManifestRound => ({
+        roundNumber: r.roundNumber,
+        winner: r.winner,
+        startDemoTick: r.startDemoTick,
+        endDemoTick: r.endDemoTick,
+        startGameTick: r.startGameTick,
+        endGameTick: r.endGameTick,
+      })),
+      outcome: {
+        winner: matchResult.outcome.winner,
+        tScore: matchResult.outcome.tScore,
+        ctScore: matchResult.outcome.ctScore,
+      },
       demoId: matchResult.demoId,
       tickRate: matchResult.tickRate,
       totalTicks: matchResult.playbackTicks,

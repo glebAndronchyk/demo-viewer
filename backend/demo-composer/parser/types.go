@@ -7,6 +7,23 @@ type MatchParticipant struct {
 	IsBot      bool   `bson:"is_bot"`
 }
 
+// RoundInfo stores summary data for a single round
+type RoundInfo struct {
+	RoundNumber   int    `bson:"round_number" json:"round_number"`
+	Winner        string `bson:"winner" json:"winner"` // "T", "CT", or "Unknown"
+	StartDemoTick int    `bson:"start_demo_tick" json:"start_demo_tick"`
+	EndDemoTick   int    `bson:"end_demo_tick" json:"end_demo_tick"`
+	StartGameTick int    `bson:"start_game_tick" json:"start_game_tick"`
+	EndGameTick   int    `bson:"end_game_tick" json:"end_game_tick"`
+}
+
+// MatchOutcome stores the final result of the match
+type MatchOutcome struct {
+	Winner  string `bson:"winner" json:"winner"` // "T", "CT", or "Draw"
+	TScore  int    `bson:"t_score" json:"t_score"`
+	CTScore int    `bson:"ct_score" json:"ct_score"`
+}
+
 // ParticipantInfo contains identity information about a player (not per-tick state)
 type ParticipantInfo struct {
 	SteamID64 uint64 `bson:"steam_id_64" json:"steam_id_64"`
@@ -50,7 +67,9 @@ type DemoHeader struct {
 	SignonLength   int     `bson:"signon_length" json:"signon_length"`
 	PlaybackTicks  int     `bson:"playback_ticks" json:"playback_ticks"`
 	PlaybackFrames int     `bson:"playback_frames" json:"playback_frames"`
-	ParsedAt       string  `bson:"parsed_at" json:"parsed_at"` // ISO timestamp when parsed
+	ParsedAt       string       `bson:"parsed_at" json:"parsed_at"` // ISO timestamp when parsed
+	Rounds         []RoundInfo  `bson:"rounds" json:"rounds"`
+	Outcome        MatchOutcome `bson:"outcome" json:"outcome"`
 }
 
 // Frame represents a single frame/tick in the demo with all associated data

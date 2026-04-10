@@ -1,5 +1,5 @@
 import { IMatch } from "@demo-viewer/database/dist/types/match.types";
-import { MatchEntity } from "@demo-viewer/domain/src/entities/MatchEntity";
+import { MatchEntity, MatchOutcome, RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
 
 type MatchInput = IMatch & { _id: { toString(): string } };
 
@@ -31,5 +31,16 @@ export function toMatchEntity(doc: MatchInput): MatchEntity {
     tickRate: doc.tick_rate,
     updatedAt: doc.updatedAt,
     visibleForAll: doc.visible_for_all,
+    rounds: (doc.rounds ?? []).map((r): RoundInfo => ({
+      roundNumber: r.round_number,
+      winner: r.winner,
+      startDemoTick: r.start_demo_tick,
+      endDemoTick: r.end_demo_tick,
+      startGameTick: r.start_game_tick,
+      endGameTick: r.end_game_tick,
+    })),
+    outcome: doc.outcome
+      ? ({ winner: doc.outcome.winner, tScore: doc.outcome.t_score, ctScore: doc.outcome.ct_score } satisfies MatchOutcome)
+      : { winner: '', tScore: 0, ctScore: 0 },
   };
 }

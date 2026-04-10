@@ -1,6 +1,27 @@
 import { Schema } from 'mongoose';
 import { IMatchDocument } from '../types/match.types';
 
+const RoundSchema = new Schema(
+  {
+    round_number: { type: Number, required: true },
+    winner: { type: String, required: true, trim: true },
+    start_demo_tick: { type: Number, required: true },
+    end_demo_tick: { type: Number, required: true },
+    start_game_tick: { type: Number, required: true },
+    end_game_tick: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+const OutcomeSchema = new Schema(
+  {
+    winner: { type: String, required: true, trim: true },
+    t_score: { type: Number, required: true },
+    ct_score: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const ParticipantSchema = new Schema(
   {
     steam_id: {
@@ -129,6 +150,16 @@ export const MatchSchema = new Schema<IMatchDocument>(
     share_code: {
       type: String,
       trim: true,
+    },
+    rounds: {
+      type: [RoundSchema],
+      required: true,
+      default: [],
+    },
+    outcome: {
+      type: OutcomeSchema,
+      required: true,
+      default: () => ({ winner: '', t_score: 0, ct_score: 0 }),
     },
   },
   {

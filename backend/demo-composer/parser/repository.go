@@ -98,6 +98,8 @@ func (r *Repository) UpdateMatchMetadata(demoID string, header DemoHeader) error
 			"signon_length":   header.SignonLength,
 			"playback_ticks":  header.PlaybackTicks,
 			"playback_frames": header.PlaybackFrames,
+			"rounds":          header.Rounds,
+			"outcome":         header.Outcome,
 		}},
 	)
 	return err
