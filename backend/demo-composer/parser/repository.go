@@ -62,16 +62,6 @@ func (r *Repository) InsertMatch(header DemoHeader) error {
 
 	doc := bson.M{
 		"demo_id":         header.DemoID,
-		"map_name":        header.MapName,
-		"map_id":          header.MapName,
-		"server_name":     header.ServerName,
-		"client_name":     header.ClientName,
-		"duration":        header.Duration,
-		"tick_rate":       header.TickRate,
-		"frame_rate":      header.FrameRate,
-		"signon_length":   header.SignonLength,
-		"playback_ticks":  header.PlaybackTicks,
-		"playback_frames": header.PlaybackFrames,
 		"parsed_at":       header.ParsedAt,
 		"date_uploaded":   time.Now(),
 		"date_played":     time.Now(),
@@ -87,6 +77,29 @@ func (r *Repository) InsertMatch(header DemoHeader) error {
 	}
 
 	_, err := r.matchesCol.InsertOne(ctx, doc)
+	return err
+}
+
+func (r *Repository) UpdateMatchMetadata(demoID string, header DemoHeader) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := r.matchesCol.UpdateOne(
+		ctx,
+		bson.M{"demo_id": demoID},
+		bson.M{"$set": bson.M{
+			"map_name":        header.MapName,
+			"map_id":          header.MapName,
+			"server_name":     header.ServerName,
+			"client_name":     header.ClientName,
+			"duration":        header.Duration,
+			"tick_rate":       header.TickRate,
+			"frame_rate":      header.FrameRate,
+			"signon_length":   header.SignonLength,
+			"playback_ticks":  header.PlaybackTicks,
+			"playback_frames": header.PlaybackFrames,
+		}},
+	)
 	return err
 }
 

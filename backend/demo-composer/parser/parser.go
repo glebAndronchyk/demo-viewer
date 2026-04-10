@@ -81,24 +81,15 @@ func (p *Parser) Parse() error {
 	parser := dem.NewParser(reader)
 	defer parser.Close()
 
-	// Get header info
-	header, err := parser.ParseHeader()
-	if err != nil {
+	// Parse header to advance the stream; for CS2 demos the header fields are
+	// mostly empty at this point — real metadata arrives during ParseToEnd().
+	if _, err := parser.ParseHeader(); err != nil {
 		return fmt.Errorf("failed to parse header: %w", err)
 	}
 	demoHeader := DemoHeader{
-		DemoID:         p.demoID,
-		ShareCode:      p.shareCode,
-		MapName:        header.MapName,
-		ServerName:     header.ServerName,
-		ClientName:     header.ClientName,
-		Duration:       header.PlaybackTime.Seconds(),
-		TickRate:       float32(parser.TickRate()),
-		FrameRate:      0,
-		SignonLength:   header.SignonLength,
-		PlaybackTicks:  header.PlaybackTicks,
-		PlaybackFrames: header.PlaybackFrames,
-		ParsedAt:       time.Now().UTC().Format(time.RFC3339),
+		DemoID:    p.demoID,
+		ShareCode: p.shareCode,
+		ParsedAt:  time.Now().UTC().Format(time.RFC3339),
 	}
 
 	if err := p.repo.InsertMatch(demoHeader); err != nil {
@@ -150,14 +141,27 @@ func (p *Parser) Parse() error {
 		}
 	})
 
-	// Parse to end
-	if err = parser.ParseToEnd(); err != nil {
+	// Parse to end — after this, parser.Header() and parser.TickRate() are
+	// fully populated for CS2 demos (values come from the data stream, not the file header).
+	if err := parser.ParseToEnd(); err != nil {
 		return fmt.Errorf("failed to parse demo: %w", err)
 	}
 
 	if frameErr != nil {
 		return frameErr
 	}
+
+	// Collect metadata that is only available after the full parse.
+	h := parser.Header()
+	demoHeader.MapName        = h.MapName
+	demoHeader.ServerName     = h.ServerName
+	demoHeader.ClientName     = h.ClientName
+	demoHeader.Duration       = h.PlaybackTime.Seconds()
+	demoHeader.TickRate       = float32(parser.TickRate())
+	demoHeader.FrameRate      = float32(h.FrameRate())
+	demoHeader.SignonLength   = h.SignonLength
+	demoHeader.PlaybackTicks  = h.PlaybackTicks
+	demoHeader.PlaybackFrames = h.PlaybackFrames
 
 	// Flush remaining partial chunk
 	if len(p.framesBuffer) > 0 {
@@ -194,6 +198,10 @@ func (p *Parser) Parse() error {
 
 	if err := p.repo.FinalizeMatch(p.demoID, p.totalChunksProcessed, matchParticipants); err != nil {
 		return fmt.Errorf("failed to finalize match: %w", err)
+	}
+
+	if err := p.repo.UpdateMatchMetadata(p.demoID, demoHeader); err != nil {
+		return fmt.Errorf("failed to update match metadata: %w", err)
 	}
 
 	return nil

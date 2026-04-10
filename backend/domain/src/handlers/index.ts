@@ -6,3 +6,5 @@ export { default as downloadAndParseDemoRegistration } from "./DownloadAndParseD
 export { default as getUserNextAvailableShareCodeRegistration } from "./GetUserNextAvailableShareCodeCommandHandler.ts";
 export { default as setUserSharingDataCommandHandler } from "./SetUserSharingDataCommandHandler.ts";
 export { default as seekNextAvailableCodeOfNextUsersRegistration } from "./SeekNextAvailableCodeOfNextUsersCommandHandler.ts";
+export { default as getMatchManifestCommandRegistration } from "./GetMatchManifestCommandHandler.ts";
+export { default as getTickSeekReadableStreamCommandRegistration } from "./GetTickSeekReadableStreamCommandHandler.ts";

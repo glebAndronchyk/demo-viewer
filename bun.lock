@@ -29,6 +29,7 @@
         "globaloffensive": "^3.3.0",
         "jose": "latest",
         "steam-user": "^5.3.0",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
         "@types/globaloffensive": "^2.3.4",

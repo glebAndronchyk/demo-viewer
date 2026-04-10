@@ -52,7 +52,7 @@ const di = new DIContainer()
   .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
   .addSingleton(ParserRepository, [EnvConfiguration])
   .addSingleton(UserRepository, [DatabaseService])
-  .addSingleton(MatchRepository)
+  .addSingleton(MatchRepository, [DatabaseService])
   // controllers
   .addSingleton(MaintenanceController, [
     TypedApp,
