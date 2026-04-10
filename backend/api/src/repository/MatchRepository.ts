@@ -41,12 +41,76 @@ export class MatchRepository implements MatchOutboundPort {
         },
       },
       {
+        $unwind: "$frames",
+      },
+      {
+        $group: {
+          _id: "$demo_id",
+          frames: { $push: "$frames" },
+        },
+      },
+      {
         $project: {
           frames: {
-            $filter: {
-              input: "$frames",
-              as: "frame",
-              cond: { $in: ["$$frame.game_tick", tickSet] },
+            $map: {
+              input: tickSet,
+              as: "tick",
+              in: {
+                $let: {
+                  vars: {
+                    // set targetFrame
+                    targetFrame: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$frames",
+                            as: "frame",
+                            cond: { $eq: ["$$frame.game_tick", "$$tick"] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                    // aggregate events between requested frames
+                    accumulatedEvents: {
+                      $reduce: {
+                        input: {
+                          $filter: {
+                            input: "$frames",
+                            as: "frame",
+                            cond: {
+                              $and: [
+                                {
+                                  $gt: [
+                                    "$$frame.game_tick",
+                                    { $subtract: ["$$tick", payload.step] },
+                                  ], // use previous requested tick as lower bound of operation
+                                },
+                                { $lt: ["$$frame.game_tick", "$$tick"] }, // use current requested tick as upper bound of operation
+                              ],
+                            },
+                          },
+                        },
+                        initialValue: [],
+                        in: { $concatArrays: ["$$value", "$$this.events"] }, // join events of all received frames
+                      },
+                    },
+                  },
+                  in: {
+                    $mergeObjects: [
+                      "$$targetFrame",
+                      {
+                        events: {
+                          $concatArrays: [
+                            "$$accumulatedEvents",
+                            { $ifNull: ["$$targetFrame.events", []] },
+                          ],
+                        },
+                      }, // override current requested freame events with aggregated one
+                    ],
+                  },
+                },
+              },
             },
           },
         },
