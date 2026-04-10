@@ -1,6 +1,11 @@
 module.exports = {
   async up(db, client) {
+    const existingNames = new Set(
+      (await db.listCollections({}, { nameOnly: true }).toArray()).map((c) => c.name)
+    );
+
     // utility_schema
+    if (!existingNames.has('utility_schema'))
     await db.createCollection('utility_schema', {
       validator: {
         $jsonSchema: {
@@ -35,7 +40,7 @@ module.exports = {
 
     if (collections.length > 0) {
       await db.collection('positions_stats_schema').rename('positions_stats');
-    } else {
+    } else if (!existingNames.has('positions_stats')) {
       await db.createCollection('positions_stats', {
         validator: {
           $jsonSchema: {

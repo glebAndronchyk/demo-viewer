@@ -1,5 +1,8 @@
 module.exports = {
   async up(db, client) {
+    const existing = await db.listCollections({ name: 'demo_chunks' }).toArray();
+    if (existing.length > 0) return;
+
     await db.createCollection('demo_chunks', {
       validator: {
         $jsonSchema: {

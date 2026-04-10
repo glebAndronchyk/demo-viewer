@@ -1,52 +1,62 @@
 module.exports = {
   async up(db, client) {
+    const existingNames = new Set(
+      (await db.listCollections({}, { nameOnly: true }).toArray()).map((c) => c.name)
+    );
+
     // users
-    await db.createCollection('users', {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['steam_id'],
-          properties: {
-            steam_id: { bsonType: 'string' },
+    if (!existingNames.has('users')) {
+      await db.createCollection('users', {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['steam_id'],
+            properties: {
+              steam_id: { bsonType: 'string' },
+            },
           },
         },
-      },
-      validationAction: 'warn',
-    });
+        validationAction: 'warn',
+      });
+    }
 
     await db.collection('users').createIndex({ steam_id: 1 }, { unique: true });
 
     // groups
-    await db.createCollection('groups', {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['owner_id', 'name'],
-          properties: {
-            owner_id: { bsonType: 'string' },
-            name: { bsonType: 'string' },
+    if (!existingNames.has('groups')) {
+      await db.createCollection('groups', {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['owner_id', 'name'],
+            properties: {
+              owner_id: { bsonType: 'string' },
+              name: { bsonType: 'string' },
+            },
           },
         },
-      },
-      validationAction: 'warn',
-    });
+        validationAction: 'warn',
+      });
+    }
 
     await db.collection('groups').createIndex({ owner_id: 1 });
 
     // group_members
-    await db.createCollection('group_members', {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['user_id', 'group_id'],
-          properties: {
-            user_id: { bsonType: 'string' },
-            group_id: { bsonType: 'string' },
+    if (!existingNames.has('group_members')) {
+      await db.createCollection('group_members', {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['user_id', 'group_id'],
+            properties: {
+              user_id: { bsonType: 'string' },
+              group_id: { bsonType: 'string' },
+            },
           },
         },
-      },
-      validationAction: 'warn',
-    });
+        validationAction: 'warn',
+      });
+    }
 
     await db.collection('group_members').createIndex({ user_id: 1 });
     await db.collection('group_members').createIndex({ group_id: 1 });

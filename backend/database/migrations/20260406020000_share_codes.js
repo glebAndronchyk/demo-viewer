@@ -3,12 +3,12 @@ module.exports = {
     const users = db.collection("users");
 
     await users.updateMany(
-      {},
+      { steam_id_key: { $exists: false } },
       {
         $set: {
           steam_id_key: "",
-          latest_known_share_code: "",
-          initial_known_share_code: "",
+          latest_known_share_code: null,
+          initial_known_share_code: null,
           share_code_verified_at: null,
         },
       },
