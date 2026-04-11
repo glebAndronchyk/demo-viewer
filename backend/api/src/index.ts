@@ -5,7 +5,7 @@ import { GameCoordinatorRepository } from "./repository/GameCoordinatorRepositor
 import { ParserRepository } from "./repository/ParserRepository";
 import { MatchRepository } from "./repository/MatchRepository";
 import { DIContainer } from "@demo-viewer/backend-shared/src/lib/di/DIContainer";
-import { CommandBusService } from "./services/CommandBusService";
+import { CommandBusService } from "./adapters/CommandBusService";
 import { App } from "./app/App";
 import {
   AnalyticsController,
@@ -15,13 +15,15 @@ import {
   ParsingController,
   StreamingController,
   TeamController,
+  StorageController,
 } from "./controllers";
 import { CollectMatchesFromUserCron } from "./cron";
-import { DatabaseService } from "./services/DatabaseService";
+import { DatabaseService } from "./adapters/DatabaseService";
 import { UserController } from "./controllers/UserController";
 import { UserRepository } from "./repository/UserRepository";
-import { SteamBotService } from "./services/SteamBotService";
-import { ComputeResourcesQueueService } from "./services/ComputeResourcesQueueService";
+import { SteamBotService } from "./adapters/SteamBotService";
+import { ComputeResourcesQueueService } from "./adapters/ComputeResourcesQueueService";
+import { LocalFilesystemStorageAdapter } from "./adapters/LocalFilesystemStorageAdapter";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -45,6 +47,7 @@ const di = new DIContainer()
     MatchRepository,
     EnvConfiguration,
     ComputeResourcesQueueService,
+    LocalFilesystemStorageAdapter,
   ])
   // repositories/services/commands
   .addSingleton(TeamRepository)
@@ -53,6 +56,8 @@ const di = new DIContainer()
   .addSingleton(ParserRepository, [EnvConfiguration])
   .addSingleton(UserRepository, [DatabaseService])
   .addSingleton(MatchRepository, [DatabaseService])
+  .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
+  .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
   // controllers
   .addSingleton(MaintenanceController, [
     TypedApp,
@@ -70,7 +75,7 @@ const di = new DIContainer()
   .addSingleton(StreamingController, [TypedApp, CommandBusService])
   .addSingleton(TeamController, [TypedApp, CommandBusService])
   .addSingleton(UserController, [TypedApp, EnvConfiguration, CommandBusService])
-  .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
+  .addSingleton(StorageController, [TypedApp, CommandBusService])
   // cron
   .addSingleton(CollectMatchesFromUserCron, [
     TypedApp,

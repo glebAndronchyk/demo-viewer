@@ -61,8 +61,24 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.DEBUG === "true";
   }
 
+  get storageType(): string {
+    return this.env.STORAGE_TYPE ?? "local";
+  }
+
+  get storageLocalBasePath(): string {
+    return this.env.STORAGE_LOCAL_BASE_PATH ?? "../storage/assets";
+  }
+
   constructor() {
     this.env = Bun.env;
+  }
+
+  getMapRadarFileAssetsPath(mapId: string): string {
+    return `/map/${mapId}/radar/`;
+  }
+
+  getMapRadarApiPath(mapId: string, layer: string): string {
+    return `${this.apiBaseUrl}/storage/static/map/${mapId}/${layer}`;
   }
 
   toJson() {

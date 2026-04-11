@@ -51,4 +51,24 @@ export interface ConfigurationInboundPort {
    * Enable debug logging
    */
   debug: boolean;
+  /**
+   * Storage provider type. Determines which StorageOutboundPort adapter is used.
+   * 'local' uses the local filesystem; future values: 's3', 'azure', 'gcs'.
+   */
+  storageType: string;
+  /**
+   * Base path for local filesystem storage (used when storageType is 'local').
+   */
+  storageLocalBasePath: string;
+
+  /**
+   * Gets path to folder of radar assets (layers)
+   * @param mapId
+   */
+  getMapRadarFileAssetsPath(mapId: string): string;
+
+  /**
+   * Gets the api url to the assets of map
+   */
+  getMapRadarApiPath(mapId: string, layer: string): string;
 }

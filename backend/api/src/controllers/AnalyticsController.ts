@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { CreateTeamCommand } from "@demo-viewer/domain/src/commands";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 
 export class AnalyticsController {
   constructor(app: Elysia, commandBus: CommandBusService) {

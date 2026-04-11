@@ -5,3 +5,4 @@ export * from "./ParsingController";
 export * from "./StreamingController";
 export * from "./TeamController";
 export * from "./MaintenanceController";
+export * from "./StorageController";

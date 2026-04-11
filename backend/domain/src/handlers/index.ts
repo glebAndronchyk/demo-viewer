@@ -8,3 +8,4 @@ export { default as setUserSharingDataCommandHandler } from "./SetUserSharingDat
 export { default as seekNextAvailableCodeOfNextUsersRegistration } from "./SeekNextAvailableCodeOfNextUsersCommandHandler.ts";
 export { default as getMatchManifestCommandRegistration } from "./GetMatchManifestCommandHandler.ts";
 export { default as getTickSeekReadableStreamCommandRegistration } from "./GetTickSeekReadableStreamCommandHandler.ts";
+export { default as getMapRadarAssetsCommandRegistration } from "./GetMapRadarAssetsCommandHandler.ts";

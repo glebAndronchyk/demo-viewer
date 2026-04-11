@@ -1,7 +1,7 @@
 import type { UserOutboundPort } from "@demo-viewer/domain/src/ports/outbound/UserOutboundPort";
 import { toUserEntity } from "../mappers/user.mapper";
 import { UserEntity } from "@demo-viewer/domain/src/entities/UserEntity";
-import { DatabaseService } from "../services/DatabaseService";
+import { DatabaseService } from "../adapters/DatabaseService";
 import { DomainNotFoundError } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
 
 export class UserRepository implements UserOutboundPort {

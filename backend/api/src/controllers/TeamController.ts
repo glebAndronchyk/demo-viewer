@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 
 export class TeamController {
   constructor(app: Elysia, commandBus: CommandBusService) {

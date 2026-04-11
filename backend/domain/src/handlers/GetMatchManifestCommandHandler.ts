@@ -1,3 +1,5 @@
+import { basename } from "node:path";
+
 import type { GenericCommandHandler } from "../lib/command_bus";
 import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
@@ -16,14 +18,30 @@ export const getMatchManifestCommandHandler = (outbound: DomainOutbound) => {
     const matchResult = await outbound.matchRepository.findByMatchId(
       command.matchId,
     );
-
+    console.log(matchResult);
     if (!matchResult) {
       throw new DomainNotFoundError(
         `Match with id:${command.matchId} not found`,
       );
     }
 
+    const radarLayers = await outbound.fileStorage
+      .lsMapRadar(
+        outbound.configuration.getMapRadarFileAssetsPath(matchResult.mapId),
+        (layer) =>
+          outbound.configuration.getMapRadarApiPath(
+            matchResult.mapId,
+            basename(layer),
+          ),
+      )
+      .catch(() => {
+        throw new DomainNotFoundError(
+          `Map asset for id:${matchResult.mapId} not found`,
+        );
+      });
+
     return {
+      mapRadarLayers: radarLayers,
       mapName: matchResult.mapName,
       mapServer: matchResult.serverName,
       participants: matchResult.participants.map((p) => ({
@@ -32,14 +50,16 @@ export const getMatchManifestCommandHandler = (outbound: DomainOutbound) => {
         userId: p.userId,
         isBot: p.isBot,
       })),
-      rounds: matchResult.rounds.map((r): ManifestRound => ({
-        roundNumber: r.roundNumber,
-        winner: r.winner,
-        startDemoTick: r.startDemoTick,
-        endDemoTick: r.endDemoTick,
-        startGameTick: r.startGameTick,
-        endGameTick: r.endGameTick,
-      })),
+      rounds: matchResult.rounds.map(
+        (r): ManifestRound => ({
+          roundNumber: r.roundNumber,
+          winner: r.winner,
+          startDemoTick: r.startDemoTick,
+          endDemoTick: r.endDemoTick,
+          startGameTick: r.startGameTick,
+          endGameTick: r.endGameTick,
+        }),
+      ),
       outcome: {
         winner: matchResult.outcome.winner,
         tScore: matchResult.outcome.tScore,

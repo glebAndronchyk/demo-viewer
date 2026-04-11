@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 import {
   GetMatchManifestCommand,
   GetMatchManifestCommandResult,

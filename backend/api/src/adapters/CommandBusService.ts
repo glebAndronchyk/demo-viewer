@@ -10,6 +10,7 @@ import { UserRepository } from "../repository/UserRepository";
 import { MatchRepository } from "../repository/MatchRepository";
 import { EnvConfiguration } from "../configuration/EnvConfiguration";
 import { ComputeResourcesQueueService } from "./ComputeResourcesQueueService";
+import { LocalFilesystemStorageAdapter } from "./LocalFilesystemStorageAdapter";
 
 export class CommandBusService extends CommandBus<DomainCommandsMap> {
   constructor(
@@ -21,6 +22,7 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
     matchRepository: MatchRepository,
     configuration: EnvConfiguration,
     queue: ComputeResourcesQueueService,
+    fileStorage: LocalFilesystemStorageAdapter,
   ) {
     super(
       domainOperations({
@@ -32,6 +34,7 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
         matchRepository,
         configuration,
         queue,
+        fileStorage,
       }),
     );
   }

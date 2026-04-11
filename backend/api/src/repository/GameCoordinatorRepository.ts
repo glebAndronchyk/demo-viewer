@@ -6,7 +6,7 @@ import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse";
 import { decodeMatchShareCode } from "csgo-sharecode";
 import GlobalOffensive from "globaloffensive";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
-import { SteamBotService } from "../services/SteamBotService";
+import { SteamBotService } from "../adapters/SteamBotService";
 
 export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
   private readonly http: AxiosInstance;

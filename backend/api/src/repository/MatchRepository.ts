@@ -1,6 +1,6 @@
 import { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort";
 import { MatchEntity } from "@demo-viewer/domain/src/entities/MatchEntity";
-import { DatabaseService } from "../services/DatabaseService";
+import { DatabaseService } from "../adapters/DatabaseService";
 import { toMatchEntity } from "../mappers/match.mapper";
 import { DemoChunkEntity } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
 import { IDemoChunkDocument } from "@demo-viewer/database/dist/types/demo_chunk.types";

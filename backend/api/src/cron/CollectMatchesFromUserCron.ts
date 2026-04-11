@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { cron } from "@elysiajs/cron";
 import { DownloadAndParseDemoCommand } from "@demo-viewer/domain/src/commands/DownloadAndParseDemoCommand";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 import { persist } from "../lib/elysia/plugins/persist";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 
@@ -25,7 +25,8 @@ export class CollectMatchesFromUserCron {
       .use(
         cron({
           name: "collectMatchesFromUserCron",
-          pattern: "0 */1 * * * *", // todo scalable
+          // pattern: "0 */1 * * * *", // todo scalable
+          pattern: "*/10 * * * * *", // todo scalable
           async run() {
             const store = app.store as CollectMatchFromUserCronState &
               CronState;

@@ -6,6 +6,7 @@ import type { UserOutboundPort } from "../ports/outbound/UserOutboundPort.ts";
 import type { ConfigurationInboundPort } from "../ports/inbound/ConfigurationInboundPort.ts";
 import type { QueueOutboundPort } from "../ports/outbound/QueueOutboundPort.ts";
 import type { MatchOutboundPort } from "../ports/outbound/MatchOutboundPort.ts";
+import type { StorageOutboundPort } from "../ports/outbound/StorageOutboundPort.ts";
 
 export interface DomainOutbound {
   teamRepository: TeamOutboundPort;
@@ -16,4 +17,5 @@ export interface DomainOutbound {
   matchRepository: MatchOutboundPort;
   configuration: ConfigurationInboundPort;
   queue: QueueOutboundPort;
+  fileStorage: StorageOutboundPort;
 }

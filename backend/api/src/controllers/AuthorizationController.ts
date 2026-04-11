@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { buildSteamLoginUrl, verifySteamOpenId } from "../lib/steamOpenId";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 import { RegisterOrLoginWithSteamCommand } from "@demo-viewer/domain/src/commands";
 import { jwtPlugin } from "../lib/elysia/plugins/jwtPlugin";

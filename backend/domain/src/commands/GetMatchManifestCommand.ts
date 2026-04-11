@@ -21,6 +21,7 @@ export interface ManifestOutcome {
 
 export interface GetMatchManifestCommandResult {
   mapName: string;
+  mapRadarLayers: Record<string, string>; // todo proper assets map
   mapServer: string;
   participants: {
     userId?: string | null;

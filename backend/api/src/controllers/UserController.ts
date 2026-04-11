@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 import { userPlugin } from "../lib/elysia/plugins/userPlugin";
-import { CommandBusService } from "../services/CommandBusService";
+import { CommandBusService } from "../adapters/CommandBusService";
 import { SetUserSharingDataCommand } from "@demo-viewer/domain/src/commands/SetUserSharingDataCommand";
 
 export class UserController {
