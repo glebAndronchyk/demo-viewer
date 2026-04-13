@@ -10,7 +10,6 @@ export interface IPlayerStats {
   total_hs?: Types.Decimal128;
   total_assists?: number;
   total_kpr?: Types.Decimal128;
-  total_impact?: Types.Decimal128;
   total_apr?: Types.Decimal128;
   total_dpr?: Types.Decimal128;
   total_score?: number;

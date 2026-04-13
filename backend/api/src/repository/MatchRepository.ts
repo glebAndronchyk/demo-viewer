@@ -3,20 +3,97 @@ import {
   AggregatedEventsFilter,
   EventsCache,
 } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort";
-import { MatchEntity } from "@demo-viewer/domain/src/entities/MatchEntity";
+import {
+  MatchEntity,
+  RoundInfo,
+} from "@demo-viewer/domain/src/entities/MatchEntity";
 import { DatabaseService } from "../adapters/DatabaseService";
 import { toMatchEntity } from "../mappers/match.mapper";
-import { DemoChunkEntity } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
-import { IDemoChunkDocument } from "@demo-viewer/database/dist/types/demo_chunk.types";
+import {
+  DemoChunkEntity,
+  PlayerState,
+} from "@demo-viewer/domain/src/entities/DemoChunkEntity";
+import {
+  IDemoChunkDocument,
+  IPlayerState,
+} from "@demo-viewer/database/dist/types/demo_chunk.types";
 import { toDemoChunkFrame } from "../mappers/demo-chunk-frame.mapper";
 import type {
   EventConstructor,
   EventsFromConstructors,
 } from "@demo-viewer/domain/src/entities/events/MatchEvent";
 import type { MatchEvent } from "@demo-viewer/domain/src/entities/events/MatchEvent";
+import { NotFoundError } from "elysia";
+import { toPlayerStateEntity } from "../mappers/player-state.mapper";
 
 export class MatchRepository implements MatchOutboundPort {
   constructor(private readonly database: DatabaseService) {}
+
+  async getPlayerFinalStateForMatch(
+    matchId: string,
+    steamId64: string,
+  ): Promise<PlayerState> {
+    const match = await this.database.MatchModel.findOne({ _id: matchId });
+
+    if (!match) throw new NotFoundError(`Match with id ${matchId} not found.`);
+
+    const [result] = (await this.database.DemoChunkModel.aggregate([
+      { $match: { demo_id: match.demo_id } },
+      { $sort: { end_game_tick: -1 } },
+      { $unwind: "$frames" },
+      { $sort: { "frames.game_tick": -1 } },
+      { $unwind: "$frames.player_states" },
+      { $match: { "frames.player_states.steam_id_64": steamId64 } },
+      { $replaceRoot: { newRoot: "$frames.player_states" } },
+      { $limit: 1 },
+    ])) as IPlayerState[];
+
+    if (!result)
+      throw new NotFoundError(
+        `Final state for player with steam id:${steamId64} not found. Match: ${matchId}`,
+      );
+
+    return toPlayerStateEntity(result);
+  }
+
+  async getRoundsPlayedByPlayer(
+    matchId: string,
+    steamId64: string,
+  ): Promise<RoundInfo[]> {
+    const match = await this.database.MatchModel.findOne({ _id: matchId });
+
+    if (!match) throw new NotFoundError(`Match with id ${matchId} not found.`);
+
+    const result: { _id: number }[] =
+      await this.database.DemoChunkModel.aggregate([
+        { $match: { demo_id: match.demo_id } },
+        { $unwind: "$frames" },
+        { $unwind: "$frames.player_states" },
+        {
+          $match: {
+            "frames.player_states.steam_id_64": steamId64,
+            "frames.player_states.is_connected": true,
+            "frames.player_states.team": { $in: ["T", "CT"] },
+          },
+        },
+        { $group: { _id: "$frames.game_state.round_number" } },
+      ]);
+
+    const playedRoundNumbers = new Set(result.map((r) => r._id));
+
+    return (match.rounds ?? [])
+      .filter((r) => playedRoundNumbers.has(r.round_number))
+      .map(
+        (r): RoundInfo => ({
+          roundNumber: r.round_number,
+          winner: r.winner,
+          startDemoTick: r.start_demo_tick,
+          endDemoTick: r.end_demo_tick,
+          startGameTick: r.start_game_tick,
+          endGameTick: r.end_game_tick,
+        }),
+      );
+  }
 
   async getTicksRange(payload: {
     step: number;
@@ -144,8 +221,14 @@ export class MatchRepository implements MatchOutboundPort {
   ): Promise<EventsFromConstructors<T>> {
     if (cache?.get()) return cache.get();
 
+    const match = await this.database.MatchModel.findOne({
+      _id: filter.matchId,
+    });
+
+    if (!match) throw new Error("No match found for matchId");
+
     const chunkMatch: Record<string, unknown> = {};
-    if (filter.demoId !== undefined) chunkMatch["demo_id"] = filter.demoId;
+    if (match.demo_id !== undefined) chunkMatch["demo_id"] = match.demo_id;
 
     const eventTypeFilter = {
       $or: eventsToProject.map((ctor) => {

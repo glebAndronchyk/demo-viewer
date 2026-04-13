@@ -1,5 +1,8 @@
-import type { MatchEntity } from "../../entities/MatchEntity.ts";
-import type { DemoChunkEntity } from "../../entities/DemoChunkEntity.ts";
+import type { MatchEntity, RoundInfo } from "../../entities/MatchEntity.ts";
+import type {
+  DemoChunkEntity,
+  PlayerState,
+} from "../../entities/DemoChunkEntity.ts";
 import type {
   MatchEvent,
   EventConstructor,
@@ -7,7 +10,7 @@ import type {
 } from "../../entities/events/MatchEvent.ts";
 
 export interface AggregatedEventsFilter {
-  demoId?: DemoChunkEntity["demoId"];
+  matchId?: string;
   playerSteamId?: string;
 }
 
@@ -19,7 +22,9 @@ export interface EventsCache<
 }
 export interface MatchOutboundPort {
   findByShareCode(shareCode: string): Promise<{ id: string } | null>;
+
   findByMatchId(matchId: string): Promise<MatchEntity | null>;
+
   getTicksRange(payload: {
     step: number;
     startGameTick: number;
@@ -32,4 +37,14 @@ export interface MatchOutboundPort {
     eventsToProject: T,
     cache?: EventsCache<T>,
   ): Promise<EventsFromConstructors<T>>;
+
+  getRoundsPlayedByPlayer(
+    matchId: string,
+    steamId64: string,
+  ): Promise<RoundInfo[]>;
+
+  getPlayerFinalStateForMatch(
+    matchId: string,
+    steamId64: string,
+  ): Promise<PlayerState>;
 }
