@@ -56,6 +56,11 @@ export class UserRepository implements UserOutboundPort {
     return users.map(toUserEntity);
   }
 
+  async getUserBySteamId(steamId: string): Promise<UserEntity | null> {
+    const user = await this.database.UserModel.findOne({ steam_id: steamId });
+    return user ? toUserEntity(user) : null;
+  }
+
   async setUserSharingData(payload: {
     id: string;
     steamIdKey: string;

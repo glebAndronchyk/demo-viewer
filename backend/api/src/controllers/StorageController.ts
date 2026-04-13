@@ -9,7 +9,7 @@ import type { StreamAssetResponse } from "@demo-viewer/domain/src/ports/outbound
 export class StorageController {
   constructor(app: Elysia, commandBus: CommandBusService) {
     app.use(
-      new Elysia({ prefix: "/storage/static" })
+      new Elysia({ prefix: "/storage/static", tags: ["storage"] })
         .get(
           "/map/:mapId/:layer",
           async ({ params, redirect }) => {

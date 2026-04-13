@@ -11,7 +11,7 @@ import { GetTickSeekReadableStreamCommand } from "@demo-viewer/domain/src/comman
 export class StreamingController {
   constructor(app: Elysia, commandBus: CommandBusService) {
     app.use(
-      new Elysia({ prefix: "/streaming/player" })
+      new Elysia({ prefix: "/streaming/player", tags: ["streaming"] })
         .get(
           "/manifest/:matchId",
           async ({

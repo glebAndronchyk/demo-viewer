@@ -13,7 +13,7 @@ export class AuthorizationController {
     commandBus: CommandBusService,
   ) {
     app.use(
-      new Elysia({ prefix: "/auth" })
+      new Elysia({ prefix: "/auth", tags: ["auth"] })
         .use(jwtPlugin(config.jwtSecret))
         .get("/steam", ({ redirect }) => {
           const callbackUrl = `${config.apiBaseUrl}/auth/steam/callback`;

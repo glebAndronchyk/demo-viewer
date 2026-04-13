@@ -9,3 +9,7 @@ export { default as seekNextAvailableCodeOfNextUsersRegistration } from "./SeekN
 export { default as getMatchManifestCommandRegistration } from "./GetMatchManifestCommandHandler.ts";
 export { default as getTickSeekReadableStreamCommandRegistration } from "./GetTickSeekReadableStreamCommandHandler.ts";
 export { default as getMapRadarAssetsCommandRegistration } from "./GetMapRadarAssetsCommandHandler.ts";
+export { default as removeUserFromTeamRegistration } from "./RemoveUserFromTeamHandler.ts";
+export { default as updateTeamRegistration } from "./UpdateTeamHandler.ts";
+export { default as getTeamRegistration } from "./GetTeamHandler.ts";
+export { default as getTeamMembersRegistration } from "./GetTeamMembersHandler.ts";

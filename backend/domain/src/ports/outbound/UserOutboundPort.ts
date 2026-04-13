@@ -13,4 +13,5 @@ export interface UserOutboundPort {
   ) => Promise<void>;
   resetUserShareCode: (id: string) => Promise<void>;
   getUsersWithSharingData(offset: number, limit: number): Promise<UserEntity[]>;
+  getUserBySteamId(steamId: string): Promise<UserEntity | null>;
 }

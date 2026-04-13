@@ -12,6 +12,7 @@ import {
   DomainNotFoundError,
   DomainConflictError,
   DomainUnavailableError,
+  DomainForbiddenError,
 } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
 import { EnvConfiguration } from "../configuration/EnvConfiguration";
 import serverTiming from "@elysiajs/server-timing";
@@ -73,6 +74,14 @@ export class App {
             isSuccess: false,
           };
         }
+        if (error instanceof DomainForbiddenError) {
+          set.status = 403;
+          return {
+            data: null,
+            error: { message: error.message, code: "FORBIDDEN" },
+            isSuccess: false,
+          };
+        }
 
         // Elysia built-ins
         if (error.name === "ValidationError") {
@@ -116,7 +125,7 @@ export class App {
         data: { status: "up" },
         error: null,
         isSuccess: true,
-      }));
+      }), { detail: { tags: ["health"] } });
   }
 
   static getTypedConstructor() {

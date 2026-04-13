@@ -21,3 +21,11 @@ export class DomainUnavailableError extends Error {
     this.name = "DomainUnavailableError";
   }
 }
+
+export class DomainForbiddenError extends Error {
+  readonly domainCode = "FORBIDDEN" as const;
+  constructor(message: string) {
+    super(message);
+    this.name = "DomainForbiddenError";
+  }
+}

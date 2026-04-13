@@ -3,6 +3,6 @@ import { CommandBusService } from "../adapters/CommandBusService";
 
 export class BackgroundController {
   constructor(app: Elysia, commandBus: CommandBusService) {
-    app.use(new Elysia({ prefix: "/background" }));
+    app.use(new Elysia({ prefix: "/background", tags: ["background"] }));
   }
 }

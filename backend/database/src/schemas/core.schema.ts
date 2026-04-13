@@ -19,6 +19,11 @@ export const GroupSchema = new Schema<IGroupDocument>(
       required: true,
       trim: true,
     },
+    is_open: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     timestamps: true,

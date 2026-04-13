@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 export interface IGroup {
   owner_id: string;
   name: string;
+  is_open: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

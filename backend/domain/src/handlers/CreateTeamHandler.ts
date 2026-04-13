@@ -5,14 +5,24 @@ import type {
 import type { GenericCommandHandler } from "../lib/command_bus";
 import { createRegistration } from "../lib/command_bus/HandlerRegistration.ts";
 import type { DomainOutbound } from "../types/DomainOutbound.ts";
+import { DomainConflictError } from "../lib/errors/DomainErrors.ts";
 
 export const createTeamHandler = (outbound: DomainOutbound) => {
   const handler: GenericCommandHandler<
     CreateTeamCommand,
     CreateTeamCommandResult
   > = async (command) => {
+    const existing = await outbound.teamRepository.getTeamByOwnerId(command.ownerId);
+    if (existing) throw new DomainConflictError("User already owns a team");
+
+    const group = await outbound.teamRepository.createTeam(command.name, command.ownerId);
+    await outbound.teamRepository.addMember(group.id, command.ownerId);
+
     return {
-      name: "",
+      id: group.id,
+      name: group.name,
+      ownerId: group.ownerId,
+      isOpen: group.isOpen,
     } satisfies CreateTeamCommandResult;
   };
 

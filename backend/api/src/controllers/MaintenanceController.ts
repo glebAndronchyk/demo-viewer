@@ -14,7 +14,7 @@ export class MaintenanceController {
     userRepository: UserRepository,
   ) {
     app.use(
-      new Elysia({ prefix: "/maintenance" })
+      new Elysia({ prefix: "/maintenance", tags: ["maintenance"] })
         .post(
           "/parse/:userId",
           async ({ params: { userId } }) => {

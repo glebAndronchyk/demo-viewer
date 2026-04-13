@@ -11,7 +11,7 @@ export class UserController {
     commandBus: CommandBusService,
   ) {
     app.use(
-      new Elysia({ prefix: "user/:id" })
+      new Elysia({ prefix: "user/:id", tags: ["user"] })
         .use(userPlugin(configuration.jwtSecret))
         .get("/next-available-share-code", async ({ params: { id } }) => {
           const result = await commandBus.dispatch({
