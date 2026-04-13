@@ -1,0 +1,19 @@
+{
+  "name": "@demo-viewer/tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "test:backend": "bun test ./backend",
+    "test:frontend": "bun test ./frontend",
+    "test:coverage": "bun test --coverage"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@demo-viewer/domain": "workspace:*",
+    "@demo-viewer/backend-shared": "workspace:*"
+  }
+}

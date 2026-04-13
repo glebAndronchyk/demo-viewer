@@ -110,6 +110,17 @@
         "vite": "npm:rolldown-vite@7.2.5",
       },
     },
+    "tests": {
+      "name": "@demo-viewer/tests",
+      "version": "1.0.0",
+      "dependencies": {
+        "@demo-viewer/backend-shared": "workspace:*",
+        "@demo-viewer/domain": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
   },
   "packages": {
     "@babel/code-frame": ["@babel/code-frame@7.29.0", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.28.5", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw=="],
@@ -171,6 +182,8 @@
     "@demo-viewer/demo-composer": ["@demo-viewer/demo-composer@workspace:backend/demo-composer"],
 
     "@demo-viewer/domain": ["@demo-viewer/domain@workspace:backend/domain"],
+
+    "@demo-viewer/tests": ["@demo-viewer/tests@workspace:tests"],
 
     "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.12.0", "", {}, "sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow=="],
 

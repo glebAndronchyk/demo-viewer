@@ -10,7 +10,8 @@
     "migrate:down": "bun --filter @demo-viewer/database migrate:down",
     "migrate:status": "bun --filter @demo-viewer/database migrate:status",
     "migrate:create": "bun --filter @demo-viewer/database migrate:create",
-    "type-check": "bun -r type-check"
+    "type-check": "bun -r type-check",
+    "test": "bun --filter @demo-viewer/tests test"
   },
   "devDependencies": {
     "typescript": "~5.9.3",
@@ -18,7 +19,8 @@
   },
   "workspaces": [
     "backend/*",
-    "frontend/*"
+    "frontend/*",
+    "tests"
   ],
   "dependencies": {
     "@elysiajs/openapi": "^1.4.14",
