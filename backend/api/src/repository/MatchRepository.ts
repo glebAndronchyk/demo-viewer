@@ -1,10 +1,19 @@
-import { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort";
+import {
+  MatchOutboundPort,
+  AggregatedEventsFilter,
+  EventsCache,
+} from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort";
 import { MatchEntity } from "@demo-viewer/domain/src/entities/MatchEntity";
 import { DatabaseService } from "../adapters/DatabaseService";
 import { toMatchEntity } from "../mappers/match.mapper";
 import { DemoChunkEntity } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
 import { IDemoChunkDocument } from "@demo-viewer/database/dist/types/demo_chunk.types";
 import { toDemoChunkFrame } from "../mappers/demo-chunk-frame.mapper";
+import type {
+  EventConstructor,
+  EventsFromConstructors,
+} from "@demo-viewer/domain/src/entities/events/MatchEvent";
+import type { MatchEvent } from "@demo-viewer/domain/src/entities/events/MatchEvent";
 
 export class MatchRepository implements MatchOutboundPort {
   constructor(private readonly database: DatabaseService) {}
@@ -124,6 +133,56 @@ export class MatchRepository implements MatchOutboundPort {
     ) as IDemoChunkDocument["frames"];
 
     return frames.map(toDemoChunkFrame);
+  }
+
+  async getAggregatedEvents<
+    const T extends readonly EventConstructor<MatchEvent>[],
+  >(
+    filter: AggregatedEventsFilter,
+    eventsToProject: T,
+    cache?: EventsCache<T>,
+  ): Promise<EventsFromConstructors<T>> {
+    if (cache?.get()) return cache.get();
+
+    const chunkMatch: Record<string, unknown> = {};
+    if (filter.demoId !== undefined) chunkMatch["demo_id"] = filter.demoId;
+
+    const eventTypeFilter = {
+      $or: eventsToProject.map((ctor) => {
+        const condition: Record<string, unknown> = { type: ctor.eventType };
+        if (ctor.filterObject) {
+          for (const [key, val] of Object.entries(ctor.filterObject)) {
+            condition[`data.${key}`] = val;
+          }
+        }
+        return condition;
+      }),
+    };
+
+    const result = await this.database.DemoChunkModel.aggregate([
+      { $match: chunkMatch },
+      { $unwind: "$frames" },
+      { $unwind: "$frames.events" },
+      { $replaceRoot: { newRoot: "$frames.events" } },
+      { $match: eventTypeFilter },
+    ]);
+
+    const allEvents = result
+      .map((raw) => {
+        const ctor = eventsToProject.find((c) => c.eventType === raw.type);
+        return ctor
+          ? ctor.fromRaw(raw as { type: string; data: Record<string, unknown> })
+          : null;
+      })
+      .filter((e) => e !== null);
+
+    const projection = eventsToProject.map((ctor) =>
+      allEvents.filter((e) => ctor.is(e)),
+    ) as EventsFromConstructors<T>;
+
+    cache?.set(projection);
+
+    return projection;
   }
 
   async findByShareCode(shareCode: string): Promise<{ id: string } | null> {

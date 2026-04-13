@@ -16,3 +16,20 @@ export function toDemoChunkEntity(doc: IDemoChunk): DemoChunkEntity {
     updatedAt: doc.updatedAt,
   };
 }
+
+export function toDemoChunkModel(
+  entity: Partial<DemoChunkEntity>,
+): Partial<IDemoChunk> {
+  return {
+    chunk_index: entity.chunkIndex,
+    createdAt: entity.createdAt,
+    demo_id: entity.demoId,
+    end_game_tick: entity.endGameTick,
+    end_tick: entity.endTick,
+    frames: [], // todo
+    message_type: entity.messageType,
+    start_game_tick: entity.startGameTick,
+    start_tick: entity.startTick,
+    updatedAt: entity.updatedAt,
+  };
+}
