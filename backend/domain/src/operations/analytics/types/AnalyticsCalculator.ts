@@ -28,5 +28,8 @@ export abstract class AnalyticsCalculator<TReturn> {
 
   protected constructor(protected readonly matchOutbound: MatchOutboundPort) {}
 
+  /**
+   * Aggregator function to calculate all required metrics
+   */
   abstract calculate(...args: any[]): TReturn | Promise<TReturn>;
 }

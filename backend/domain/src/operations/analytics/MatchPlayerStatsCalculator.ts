@@ -7,6 +7,9 @@ import {
 } from "../../entities/WeaponType.ts";
 import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
 
+/**
+ * Aggregates the data related to basic match metrics (like KAST except of trades)
+ */
 export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsEntity> {
   private readonly eventsCache: Map<string, readonly any[]> = new Map<
     string,
@@ -99,24 +102,36 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     };
   }
 
+  /**
+   * Gets total kills of the player in the match by counting KillEvent where killer is player
+   */
   async getTotalKills() {
     const [killEvents] = await this.sharedKillsQuery();
 
     return killEvents?.length ?? 0;
   }
 
+  /**
+   * Gets total deaths of the player in the match by counting KillEvent where killer is any opponent
+   */
   async getTotalDeaths() {
     const [_, deathEvents] = await this.sharedKillsQuery();
 
     return deathEvents?.length ?? 0;
   }
 
+  /**
+   * Gets total assists of the player in the match by counting KillEvent where killer is any teammate/opponent
+   */
   async getTotalAssists() {
     const [_, __, assistEvents] = await this.sharedKillsQuery();
 
     return assistEvents?.length ?? 0;
   }
 
+  /**
+   * Gets total kills with headshot in the match by counting KillEvent where killer is player
+   */
   async getTotalHs() {
     const [killEvents] = await this.sharedKillsQuery();
 
@@ -126,6 +141,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return total === 0 ? 0 : hsCount / total;
   }
 
+  /**
+   * Gets total ADR(average damage per round). totalDamage/totalRounds
+   */
   async getTotalAdr() {
     const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
 
@@ -136,6 +154,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return totalRounds === 0 ? 0 : totalDamage / totalRounds;
   }
 
+  /**
+   * Gets total utility damage by counting PlayerHurtEvents where weapon is grenade
+   */
   async getTotalUtilityDamage() {
     const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
 
@@ -147,6 +168,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     }, 0);
   }
 
+  /**
+   * Gets KPR(kills per round). totalKills/totalRounds
+   */
   async getTotalKpr() {
     const totalKills = await this.getTotalKills();
     const totalRounds = await this.getTotalRoundsPlayed();
@@ -154,6 +178,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return totalRounds === 0 ? 0 : totalKills / totalRounds;
   }
 
+  /**
+   * Gets DPR(deaths per round). totalDeaths/totalRounds
+   */
   async getTotalDpr() {
     const totalDeaths = await this.getTotalDeaths();
     const totalRounds = await this.getTotalRoundsPlayed();
@@ -161,6 +188,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return totalRounds === 0 ? 0 : totalDeaths / totalRounds;
   }
 
+  /**
+   * Gets APR(assists per round). totalAssists/totalRounds
+   */
   async getTotalApr() {
     const totalAssists = await this.getTotalAssists();
     const totalRounds = await this.getTotalRoundsPlayed();
@@ -168,6 +198,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return totalRounds === 0 ? 0 : totalAssists / totalRounds;
   }
 
+  /**
+   * Gets MVPs of the player in the match by checking last available frame with player data. MIGHT NOT BE RELIABLE ALL THE TIME
+   */
   async getTotalMvps() {
     const state = await this.matchOutbound.getPlayerFinalStateForMatch(
       this.matchId,
@@ -177,6 +210,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return state.mvps;
   }
 
+  /**
+   * Gets total score of the player in the match by checking last available frame with player data. MIGHT NOT BE RELIABLE ALL THE TIME
+   */
   async getTotalScore() {
     const state = await this.matchOutbound.getPlayerFinalStateForMatch(
       this.matchId,
@@ -186,6 +222,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return state.score;
   }
 
+  /**
+   * Gets total rounds where player was active (connected) and had physical team (CT or T)
+   */
   @AnalyticsCalculator.cache()
   async getTotalRoundsPlayed(): Promise<number> {
     const rounds = await this.matchOutbound.getRoundsPlayedByPlayer(
