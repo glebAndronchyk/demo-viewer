@@ -1,7 +1,33 @@
 import { type EventConstructor, MatchEvent } from "./MatchEvent.ts";
 import type { WeaponType } from "../WeaponType.ts";
+import { type HitGroup, parseHitGroup } from "../HitGroup.ts";
+import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
-export class PlayerHurtEvent extends MatchEvent {
+class PlayerHurtEventQueryBuilder implements AnalyticsQueryBuilder<PlayerHurtEvent> {
+  private filterObject: Record<string, any> = {};
+
+  asAttacker(steamId64: string) {
+    this.filterObject = {
+      ...this.filterObject,
+      attacker_steam_id_64: steamId64,
+    };
+
+    return this;
+  }
+
+  build(): EventConstructor<PlayerHurtEvent> {
+    return {
+      eventType: PlayerHurtEvent.eventType,
+      filterObject: this.filterObject,
+      is: PlayerHurtEvent.is.bind(PlayerHurtEvent),
+      fromRaw: PlayerHurtEvent.fromRaw.bind(PlayerHurtEvent),
+    };
+  }
+}
+
+export class PlayerHurtEvent extends MatchEvent.withBuilder(
+  PlayerHurtEventQueryBuilder,
+) {
   static readonly eventType = "player_hurt" as const;
   readonly type = PlayerHurtEvent.eventType;
 
@@ -13,7 +39,7 @@ export class PlayerHurtEvent extends MatchEvent {
     readonly healthDamage: number,
     readonly armorDamage: number,
     readonly weapon: WeaponType,
-    readonly hitGroup: string,
+    readonly hitGroup: HitGroup,
   ) {
     super();
   }
@@ -48,7 +74,7 @@ export class PlayerHurtEvent extends MatchEvent {
       typeof d["health_damage"] === "number" ? d["health_damage"] : 0,
       typeof d["armor_damage"] === "number" ? d["armor_damage"] : 0,
       (typeof d["weapon"] === "string" ? d["weapon"] : "") as WeaponType,
-      typeof d["hit_group"] === "string" ? d["hit_group"] : "",
+      parseHitGroup(typeof d["hit_group"] === "string" ? d["hit_group"] : ""),
     );
   }
 }

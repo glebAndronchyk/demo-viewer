@@ -11,11 +11,6 @@ import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
  * Aggregates the data related to basic match metrics (like KAST except of trades)
  */
 export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsEntity> {
-  private readonly eventsCache: Map<string, readonly any[]> = new Map<
-    string,
-    readonly any[]
-  >();
-
   constructor(
     private readonly matchId: string,
     private readonly playerSteamId: string,
@@ -32,25 +27,27 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     return await this.matchOutbound.getAggregatedEvents(
       { matchId: this.matchId },
       [
-        KillEvent.asKiller(this.playerSteamId),
-        KillEvent.asVictim(this.playerSteamId),
-        KillEvent.asAssister(this.playerSteamId),
-        PlayerHurtEvent.asAttacker(this.playerSteamId),
+        KillEvent.query().asKiller(this.playerSteamId).build(),
+        KillEvent.query().asVictim(this.playerSteamId).build(),
+        KillEvent.query().asAssister(this.playerSteamId).build(),
+        PlayerHurtEvent.query().asAttacker(this.playerSteamId).build(),
       ],
       {
         get: () =>
-          this.eventsCache.get("totalKills") as [
+          this.dbCache.get("totalKills") as [
             KillEvent[],
             KillEvent[],
             KillEvent[],
             PlayerHurtEvent[],
           ],
-        set: (kills) => this.eventsCache.set("totalKills", kills),
+        set: (kills) => this.dbCache.set("totalKills", kills),
       },
     );
   }
 
   override async calculate(): Promise<PlayerStatsEntity> {
+    await this.sharedKillsQuery(); // pre-cache frequently used events
+
     const [
       totalAdr,
       totalApr,

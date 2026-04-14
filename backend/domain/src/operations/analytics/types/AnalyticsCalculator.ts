@@ -13,18 +13,25 @@ export abstract class AnalyticsCalculator<TReturn> {
         this: AnalyticsCalculator<TReturn>,
         ...args: any[]
       ) {
-        if (this.cache.has(key)) {
-          return this.cache.get(key);
+        if (this.operationCache.has(key)) {
+          return this.operationCache.get(key);
         }
 
         const result = await original.apply(this, args);
-        this.cache.set(key, result);
+        this.operationCache.set(key, result);
         return result;
       };
     };
   }
 
-  protected readonly cache: Map<string, TReturn> = new Map<string, TReturn>();
+  protected readonly dbCache: Map<string, readonly any[]> = new Map<
+    string,
+    readonly any[]
+  >();
+  protected readonly operationCache: Map<string, TReturn> = new Map<
+    string,
+    TReturn
+  >();
 
   protected constructor(protected readonly matchOutbound: MatchOutboundPort) {}
 

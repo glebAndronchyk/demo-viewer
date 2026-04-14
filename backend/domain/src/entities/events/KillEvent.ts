@@ -1,6 +1,47 @@
+import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 import { MatchEvent, type EventConstructor } from "./MatchEvent.ts";
 
-export class KillEvent extends MatchEvent {
+class KillEventQueryBuilder implements AnalyticsQueryBuilder<KillEvent> {
+  private filterObject: Record<string, any> = {};
+
+  asKiller(steamId64: string) {
+    this.filterObject = { ...this.filterObject, killer_steam_id_64: steamId64 };
+
+    return this;
+  }
+
+  asHeadshot() {
+    this.filterObject = { ...this.filterObject, headshot: true };
+
+    return this;
+  }
+
+  asVictim(steamId64: string) {
+    this.filterObject = { ...this.filterObject, victim_steam_id_64: steamId64 };
+
+    return this;
+  }
+
+  asAssister(steamId64: string) {
+    this.filterObject = {
+      ...this.filterObject,
+      assister_steam_id_64: steamId64,
+    };
+
+    return this;
+  }
+
+  build(): EventConstructor<KillEvent> {
+    return {
+      eventType: KillEvent.eventType,
+      filterObject: this.filterObject,
+      is: KillEvent.is.bind(KillEvent),
+      fromRaw: KillEvent.fromRaw.bind(KillEvent),
+    };
+  }
+}
+
+export class KillEvent extends MatchEvent.withBuilder(KillEventQueryBuilder) {
   static readonly eventType = "kill" as const;
   readonly type = KillEvent.eventType;
 
@@ -20,33 +61,6 @@ export class KillEvent extends MatchEvent {
 
   static is(event: unknown): event is KillEvent {
     return event instanceof KillEvent;
-  }
-
-  static asKiller(steamId64: string): EventConstructor<KillEvent> {
-    return {
-      eventType: KillEvent.eventType,
-      filterObject: { killer_steam_id_64: steamId64 },
-      is: KillEvent.is.bind(KillEvent),
-      fromRaw: KillEvent.fromRaw.bind(KillEvent),
-    };
-  }
-
-  static asVictim(steamId64: string): EventConstructor<KillEvent> {
-    return {
-      eventType: KillEvent.eventType,
-      filterObject: { victim_steam_id_64: steamId64 },
-      is: KillEvent.is.bind(KillEvent),
-      fromRaw: KillEvent.fromRaw.bind(KillEvent),
-    };
-  }
-
-  static asAssister(steamId64: string): EventConstructor<KillEvent> {
-    return {
-      eventType: KillEvent.eventType,
-      filterObject: { assister_steam_id_64: steamId64 },
-      is: KillEvent.is.bind(KillEvent),
-      fromRaw: KillEvent.fromRaw.bind(KillEvent),
-    };
   }
 
   static fromRaw(raw: {
