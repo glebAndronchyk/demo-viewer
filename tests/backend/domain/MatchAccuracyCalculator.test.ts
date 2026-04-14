@@ -76,6 +76,10 @@ class MockMatchOutboundPort implements MatchOutboundPort {
   async getTicksRange(): Promise<any> {
     return null;
   }
+
+  async getClutchRounds(): Promise<any[]> {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------

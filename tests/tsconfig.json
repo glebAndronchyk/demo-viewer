@@ -17,7 +17,8 @@
     "paths": {
       "@demo-viewer/domain/*": ["backend/domain/*"],
       "@demo-viewer/backend-shared/*": ["backend/shared/*"],
-      "@demo-viewer/database/*": ["backend/database/*"]
+      "@demo-viewer/database/*": ["backend/database/*"],
+      "@demo-viewer/api/*": ["backend/api/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

@@ -26,8 +26,152 @@ import type { MatchEvent } from "@demo-viewer/domain/src/entities/events/MatchEv
 import { NotFoundError } from "elysia";
 import { toPlayerStateEntity } from "../mappers/player-state.mapper";
 
+type ClutchFrame = {
+  demo_tick: number;
+  counts: { myTeam: string; aliveTeammates: number; aliveEnemies: number };
+};
+
+type RawClutchRound = { _id: number; frames: ClutchFrame[] };
+
+export function detectClutchRounds(
+  rawFrames: RawClutchRound[],
+  roundWinnerMap: Map<number, string>,
+): { roundNumber: number; vs: number; outcome: "lost" | "won" }[] {
+  const results: { roundNumber: number; vs: number; outcome: "lost" | "won" }[] =
+    [];
+
+  for (const round of rawFrames) {
+    const roundNumber = round._id;
+    const winner = roundWinnerMap.get(roundNumber);
+    if (!winner) continue;
+
+    const frames = round.frames
+      .slice()
+      .sort((a, b) => a.demo_tick - b.demo_tick);
+
+    let clutchEnemyCount: number | null = null;
+    let playerTeam: string | null = null;
+
+    for (const frame of frames) {
+      const { myTeam, aliveTeammates, aliveEnemies } = frame.counts;
+      if (!playerTeam) playerTeam = myTeam;
+
+      if (aliveTeammates === 1) {
+        clutchEnemyCount = aliveEnemies;
+        break;
+      }
+    }
+
+    if (clutchEnemyCount === null || clutchEnemyCount === 0 || !playerTeam)
+      continue;
+
+    const outcome = winner === playerTeam ? "won" : "lost";
+    results.push({ roundNumber, vs: clutchEnemyCount, outcome });
+  }
+
+  return results;
+}
+
 export class MatchRepository implements MatchOutboundPort {
   constructor(private readonly database: DatabaseService) {}
+
+  async getClutchRounds(
+    matchId: string,
+    steamId64: string,
+  ): Promise<{ roundNumber: number; vs: number; outcome: "lost" | "won" }[]> {
+    const match = await this.database.MatchModel.findOne({ _id: matchId });
+
+    if (!match) throw new NotFoundError(`Match with id ${matchId} not found.`);
+
+    const roundWinnerMap = new Map(
+      (match.rounds ?? []).map((r) => [r.round_number, r.winner]),
+    );
+
+    const rawFrames = await this.database.DemoChunkModel.aggregate([
+      { $match: { demo_id: match.demo_id } },
+      { $unwind: "$frames" },
+      {
+        $match: {
+          "frames.player_states": {
+            $elemMatch: {
+              steam_id_64: steamId64,
+              is_alive: true,
+              is_connected: true,
+              team: { $in: ["T", "CT"] },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          round_number: "$frames.game_state.round_number",
+          demo_tick: "$frames.demo_tick",
+          counts: {
+            $let: {
+              vars: {
+                myTeam: {
+                  $getField: {
+                    field: "team",
+                    input: {
+                      $first: {
+                        $filter: {
+                          input: "$frames.player_states",
+                          as: "p",
+                          cond: { $eq: ["$$p.steam_id_64", steamId64] },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              in: {
+                myTeam: "$$myTeam",
+                aliveTeammates: {
+                  $size: {
+                    $filter: {
+                      input: "$frames.player_states",
+                      as: "p",
+                      cond: {
+                        $and: [
+                          { $eq: ["$$p.team", "$$myTeam"] },
+                          { $eq: ["$$p.is_alive", true] },
+                          { $eq: ["$$p.is_connected", true] },
+                        ],
+                      },
+                    },
+                  },
+                },
+                aliveEnemies: {
+                  $size: {
+                    $filter: {
+                      input: "$frames.player_states",
+                      as: "p",
+                      cond: {
+                        $and: [
+                          { $in: ["$$p.team", ["T", "CT"]] },
+                          { $ne: ["$$p.team", "$$myTeam"] },
+                          { $eq: ["$$p.is_alive", true] },
+                          { $eq: ["$$p.is_connected", true] },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$round_number",
+          frames: { $push: { demo_tick: "$demo_tick", counts: "$counts" } },
+        },
+      },
+    ]);
+
+    return detectClutchRounds(rawFrames as RawClutchRound[], roundWinnerMap);
+  }
 
   async getPlayerFinalStateForMatch(
     matchId: string,

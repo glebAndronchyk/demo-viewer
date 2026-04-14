@@ -114,6 +114,7 @@
       "name": "@demo-viewer/tests",
       "version": "1.0.0",
       "dependencies": {
+        "@demo-viewer/api": "workspace:*",
         "@demo-viewer/backend-shared": "workspace:*",
         "@demo-viewer/domain": "workspace:*",
       },

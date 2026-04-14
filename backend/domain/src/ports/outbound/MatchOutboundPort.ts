@@ -47,4 +47,15 @@ export interface MatchOutboundPort {
     matchId: string,
     steamId64: string,
   ): Promise<PlayerState>;
+
+  getClutchRounds(
+    matchId: string,
+    steamId64: string,
+  ): Promise<
+    {
+      roundNumber: number;
+      vs: number;
+      outcome: "lost" | "won";
+    }[]
+  >;
 }

@@ -38,7 +38,7 @@ function makeHurt(
     healthDamage,
     armorDamage,
     weapon,
-    "chest",
+    "Chest",
   );
 }
 
@@ -109,6 +109,10 @@ class MockMatchOutboundPort implements MatchOutboundPort {
   }
   async getTicksRange(): Promise<any> {
     return null;
+  }
+
+  async getClutchRounds(): Promise<any[]> {
+    return [];
   }
 }
 
