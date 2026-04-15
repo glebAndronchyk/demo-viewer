@@ -65,3 +65,61 @@ export const grenades = [
 ] satisfies WeaponType[];
 
 export type GrenadesWeaponType = (typeof grenades)[number];
+
+export const pistols = [
+  "P2000",
+  "Glock-18",
+  "P250",
+  "Desert Eagle",
+  "Five-SeveN",
+  "Dual Berettas",
+  "Tec-9",
+  "CZ75 Auto",
+  "USP-S",
+  "R8 Revolver",
+] satisfies WeaponType[];
+export type PistolsWeaponType = (typeof pistols)[number];
+
+export const smgs = [
+  "MP7",
+  "MP9",
+  "PP-Bizon",
+  "MAC-10",
+  "UMP-45",
+  "P90",
+  "MP5-SD",
+] satisfies WeaponType[];
+export type SmgsWeaponType = (typeof smgs)[number];
+
+export const shotguns = [
+  "Sawed-Off",
+  "Nova",
+  "MAG-7",
+  "XM1014",
+] satisfies WeaponType[];
+export type ShotgunsWeaponType = (typeof shotguns)[number];
+
+export const machineGuns = ["M249", "Negev"] satisfies WeaponType[];
+export type MachineGunsWeaponType = (typeof machineGuns)[number];
+
+export const assaultRifles = [
+  "Galil AR",
+  "FAMAS",
+  "AK-47",
+  "M4A4",
+  "M4A1",
+  "SG 553",
+  "AUG",
+] satisfies WeaponType[];
+export type AssaultRiflesWeaponType = (typeof assaultRifles)[number];
+
+export const sniperRifles = [
+  "SSG 08",
+  "AWP",
+  "SCAR-20",
+  "G3SG1",
+] satisfies WeaponType[];
+export type SniperRiflesWeaponType = (typeof sniperRifles)[number];
+
+export const meleeAndEquipment = ["Zeus x27", "Knife"] satisfies WeaponType[];
+export type MeleeWeaponType = (typeof meleeAndEquipment)[number];
