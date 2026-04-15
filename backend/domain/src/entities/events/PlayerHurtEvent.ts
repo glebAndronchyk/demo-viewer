@@ -15,6 +15,15 @@ class PlayerHurtEventQueryBuilder implements AnalyticsQueryBuilder<PlayerHurtEve
     return this;
   }
 
+  withWeaponInRange(weapons: WeaponType[]) {
+    this.filterObject = {
+      ...this.filterObject,
+      weapon: { $in: weapons },
+    };
+
+    return this;
+  }
+
   build(): EventConstructor<PlayerHurtEvent> {
     return {
       eventType: PlayerHurtEvent.eventType,

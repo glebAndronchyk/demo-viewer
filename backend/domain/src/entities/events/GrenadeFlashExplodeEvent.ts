@@ -1,8 +1,7 @@
 import { type EventConstructor, MatchEvent } from "./MatchEvent.ts";
 import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
-import type { GrenadesWeaponType } from "../WeaponType.ts";
 
-class GrenadeThrowEventQueryBuilder implements AnalyticsQueryBuilder<GrenadeThrowEvent> {
+class GrenadeFlashExplodeEventQueryBuilder implements AnalyticsQueryBuilder<GrenadeFlashExplodeEvent> {
   private filterObject: Record<string, any> = {};
 
   asThrower(steamId64: string) {
@@ -13,50 +12,41 @@ class GrenadeThrowEventQueryBuilder implements AnalyticsQueryBuilder<GrenadeThro
     return this;
   }
 
-  build(): EventConstructor<GrenadeThrowEvent> {
+  build(): EventConstructor<GrenadeFlashExplodeEvent> {
     return {
-      eventType: GrenadeThrowEvent.eventType,
+      eventType: GrenadeFlashExplodeEvent.eventType,
       filterObject: this.filterObject,
-      is: GrenadeThrowEvent.is.bind(GrenadeThrowEvent),
-      fromRaw: GrenadeThrowEvent.fromRaw.bind(GrenadeThrowEvent),
+      is: GrenadeFlashExplodeEvent.is.bind(GrenadeFlashExplodeEvent),
+      fromRaw: GrenadeFlashExplodeEvent.fromRaw.bind(GrenadeFlashExplodeEvent),
     };
   }
 }
 
-export class GrenadeThrowEvent extends MatchEvent.withBuilder(
-  GrenadeThrowEventQueryBuilder,
-) {
-  static readonly eventType = "grenade_throw" as const;
-  readonly type = GrenadeThrowEvent.eventType;
+export class GrenadeFlashExplodeEvent extends MatchEvent.withBuilder(GrenadeFlashExplodeEventQueryBuilder) {
+  static readonly eventType = "grenade_flash_explode" as const;
+  readonly type = GrenadeFlashExplodeEvent.eventType;
 
   constructor(
     readonly throwerSteamId64: string | null,
     readonly throwerName: string | null,
-    readonly weapon: GrenadesWeaponType,
+    readonly grenadeType: string,
     readonly grenadeEntityId: number,
     readonly grenadePosition: { x: number; y: number; z: number },
   ) {
     super();
   }
 
-  static is(event: unknown): event is GrenadeThrowEvent {
-    return event instanceof GrenadeThrowEvent;
+  static is(event: unknown): event is GrenadeFlashExplodeEvent {
+    return event instanceof GrenadeFlashExplodeEvent;
   }
 
-  static fromRaw(raw: {
-    type: string;
-    data: Record<string, unknown>;
-  }): GrenadeThrowEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown> }): GrenadeFlashExplodeEvent {
     const d = raw.data;
     const pos = (d["grenade_position"] ?? {}) as Record<string, unknown>;
-    return new GrenadeThrowEvent(
-      typeof d["thrower_steam_id_64"] === "string"
-        ? d["thrower_steam_id_64"]
-        : null,
+    return new GrenadeFlashExplodeEvent(
+      typeof d["thrower_steam_id_64"] === "string" ? d["thrower_steam_id_64"] : null,
       typeof d["thrower_name"] === "string" ? d["thrower_name"] : null,
-      (typeof d["weapon"] === "string"
-        ? d["weapon"]
-        : "") as GrenadesWeaponType,
+      typeof d["grenade_type"] === "string" ? d["grenade_type"] : "",
       typeof d["grenade_entity_id"] === "number" ? d["grenade_entity_id"] : 0,
       {
         x: typeof pos["x"] === "number" ? pos["x"] : 0,

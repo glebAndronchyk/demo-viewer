@@ -3,6 +3,7 @@ import {
   IPlayerAccuracyDocument,
   IPlayerReactionDocument,
   IPlayerBehaviorDocument,
+  IPlayerUtilityDocument,
 } from '../types/performance.types';
 
 const HitBreakdownSchema = new Schema(
@@ -127,3 +128,56 @@ export const PlayerBehaviorSchema = new Schema<IPlayerBehaviorDocument>(
 
 // Indexes
 PlayerBehaviorSchema.index({ stats_id: 1 });
+
+export const PlayerUtilitySchema = new Schema<IPlayerUtilityDocument>(
+  {
+    stats_id: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    grenades_thrown: {
+      type: Number,
+    },
+    he_thrown: {
+      type: Number,
+    },
+    smokes_thrown: {
+      type: Number,
+    },
+    molotovs_thrown: {
+      type: Number,
+    },
+    flashes_thrown: {
+      type: Number,
+    },
+    incendiaries_thrown: {
+      type: Number,
+    },
+    teammates_flashed: {
+      type: Number,
+    },
+    enemies_flashed: {
+      type: Number,
+    },
+    flash_duration: {
+      type: Schema.Types.Decimal128,
+    },
+    molotovs_damage: {
+      type: Number,
+    },
+    he_damage: {
+      type: Number,
+    },
+    date_recorded: {
+      type: Date,
+    },
+  },
+  {
+    timestamps: false,
+    collection: 'player_utility',
+  }
+);
+
+// Indexes
+PlayerUtilitySchema.index({ stats_id: 1 });

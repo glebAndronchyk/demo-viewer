@@ -163,14 +163,14 @@ func (p *Parser) Parse() error {
 
 	// Collect metadata that is only available after the full parse.
 	h := parser.Header()
-	demoHeader.MapName        = h.MapName
-	demoHeader.ServerName     = h.ServerName
-	demoHeader.ClientName     = h.ClientName
-	demoHeader.Duration       = h.PlaybackTime.Seconds()
-	demoHeader.TickRate       = float32(parser.TickRate())
-	demoHeader.FrameRate      = float32(h.FrameRate())
-	demoHeader.SignonLength   = h.SignonLength
-	demoHeader.PlaybackTicks  = h.PlaybackTicks
+	demoHeader.MapName = h.MapName
+	demoHeader.ServerName = h.ServerName
+	demoHeader.ClientName = h.ClientName
+	demoHeader.Duration = h.PlaybackTime.Seconds()
+	demoHeader.TickRate = float32(parser.TickRate())
+	demoHeader.FrameRate = float32(h.FrameRate())
+	demoHeader.SignonLength = h.SignonLength
+	demoHeader.PlaybackTicks = h.PlaybackTicks
 	demoHeader.PlaybackFrames = h.PlaybackFrames
 
 	finalGS := parser.GameState()
@@ -712,11 +712,15 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		if e.Player != nil {
 			data["player_steam_id_64"] = e.Player.SteamID64
 			data["player_name"] = e.Player.Name
+			data["player_team"] = e.Player.Team
 		}
+
+		data["flash_duration"] = float32(e.FlashDuration().Milliseconds())
 
 		if e.Attacker != nil {
 			data["attacker_steam_id_64"] = e.Attacker.SteamID64
 			data["attacker_name"] = e.Attacker.Name
+			data["attacker_team"] = e.Attacker.Team
 		}
 
 		p.addEventToCurrentFrame("player_flashed", data)
@@ -726,6 +730,15 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 	parser.RegisterEventHandler(func(e events.GrenadeProjectileThrow) {
 		data := map[string]interface{}{
 			"weapon": e.Projectile.WeaponInstance.String(),
+		}
+
+		pos := e.Projectile.Position()
+
+		data["grenade_entity_id"] = e.Projectile.Entity.ID()
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
 		}
 
 		if e.Projectile.Thrower != nil {
@@ -741,12 +754,101 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			"weapon": e.Projectile.WeaponInstance.String(),
 		}
 
+		pos := e.Projectile.Position()
+
+		data["grenade_entity_id"] = e.Projectile.Entity.ID()
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
+		}
+
 		if e.Projectile.Thrower != nil {
 			data["thrower_steam_id_64"] = e.Projectile.Thrower.SteamID64
 			data["thrower_name"] = e.Projectile.Thrower.Name
 		}
 
 		p.addEventToCurrentFrame("grenade_destroy", data)
+	})
+
+	parser.RegisterEventHandler(func(e events.FireGrenadeStart) {
+		data := map[string]interface{}{}
+		pos := e.Position
+
+		data["grenade_type"] = e.GrenadeType.String()
+		data["grenade_entity_id"] = e.GrenadeEntityID
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
+		}
+
+		if e.Thrower != nil {
+			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_name"] = e.Thrower.Name
+		}
+
+		p.addEventToCurrentFrame("grenade_fire_start", data)
+	})
+
+	parser.RegisterEventHandler(func(e events.FireGrenadeExpired) {
+		data := map[string]interface{}{}
+		pos := e.Position
+
+		data["grenade_type"] = e.GrenadeType.String()
+		data["grenade_entity_id"] = e.GrenadeEntityID
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
+		}
+
+		if e.Thrower != nil {
+			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_name"] = e.Thrower.Name
+		}
+
+		p.addEventToCurrentFrame("grenade_fire_end", data)
+	})
+
+	parser.RegisterEventHandler(func(e events.HeExplode) {
+		data := map[string]interface{}{}
+		pos := e.Position
+
+		data["grenade_type"] = e.GrenadeType.String()
+		data["grenade_entity_id"] = e.GrenadeEntityID
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
+		}
+
+		if e.Thrower != nil {
+			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_name"] = e.Thrower.Name
+		}
+
+		p.addEventToCurrentFrame("grenade_he_explode", data)
+	})
+
+	parser.RegisterEventHandler(func(e events.FlashExplode) {
+		data := map[string]interface{}{}
+		pos := e.Position
+
+		data["grenade_type"] = e.GrenadeType.String()
+		data["grenade_entity_id"] = e.GrenadeEntityID
+		data["grenade_position"] = Vector3{
+			X: float64(pos.X),
+			Y: float64(pos.Y),
+			Z: float64(pos.Z),
+		}
+
+		if e.Thrower != nil {
+			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_name"] = e.Thrower.Name
+		}
+
+		p.addEventToCurrentFrame("grenade_flash_explode", data)
 	})
 
 	// Hostage events (if applicable)

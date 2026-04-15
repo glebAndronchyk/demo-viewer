@@ -4,7 +4,7 @@ export abstract class MatchEvent {
   static readonly filterObject: Record<string, unknown> | undefined = undefined;
   abstract readonly type: string;
 
-  static withBuilder<TBuilder extends AnalyticsQueryBuilder>(ctor: {
+  static withBuilder<TBuilder extends AnalyticsQueryBuilder<any>>(ctor: {
     new (): TBuilder;
   }) {
     abstract class BuiltBase extends MatchEvent {

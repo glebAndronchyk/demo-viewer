@@ -45,3 +45,21 @@ export interface IPlayerBehavior {
 }
 
 export interface IPlayerBehaviorDocument extends IPlayerBehavior, Document {}
+
+export interface IPlayerUtility {
+  stats_id: string;
+  grenades_thrown?: number;
+  he_thrown?: number;
+  smokes_thrown?: number;
+  molotovs_thrown?: number;
+  flashes_thrown?: number;
+  incendiaries_thrown?: number;
+  teammates_flashed?: number;
+  enemies_flashed?: number;
+  flash_duration?: Types.Decimal128;
+  molotovs_damage?: number;
+  he_damage?: number;
+  date_recorded?: Date;
+}
+
+export interface IPlayerUtilityDocument extends IPlayerUtility, Document {}

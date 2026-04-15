@@ -3,11 +3,13 @@ import {
   IPlayerAccuracyDocument,
   IPlayerReactionDocument,
   IPlayerBehaviorDocument,
+  IPlayerUtilityDocument,
 } from '../types/performance.types';
 import {
   PlayerAccuracySchema,
   PlayerReactionSchema,
   PlayerBehaviorSchema,
+  PlayerUtilitySchema,
 } from '../schemas/performance.schema';
 
 export const PlayerAccuracyModel: Model<IPlayerAccuracyDocument> =
@@ -21,3 +23,7 @@ export const PlayerReactionModel: Model<IPlayerReactionDocument> =
 export const PlayerBehaviorModel: Model<IPlayerBehaviorDocument> =
   mongoose.models.PlayerBehavior ||
   mongoose.model<IPlayerBehaviorDocument>('PlayerBehavior', PlayerBehaviorSchema);
+
+export const PlayerUtilityModel: Model<IPlayerUtilityDocument> =
+  mongoose.models.PlayerUtility ||
+  mongoose.model<IPlayerUtilityDocument>('PlayerUtility', PlayerUtilitySchema);
