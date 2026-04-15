@@ -37,8 +37,11 @@ export function detectClutchRounds(
   rawFrames: RawClutchRound[],
   roundWinnerMap: Map<number, string>,
 ): { roundNumber: number; vs: number; outcome: "lost" | "won" }[] {
-  const results: { roundNumber: number; vs: number; outcome: "lost" | "won" }[] =
-    [];
+  const results: {
+    roundNumber: number;
+    vs: number;
+    outcome: "lost" | "won";
+  }[] = [];
 
   for (const round of rawFrames) {
     const roundNumber = round._id;
@@ -117,7 +120,12 @@ export class MatchRepository implements MatchOutboundPort {
                         $filter: {
                           input: "$frames.player_states",
                           as: "p",
-                          cond: { $eq: ["$$p.steam_id_64", steamId64] },
+                          cond: {
+                            $eq: [
+                              "$$p.steam_id_64",
+                              steamId64,
+                            ],
+                          },
                         },
                       },
                     },
@@ -183,11 +191,14 @@ export class MatchRepository implements MatchOutboundPort {
 
     const [result] = (await this.database.DemoChunkModel.aggregate([
       { $match: { demo_id: match.demo_id } },
-      { $sort: { end_game_tick: -1 } },
       { $unwind: "$frames" },
-      { $sort: { "frames.game_tick": -1 } },
       { $unwind: "$frames.player_states" },
-      { $match: { "frames.player_states.steam_id_64": steamId64 } },
+      {
+        $match: {
+          "frames.player_states.steam_id_64": steamId64,
+        },
+      },
+      { $sort: { "frames.game_tick": -1 } },
       { $replaceRoot: { newRoot: "$frames.player_states" } },
       { $limit: 1 },
     ])) as IPlayerState[];

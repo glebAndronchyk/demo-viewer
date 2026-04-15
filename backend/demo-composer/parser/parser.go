@@ -217,7 +217,7 @@ func (p *Parser) Parse() error {
 			IsBot:      info.IsBot,
 		}
 		if !info.IsBot {
-			mp.SteamID = strconv.FormatUint(info.SteamID64, 10)
+			mp.SteamID = info.SteamID64
 		}
 		matchParticipants = append(matchParticipants, mp)
 	}
@@ -296,7 +296,7 @@ func (p *Parser) capturePlayerStates(gs dem.GameState) []PlayerState {
 
 		if _, exists := p.participantsSeen[player.SteamID64]; !exists {
 			p.participantsSeen[player.SteamID64] = ParticipantInfo{
-				SteamID64: player.SteamID64,
+				SteamID64: strconv.FormatUint(player.SteamID64, 10),
 				Name:      player.Name,
 				IsBot:     player.IsBot,
 			}
@@ -343,7 +343,7 @@ func (p *Parser) capturePlayerState(player *common.Player) PlayerState {
 	}
 
 	return PlayerState{
-		SteamID64: player.SteamID64,
+		SteamID64: strconv.FormatUint(player.SteamID64, 10),
 		Name:      player.Name,
 		UserID:    player.UserID,
 		Team:      team,
@@ -452,7 +452,7 @@ func (p *Parser) addReconnectionToCurrentFrame(steamID uint64, name string, reco
 	}
 
 	reconnection := Reconnection{
-		SteamID64:     steamID,
+		SteamID64:     strconv.FormatUint(steamID, 10),
 		Name:          name,
 		ReconnectType: reconnectType,
 	}
@@ -475,7 +475,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("player_connect", map[string]interface{}{
-			"steam_id_64": steamID,
+			"steam_id_64": strconv.FormatUint(steamID, 10),
 			"name":        e.Player.Name,
 		})
 	})
@@ -490,7 +490,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		p.addReconnectionToCurrentFrame(steamID, e.Player.Name, "disconnect")
 
 		p.addEventToCurrentFrame("player_disconnect", map[string]interface{}{
-			"steam_id_64": steamID,
+			"steam_id_64": strconv.FormatUint(steamID, 10),
 			"name":        e.Player.Name,
 		})
 	})
@@ -504,17 +504,17 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Killer != nil {
-			data["killer_steam_id_64"] = e.Killer.SteamID64
+			data["killer_steam_id_64"] = strconv.FormatUint(e.Killer.SteamID64, 10)
 			data["killer_name"] = e.Killer.Name
 		}
 
 		if e.Victim != nil {
-			data["victim_steam_id_64"] = e.Victim.SteamID64
+			data["victim_steam_id_64"] = strconv.FormatUint(e.Victim.SteamID64, 10)
 			data["victim_name"] = e.Victim.Name
 		}
 
 		if e.Assister != nil {
-			data["assister_steam_id_64"] = e.Assister.SteamID64
+			data["assister_steam_id_64"] = strconv.FormatUint(e.Assister.SteamID64, 10)
 			data["assister_name"] = e.Assister.Name
 		}
 
@@ -536,7 +536,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -547,7 +547,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -574,7 +574,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 			data["has_kit"] = e.Player.HasDefuseKit()
 		}
@@ -586,7 +586,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -663,7 +663,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Shooter != nil {
-			data["shooter_steam_id_64"] = e.Shooter.SteamID64
+			data["shooter_steam_id_64"] = strconv.FormatUint(e.Shooter.SteamID64, 10)
 			data["shooter_name"] = e.Shooter.Name
 		}
 
@@ -674,7 +674,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -693,12 +693,12 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
 		if e.Attacker != nil {
-			data["attacker_steam_id_64"] = e.Attacker.SteamID64
+			data["attacker_steam_id_64"] = strconv.FormatUint(e.Attacker.SteamID64, 10)
 			data["attacker_name"] = e.Attacker.Name
 		}
 
@@ -710,7 +710,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 			data["player_team"] = e.Player.Team
 		}
@@ -718,7 +718,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data["flash_duration"] = float32(e.FlashDuration().Milliseconds())
 
 		if e.Attacker != nil {
-			data["attacker_steam_id_64"] = e.Attacker.SteamID64
+			data["attacker_steam_id_64"] = strconv.FormatUint(e.Attacker.SteamID64, 10)
 			data["attacker_name"] = e.Attacker.Name
 			data["attacker_team"] = e.Attacker.Team
 		}
@@ -742,7 +742,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Projectile.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Projectile.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Projectile.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Projectile.Thrower.Name
 		}
 
@@ -764,7 +764,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Projectile.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Projectile.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Projectile.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Projectile.Thrower.Name
 		}
 
@@ -784,7 +784,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Thrower.Name
 		}
 
@@ -804,7 +804,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Thrower.Name
 		}
 
@@ -824,7 +824,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Thrower.Name
 		}
 
@@ -844,7 +844,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Thrower != nil {
-			data["thrower_steam_id_64"] = e.Thrower.SteamID64
+			data["thrower_steam_id_64"] = strconv.FormatUint(e.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Thrower.Name
 		}
 
@@ -856,7 +856,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		data := map[string]interface{}{}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -870,7 +870,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 
@@ -883,7 +883,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		if e.Player != nil {
-			data["player_steam_id_64"] = e.Player.SteamID64
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
 		}
 

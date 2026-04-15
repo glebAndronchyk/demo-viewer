@@ -17,6 +17,7 @@
     "elysia": "latest",
     "globaloffensive": "^3.3.0",
     "jose": "latest",
+    "mongodb": "^7.1.1",
     "steam-user": "^5.3.0",
     "zod": "^4.3.6"
   },

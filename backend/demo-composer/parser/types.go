@@ -26,7 +26,7 @@ type MatchOutcome struct {
 
 // ParticipantInfo contains identity information about a player (not per-tick state)
 type ParticipantInfo struct {
-	SteamID64 uint64 `bson:"steam_id_64" json:"steam_id_64"`
+	SteamID64 string `bson:"steam_id_64" json:"steam_id_64"`
 	Name      string `bson:"name" json:"name"`
 	IsBot     bool   `bson:"is_bot" json:"is_bot"`
 }
@@ -85,7 +85,7 @@ type Frame struct {
 
 // PlayerState represents a player's state at a specific tick
 type PlayerState struct {
-	SteamID64        uint64    `bson:"steam_id_64" json:"steam_id_64"`
+	SteamID64        string    `bson:"steam_id_64" json:"steam_id_64"`
 	Name             string    `bson:"name" json:"name"`
 	UserID           int       `bson:"user_id" json:"user_id"`
 	Team             string    `bson:"team" json:"team"`
@@ -155,7 +155,7 @@ type Event struct {
 
 // Reconnection represents a player connection/disconnection event at a specific tick
 type Reconnection struct {
-	SteamID64     uint64 `bson:"steam_id_64" json:"steam_id_64"`
+	SteamID64     string `bson:"steam_id_64" json:"steam_id_64"`
 	Name          string `bson:"name" json:"name"`
 	ReconnectType string `bson:"reconnect_type" json:"reconnect_type"` // "connect" or "disconnect"
 }
