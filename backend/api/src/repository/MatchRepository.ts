@@ -11,10 +11,12 @@ import { DatabaseService } from "../adapters/DatabaseService";
 import { toMatchEntity } from "../mappers/match.mapper";
 import {
   DemoChunkEntity,
+  Frame,
   PlayerState,
 } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
 import {
   IDemoChunkDocument,
+  IFrame,
   IPlayerState,
 } from "@demo-viewer/database/dist/types/demo_chunk.types";
 import { toDemoChunkFrame } from "../mappers/demo-chunk-frame.mapper";
@@ -382,7 +384,9 @@ export class MatchRepository implements MatchOutboundPort {
     const chunkMatch: Record<string, unknown> = {};
     if (match.demo_id !== undefined) chunkMatch["demo_id"] = match.demo_id;
 
-    const buildCtorCondition = (ctor: EventConstructor<MatchEvent>): Record<string, unknown> => {
+    const buildCtorCondition = (
+      ctor: EventConstructor<MatchEvent>,
+    ): Record<string, unknown> => {
       const condition: Record<string, unknown> = { type: ctor.eventType };
       if (ctor.filterObject) {
         for (const [key, val] of Object.entries(ctor.filterObject)) {
@@ -424,7 +428,14 @@ export class MatchRepository implements MatchOutboundPort {
     const projection = eventsToProject.map((ctor) => {
       const raw: unknown[] = facetResult?.[ctor.getFacetName()] ?? [];
       return raw.map((r) =>
-        ctor.fromRaw(r as { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }),
+        ctor.fromRaw(
+          r as {
+            type: string;
+            data: Record<string, unknown>;
+            demoTick: number;
+            gameTick: number;
+          },
+        ),
       );
     }) as EventsFromConstructors<T>;
 
@@ -450,5 +461,44 @@ export class MatchRepository implements MatchOutboundPort {
     if (!entity) return null;
 
     return toMatchEntity(entity);
+  }
+
+  async getFirstGameTickOfEveryRound(matchId: string) {
+    const match = await this.database.MatchModel.findOne({
+      _id: matchId,
+    });
+
+    if (!match) return [];
+
+    const firstTicksPerEachRound = match.rounds.map((r) => r.start_game_tick);
+
+    const matchStartRounds =
+      await this.database.DemoChunkModel.aggregate<IFrame>([
+        {
+          $match: { demo_id: match.demo_id },
+        },
+        { $unwind: "$frames" },
+        {
+          $match: {
+            "frames.game_tick": {
+              $in: firstTicksPerEachRound,
+            },
+          },
+        },
+        { $replaceRoot: { newRoot: "$frames" } },
+      ]);
+
+    return matchStartRounds.map(toDemoChunkFrame);
+  }
+
+  async getRoundInfoByFrame(
+    matchId: string,
+    frame: Frame,
+  ): Promise<RoundInfo | null> {
+    const match = await this.findByMatchId(matchId);
+    if (!match) return null;
+
+    const roundNumber = frame.gameState.roundNumber;
+    return match.rounds.find((r) => r.roundNumber === roundNumber) ?? null;
   }
 }

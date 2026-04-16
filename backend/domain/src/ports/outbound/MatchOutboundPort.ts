@@ -1,6 +1,7 @@
 import type { MatchEntity, RoundInfo } from "../../entities/MatchEntity.ts";
 import type {
   DemoChunkEntity,
+  Frame,
   PlayerState,
 } from "../../entities/DemoChunkEntity.ts";
 import type {
@@ -43,6 +44,8 @@ export interface MatchOutboundPort {
     steamId64: string,
   ): Promise<RoundInfo[]>;
 
+  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]>;
+
   getPlayerFinalStateForMatch(
     matchId: string,
     steamId64: string,
@@ -58,4 +61,6 @@ export interface MatchOutboundPort {
       outcome: "lost" | "won";
     }[]
   >;
+
+  getRoundInfoByFrame(matchId: string, frame: Frame): Promise<RoundInfo | null>;
 }

@@ -24,10 +24,7 @@ export abstract class AnalyticsCalculator<TReturn> {
     };
   }
 
-  protected readonly dbCache: Map<string, readonly any[]> = new Map<
-    string,
-    readonly any[]
-  >();
+  protected readonly dbCache: Map<string, any> = new Map<string, any>();
   protected readonly operationCache: Map<string, TReturn> = new Map<
     string,
     TReturn

@@ -20,6 +20,7 @@ export class ItemRefundEvent extends MatchEvent.withBuilder(
     readonly playerSteamId64: string | null,
     readonly playerName: string | null,
     readonly weapon: string,
+    readonly weaponEntityId: string | null,
     readonly demoTick: number,
     readonly gameTick: number,
   ) {
@@ -43,6 +44,7 @@ export class ItemRefundEvent extends MatchEvent.withBuilder(
         : null,
       typeof d["player_name"] === "string" ? d["player_name"] : null,
       typeof d["weapon"] === "string" ? d["weapon"] : "",
+      typeof d["weapon_entity_id"] === "string" ? d["weapon_entity_id"] : null,
       raw.demoTick,
       raw.gameTick,
     );

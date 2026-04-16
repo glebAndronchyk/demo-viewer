@@ -869,6 +869,10 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			"weapon": e.Weapon.String(),
 		}
 
+		if e.Weapon != nil {
+			data["weapon_entity_id"] = e.Weapon.UniqueID2().String()
+		}
+
 		if e.Player != nil {
 			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
@@ -883,6 +887,10 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			"is_bought": false,
 		}
 
+		if e.Weapon != nil {
+			data["weapon_entity_id"] = e.Weapon.UniqueID2().String()
+		}
+
 		if e.Player != nil {
 			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
 			data["player_name"] = e.Player.Name
@@ -895,6 +903,10 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 	parser.RegisterEventHandler(func(e events.ItemRefund) {
 		data := map[string]interface{}{
 			"weapon": e.Weapon.String(),
+		}
+
+		if e.Weapon != nil {
+			data["weapon_entity_id"] = e.Weapon.UniqueID2().String()
 		}
 
 		if e.Player != nil {

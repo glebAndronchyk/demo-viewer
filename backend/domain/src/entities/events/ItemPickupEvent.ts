@@ -1,5 +1,6 @@
 import { MatchEvent } from "./MatchEvent.ts";
 import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import type { WeaponType } from "../WeaponType.ts";
 
 class ItemPickupEventQueryBuilder extends AnalyticsQueryBuilder<ItemPickupEvent> {
   constructor() {
@@ -26,8 +27,9 @@ export class ItemPickupEvent extends MatchEvent.withBuilder(
   constructor(
     readonly playerSteamId64: string | null,
     readonly playerName: string | null,
-    readonly weapon: string,
+    readonly weapon: WeaponType,
     readonly isBought: boolean,
+    readonly weaponEntityId: string | null,
     readonly demoTick: number,
     readonly gameTick: number,
   ) {
@@ -50,8 +52,9 @@ export class ItemPickupEvent extends MatchEvent.withBuilder(
         ? d["player_steam_id_64"]
         : null,
       typeof d["player_name"] === "string" ? d["player_name"] : null,
-      typeof d["weapon"] === "string" ? d["weapon"] : "",
+      (typeof d["weapon"] === "string" ? d["weapon"] : "") as WeaponType,
       typeof d["is_bought"] === "boolean" ? d["is_bought"] : false,
+      typeof d["weapon_entity_id"] === "string" ? d["weapon_entity_id"] : null,
       raw.demoTick,
       raw.gameTick,
     );

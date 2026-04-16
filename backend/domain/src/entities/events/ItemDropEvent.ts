@@ -18,6 +18,7 @@ export class ItemDropEvent extends MatchEvent.withBuilder(ItemDropEventQueryBuil
     readonly playerSteamId64: string | null,
     readonly playerName: string | null,
     readonly weapon: string,
+    readonly weaponEntityId: string | null,
     readonly demoTick: number,
     readonly gameTick: number,
   ) {
@@ -34,6 +35,7 @@ export class ItemDropEvent extends MatchEvent.withBuilder(ItemDropEventQueryBuil
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,
       typeof d["player_name"] === "string" ? d["player_name"] : null,
       typeof d["weapon"] === "string" ? d["weapon"] : "",
+      typeof d["weapon_entity_id"] === "string" ? d["weapon_entity_id"] : null,
       raw.demoTick,
       raw.gameTick,
     );
