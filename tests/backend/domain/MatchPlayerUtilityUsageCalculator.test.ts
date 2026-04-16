@@ -5,8 +5,12 @@ import { GrenadeThrowEvent } from "@demo-viewer/domain/src/entities/events/Grena
 import { PlayerHurtEvent } from "@demo-viewer/domain/src/entities/events/PlayerHurtEvent.ts";
 import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type { TeamType } from "@demo-viewer/domain/src/entities/TeamType.ts";
-import type { GrenadesWeaponType } from "@demo-viewer/domain/src/entities/WeaponType.ts";
-import type { WeaponType } from "@demo-viewer/domain/src/entities/WeaponType.ts";
+import {
+  Weapon,
+  type WeaponType,
+} from "@demo-viewer/domain/src/entities/WeaponType.ts";
+import type { Frame } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
+import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -16,12 +20,14 @@ const CT: TeamType = "CT";
 const T: TeamType = "T";
 const POS = { x: 0, y: 0, z: 0 };
 
-function makeThrow(weapon: GrenadesWeaponType): GrenadeThrowEvent {
+function makeThrow(
+  weapon: (typeof Weapon.grenades)[number],
+): GrenadeThrowEvent {
   return new GrenadeThrowEvent("player1", "Player1", weapon, 1, POS);
 }
 
 function makeThrows(
-  weapon: GrenadesWeaponType,
+  weapon: (typeof Weapon.grenades)[number],
   count: number,
 ): GrenadeThrowEvent[] {
   return Array.from({ length: count }, () => makeThrow(weapon));
@@ -67,6 +73,15 @@ type EventsTuple = [
 ];
 
 class MockMatchOutboundPort implements MatchOutboundPort {
+  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
+    throw new Error("Method not implemented.");
+  }
+  getRoundInfoByFrame(
+    matchId: string,
+    frame: Frame,
+  ): Promise<RoundInfo | null> {
+    throw new Error("Method not implemented.");
+  }
   aggregatedEventsResult: EventsTuple = [[], [], []];
 
   async getAggregatedEvents(_filter: any, _events: any, cache?: any) {

@@ -5,6 +5,9 @@
   "devDependencies": {
     "@types/bun": "latest"
   },
+  "scripts": {
+    "type-check": "bunx tsc --noEmit"
+  },
   "dependencies": {
     "@demo-viewer/backend-shared": "workspace:*"
   },

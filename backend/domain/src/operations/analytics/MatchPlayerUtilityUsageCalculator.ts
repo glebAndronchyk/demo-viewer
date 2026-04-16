@@ -6,9 +6,11 @@ import {
   PlayerFlashedEvent,
   PlayerHurtEvent,
 } from "../../entities/events";
-import { grenades, type WeaponType } from "../../entities/WeaponType.ts";
+import { Weapon, type WeaponType } from "../../entities/WeaponType.ts";
 
-export class MatchPlayerUtilityUsageCalculator extends AnalyticsCalculator<Omit<PlayerUtilityEntity, "statsId">> {
+export class MatchPlayerUtilityUsageCalculator extends AnalyticsCalculator<
+  Omit<PlayerUtilityEntity, "statsId">
+> {
   constructor(
     private readonly matchId: string,
     private readonly playerSteamId: string,
@@ -25,7 +27,7 @@ export class MatchPlayerUtilityUsageCalculator extends AnalyticsCalculator<Omit<
       [
         PlayerFlashedEvent.query().asAttacker(this.playerSteamId).build(),
         GrenadeThrowEvent.query().asThrower(this.playerSteamId).build(),
-        PlayerHurtEvent.query().withWeaponInRange(grenades).build(),
+        PlayerHurtEvent.query().withWeaponInRange(Weapon.grenades).build(),
       ],
       {
         get: () =>

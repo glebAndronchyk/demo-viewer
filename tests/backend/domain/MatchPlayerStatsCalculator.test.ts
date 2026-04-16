@@ -4,7 +4,10 @@ import { KillEvent } from "@demo-viewer/domain/src/entities/events";
 import { PlayerHurtEvent } from "@demo-viewer/domain/src/entities/events";
 import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type { WeaponType } from "@demo-viewer/domain/src/entities/WeaponType.ts";
-import type { PlayerState } from "@demo-viewer/domain/src/entities/DemoChunkEntity.ts";
+import type {
+  Frame,
+  PlayerState,
+} from "@demo-viewer/domain/src/entities/DemoChunkEntity.ts";
 import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity.ts";
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,15 @@ const defaultPlayerState: PlayerState = {
 type EventsTuple = [KillEvent[], KillEvent[], KillEvent[], PlayerHurtEvent[]];
 
 class MockMatchOutboundPort implements MatchOutboundPort {
+  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
+    throw new Error("Method not implemented.");
+  }
+  getRoundInfoByFrame(
+    matchId: string,
+    frame: Frame,
+  ): Promise<RoundInfo | null> {
+    throw new Error("Method not implemented.");
+  }
   aggregatedEventsResult: EventsTuple = [[], [], [], []];
   roundsResult: RoundInfo[] = [];
   playerStateResult: PlayerState = { ...defaultPlayerState };
@@ -105,7 +117,7 @@ class MockMatchOutboundPort implements MatchOutboundPort {
     return null;
   }
   async findByMatchId(): Promise<any> {
-    return null;
+    return { rounds: this.roundsResult };
   }
   async getTicksRange(): Promise<any> {
     return null;
@@ -233,8 +245,7 @@ describe("MatchPlayerStatsCalculator", () => {
       expect(await calc.getTotalAdr()).toBe(0);
     });
 
-    test("sums health and armor damage divided by rounds", async () => {
-      // 2 events: (50 hp + 10 armor) + (30 hp + 10 armor) = 100 total over 2 rounds → 50 ADR
+    test("sums only health damage", async () => {
       mock.aggregatedEventsResult = [
         [],
         [],
@@ -242,13 +253,13 @@ describe("MatchPlayerStatsCalculator", () => {
         [makeHurt(50, 10), makeHurt(30, 10)],
       ];
       mock.roundsResult = [makeRound(), makeRound()];
-      expect(await calc.getTotalAdr()).toBe(50);
+      expect(await calc.getTotalAdr()).toBe(40);
     });
 
-    test("counts both health and armor damage", async () => {
+    test("counts only health damage, not armor", async () => {
       mock.aggregatedEventsResult = [[], [], [], [makeHurt(0, 100)]];
       mock.roundsResult = [makeRound()];
-      expect(await calc.getTotalAdr()).toBe(100);
+      expect(await calc.getTotalAdr()).toBe(0);
     });
   });
 
@@ -411,7 +422,7 @@ describe("MatchPlayerStatsCalculator", () => {
       expect(result.totalDeaths).toBe(1);
       expect(result.totalAssists).toBe(1);
       expect(result.totalHs).toBe(0.5);
-      expect(result.totalAdr).toBe(60); // (60+20+40+0) = 120 / 2 rounds
+      expect(result.totalAdr).toBe(50); // (60+40) = 100 / 2 rounds
       expect(result.totalUtilityDamage).toBe(40); // only HE Grenade
       expect(result.totalKpr).toBe(1); // 2 kills / 2 rounds
       expect(result.totalApr).toBe(0.5); // 1 assist / 2 rounds

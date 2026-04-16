@@ -1,12 +1,17 @@
 import { MatchEvent } from "./MatchEvent.ts";
 import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
-import type { GrenadesWeaponType } from "../WeaponType.ts";
+import type { Weapon } from "../WeaponType.ts";
 
 class GrenadeThrowEventQueryBuilder extends AnalyticsQueryBuilder<GrenadeThrowEvent> {
-  constructor() { super(GrenadeThrowEvent); }
+  constructor() {
+    super(GrenadeThrowEvent);
+  }
 
   asThrower(steamId64: string) {
-    this.filterObject = { ...this.filterObject, thrower_steam_id_64: steamId64 };
+    this.filterObject = {
+      ...this.filterObject,
+      thrower_steam_id_64: steamId64,
+    };
     return this;
   }
 }
@@ -20,7 +25,7 @@ export class GrenadeThrowEvent extends MatchEvent.withBuilder(
   constructor(
     readonly throwerSteamId64: string | null,
     readonly throwerName: string | null,
-    readonly weapon: GrenadesWeaponType,
+    readonly weapon: (typeof Weapon.grenades)[number],
     readonly grenadeEntityId: number,
     readonly grenadePosition: { x: number; y: number; z: number },
   ) {
@@ -46,7 +51,7 @@ export class GrenadeThrowEvent extends MatchEvent.withBuilder(
       typeof d["thrower_name"] === "string" ? d["thrower_name"] : null,
       (typeof d["weapon"] === "string"
         ? d["weapon"]
-        : "") as GrenadesWeaponType,
+        : "") as (typeof Weapon.grenades)[number],
       typeof d["grenade_entity_id"] === "number" ? d["grenade_entity_id"] : 0,
       {
         x: typeof pos["x"] === "number" ? pos["x"] : 0,

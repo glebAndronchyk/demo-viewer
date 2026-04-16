@@ -2,6 +2,8 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { MatchPlayerWeaponsUsageCalculator } from "@demo-viewer/domain/src/operations/analytics/MatchPlayerWeaponsUsageCalculator.ts";
 import { WeaponFireEvent } from "@demo-viewer/domain/src/entities/events";
 import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
+import type { Frame } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
+import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -22,6 +24,15 @@ function makeShots(weapon: string, count: number): WeaponFireEvent[] {
 type EventsTuple = [WeaponFireEvent[]];
 
 class MockMatchOutboundPort implements MatchOutboundPort {
+  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
+    throw new Error("Method not implemented.");
+  }
+  getRoundInfoByFrame(
+    matchId: string,
+    frame: Frame,
+  ): Promise<RoundInfo | null> {
+    throw new Error("Method not implemented.");
+  }
   aggregatedEventsResult: EventsTuple = [[]];
 
   async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
@@ -67,7 +78,11 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
   beforeEach(() => {
     mock = new MockMatchOutboundPort();
-    calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+    calc = new MatchPlayerWeaponsUsageCalculator(
+      MATCH_ID,
+      PLAYER_STEAM_ID,
+      mock,
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -85,8 +100,8 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
     test("returns correct fraction for mixed weapons", async () => {
       mock.aggregatedEventsResult = [
         [
-          ...makeShots("Glock-18", 2),   // 2 pistol shots
-          ...makeShots("AK-47", 8),      // 8 rifle shots
+          ...makeShots("Glock-18", 2), // 2 pistol shots
+          ...makeShots("AK-47", 8), // 8 rifle shots
         ],
       ];
       expect(await calc.getPistolsPct()).toBe(0.2);
@@ -94,12 +109,24 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("covers all pistol variants", async () => {
       const pistolWeapons = [
-        "P2000", "Glock-18", "P250", "Desert Eagle", "Five-SeveN",
-        "Dual Berettas", "Tec-9", "CZ75 Auto", "USP-S", "R8 Revolver",
+        "P2000",
+        "Glock-18",
+        "P250",
+        "Desert Eagle",
+        "Five-SeveN",
+        "Dual Berettas",
+        "Tec-9",
+        "CZ75 Auto",
+        "USP-S",
+        "R8 Revolver",
       ];
       for (const weapon of pistolWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getPistolsPct()).toBe(1);
       }
@@ -120,12 +147,20 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("covers all utility/grenade types", async () => {
       const utilityWeapons = [
-        "HE Grenade", "Flashbang", "Smoke Grenade",
-        "Molotov", "Incendiary Grenade", "Decoy Grenade",
+        "HE Grenade",
+        "Flashbang",
+        "Smoke Grenade",
+        "Molotov",
+        "Incendiary Grenade",
+        "Decoy Grenade",
       ];
       for (const weapon of utilityWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getUtilityPct()).toBe(1);
       }
@@ -154,10 +189,7 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("returns correct fraction for shotgun shots", async () => {
       mock.aggregatedEventsResult = [
-        [
-          ...makeShots("Nova", 3),
-          ...makeShots("AK-47", 7),
-        ],
+        [...makeShots("Nova", 3), ...makeShots("AK-47", 7)],
       ];
       expect(await calc.getShotgunsPct()).toBe(0.3);
     });
@@ -166,7 +198,11 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
       const shotgunWeapons = ["Sawed-Off", "Nova", "MAG-7", "XM1014"];
       for (const weapon of shotgunWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getShotgunsPct()).toBe(1);
       }
@@ -182,19 +218,28 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("returns correct fraction for SMG shots", async () => {
       mock.aggregatedEventsResult = [
-        [
-          ...makeShots("MP9", 4),
-          ...makeShots("AK-47", 6),
-        ],
+        [...makeShots("MP9", 4), ...makeShots("AK-47", 6)],
       ];
       expect(await calc.getSmgPct()).toBe(0.4);
     });
 
     test("covers all SMG variants", async () => {
-      const smgWeapons = ["MP7", "MP9", "PP-Bizon", "MAC-10", "UMP-45", "P90", "MP5-SD"];
+      const smgWeapons = [
+        "MP7",
+        "MP9",
+        "PP-Bizon",
+        "MAC-10",
+        "UMP-45",
+        "P90",
+        "MP5-SD",
+      ];
       for (const weapon of smgWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getSmgPct()).toBe(1);
       }
@@ -214,10 +259,22 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
     });
 
     test("covers all assault rifle variants", async () => {
-      const arWeapons = ["Galil AR", "FAMAS", "AK-47", "M4A4", "M4A1", "SG 553", "AUG"];
+      const arWeapons = [
+        "Galil AR",
+        "FAMAS",
+        "AK-47",
+        "M4A4",
+        "M4A1",
+        "SG 553",
+        "AUG",
+      ];
       for (const weapon of arWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getAssaultRiflePct()).toBe(1);
       }
@@ -233,10 +290,7 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("returns correct fraction for sniper shots", async () => {
       mock.aggregatedEventsResult = [
-        [
-          ...makeShots("AWP", 1),
-          ...makeShots("AK-47", 9),
-        ],
+        [...makeShots("AWP", 1), ...makeShots("AK-47", 9)],
       ];
       expect(await calc.getSniperRiflePct()).toBe(0.1);
     });
@@ -245,7 +299,11 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
       const sniperWeapons = ["SSG 08", "AWP", "SCAR-20", "G3SG1"];
       for (const weapon of sniperWeapons) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getSniperRiflePct()).toBe(1);
       }
@@ -262,7 +320,11 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
     test("covers M249 and Negev", async () => {
       for (const weapon of ["M249", "Negev"]) {
         mock = new MockMatchOutboundPort();
-        calc = new MatchPlayerWeaponsUsageCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
+        calc = new MatchPlayerWeaponsUsageCalculator(
+          MATCH_ID,
+          PLAYER_STEAM_ID,
+          mock,
+        );
         mock.aggregatedEventsResult = [[makeShot(weapon)]];
         expect(await calc.getMachineGunPct()).toBe(1);
       }
@@ -270,10 +332,7 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
 
     test("returns correct fraction for machine gun shots", async () => {
       mock.aggregatedEventsResult = [
-        [
-          ...makeShots("M249", 5),
-          ...makeShots("AK-47", 5),
-        ],
+        [...makeShots("M249", 5), ...makeShots("AK-47", 5)],
       ];
       expect(await calc.getMachineGunPct()).toBe(0.5);
     });
@@ -284,14 +343,14 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
     test("all category percentages sum to 1 when every shot belongs to a category", async () => {
       mock.aggregatedEventsResult = [
         [
-          ...makeShots("Glock-18", 10),    // pistols
-          ...makeShots("AK-47", 20),       // assault rifle
-          ...makeShots("AWP", 10),         // sniper
-          ...makeShots("MP9", 10),         // smg
-          ...makeShots("Nova", 10),        // shotgun
-          ...makeShots("HE Grenade", 10),  // utility
-          ...makeShots("Knife", 10),       // melee
-          ...makeShots("M249", 20),        // machine gun
+          ...makeShots("Glock-18", 10), // pistols
+          ...makeShots("AK-47", 20), // assault rifle
+          ...makeShots("AWP", 10), // sniper
+          ...makeShots("MP9", 10), // smg
+          ...makeShots("Nova", 10), // shotgun
+          ...makeShots("HE Grenade", 10), // utility
+          ...makeShots("Knife", 10), // melee
+          ...makeShots("M249", 20), // machine gun
         ],
       ];
       const [p, ar, sn, smg, sg, ut, ml, mg] = await Promise.all([
@@ -336,8 +395,8 @@ describe("MatchPlayerWeaponsUsageCalculator", () => {
     test("returns correct percentages for mixed usage", async () => {
       mock.aggregatedEventsResult = [
         [
-          ...makeShots("AK-47", 6),    // 60% assault rifle
-          ...makeShots("AWP", 2),      // 20% sniper
+          ...makeShots("AK-47", 6), // 60% assault rifle
+          ...makeShots("AWP", 2), // 20% sniper
           ...makeShots("Glock-18", 2), // 20% pistol
         ],
       ];

@@ -1,11 +1,8 @@
 import { AnalyticsCalculator } from "./types/AnalyticsCalculator.ts";
 import type { MatchOutboundPort } from "../../ports/outbound/MatchOutboundPort.ts";
 import { KillEvent, PlayerHurtEvent } from "../../entities/events";
-import {
-  grenades,
-  type GrenadesWeaponType,
-} from "../../entities/WeaponType.ts";
 import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
+import { Weapon } from "../../entities/WeaponType.ts";
 
 /**
  * Aggregates the data related to basic match metrics (like KAST except of trades)
@@ -144,7 +141,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
       return acc + event.healthDamage;
     }, 0);
     const match = await this.matchOutbound.findByMatchId(this.matchId);
-    return !match ? 0 : totalDamage / match.rounds.length;
+    return !match || match.rounds.length === 0 ? 0 : totalDamage / match.rounds.length;
   }
 
   /**
@@ -154,7 +151,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
 
     const hurtEventsWhereWeaponUtility = killerHurtEvents.filter((e) =>
-      grenades.includes(e.weapon as GrenadesWeaponType),
+      Weapon.grenades.includes(e.weapon as (typeof Weapon.grenades)[number]),
     );
     return hurtEventsWhereWeaponUtility?.reduce((totalUtilityDamage, event) => {
       return totalUtilityDamage + event.healthDamage + event.armorDamage;

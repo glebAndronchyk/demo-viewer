@@ -2,16 +2,7 @@ import { AnalyticsCalculator } from "./types/AnalyticsCalculator.ts";
 import type { MatchOutboundPort } from "../../ports/outbound/MatchOutboundPort.ts";
 import type { PlayerWeaponsUsageEntity } from "../../entities/PlayerWeaponsUsageEntity.ts";
 import { WeaponFireEvent } from "../../entities/events";
-import {
-  assaultRifles,
-  grenades,
-  machineGuns,
-  meleeAndEquipment,
-  pistols,
-  shotguns,
-  smgs,
-  sniperRifles,
-} from "../../entities/WeaponType.ts";
+import { Weapon } from "../../entities/WeaponType.ts";
 
 export class MatchPlayerWeaponsUsageCalculator extends AnalyticsCalculator<
   Omit<PlayerWeaponsUsageEntity, "statsId">
@@ -87,34 +78,34 @@ export class MatchPlayerWeaponsUsageCalculator extends AnalyticsCalculator<
   }
 
   async getPistolsPct(): Promise<number> {
-    return this.getCategoryPct(pistols);
+    return this.getCategoryPct(Weapon.pistols);
   }
 
   async getUtilityPct(): Promise<number> {
-    return this.getCategoryPct(grenades);
+    return this.getCategoryPct(Weapon.grenades);
   }
 
   async getMeleePct(): Promise<number> {
-    return this.getCategoryPct(meleeAndEquipment);
+    return this.getCategoryPct(Weapon.meleeAndEquipment);
   }
 
   async getShotgunsPct(): Promise<number> {
-    return this.getCategoryPct(shotguns);
+    return this.getCategoryPct(Weapon.shotguns);
   }
 
   async getSmgPct(): Promise<number> {
-    return this.getCategoryPct(smgs);
+    return this.getCategoryPct(Weapon.smgs);
   }
 
   async getAssaultRiflePct(): Promise<number> {
-    return this.getCategoryPct(assaultRifles);
+    return this.getCategoryPct(Weapon.assaultRifles);
   }
 
   async getSniperRiflePct(): Promise<number> {
-    return this.getCategoryPct(sniperRifles);
+    return this.getCategoryPct(Weapon.sniperRifles);
   }
 
   async getMachineGunPct(): Promise<number> {
-    return this.getCategoryPct(machineGuns);
+    return this.getCategoryPct(Weapon.machineGuns);
   }
 }
