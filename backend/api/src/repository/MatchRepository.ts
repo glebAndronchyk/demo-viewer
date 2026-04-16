@@ -382,38 +382,50 @@ export class MatchRepository implements MatchOutboundPort {
     const chunkMatch: Record<string, unknown> = {};
     if (match.demo_id !== undefined) chunkMatch["demo_id"] = match.demo_id;
 
-    const eventTypeFilter = {
-      $or: eventsToProject.map((ctor) => {
-        const condition: Record<string, unknown> = { type: ctor.eventType };
-        if (ctor.filterObject) {
-          for (const [key, val] of Object.entries(ctor.filterObject)) {
-            condition[`data.${key}`] = val;
-          }
+    const buildCtorCondition = (ctor: EventConstructor<MatchEvent>): Record<string, unknown> => {
+      const condition: Record<string, unknown> = { type: ctor.eventType };
+      if (ctor.filterObject) {
+        for (const [key, val] of Object.entries(ctor.filterObject)) {
+          condition[`data.${key}`] = val;
         }
-        return condition;
-      }),
+      }
+      if (ctor.tickFilter) {
+        for (const [key, val] of Object.entries(ctor.tickFilter)) {
+          condition[key] = val;
+        }
+      }
+      return condition;
     };
 
-    const result = await this.database.DemoChunkModel.aggregate([
+    const facetStages = Object.fromEntries(
+      eventsToProject.map((ctor) => [
+        ctor.getFacetName(),
+        [{ $match: buildCtorCondition(ctor) }],
+      ]),
+    );
+
+    const [facetResult] = await this.database.DemoChunkModel.aggregate([
       { $match: chunkMatch },
       { $unwind: "$frames" },
       { $unwind: "$frames.events" },
-      { $replaceRoot: { newRoot: "$frames.events" } },
-      { $match: eventTypeFilter },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              "$frames.events",
+              { demoTick: "$frames.demo_tick", gameTick: "$frames.game_tick" },
+            ],
+          },
+        },
+      },
+      { $facet: facetStages },
     ]);
 
     const projection = eventsToProject.map((ctor) => {
-      return result
-        .filter((raw) => {
-          if (raw.type !== ctor.eventType) return false;
-          if (!ctor.filterObject) return true;
-          return Object.entries(ctor.filterObject).every(
-            ([key, val]) => raw.data?.[key] === val,
-          );
-        })
-        .map((raw) =>
-          ctor.fromRaw(raw as { type: string; data: Record<string, unknown> }),
-        );
+      const raw: unknown[] = facetResult?.[ctor.getFacetName()] ?? [];
+      return raw.map((r) =>
+        ctor.fromRaw(r as { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }),
+      );
     }) as EventsFromConstructors<T>;
 
     cache?.set(projection);

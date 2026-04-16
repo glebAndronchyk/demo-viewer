@@ -1,36 +1,19 @@
-import { type EventConstructor, MatchEvent } from "./MatchEvent.ts";
+import { MatchEvent } from "./MatchEvent.ts";
 import type { WeaponType } from "../WeaponType.ts";
 import { type HitGroup, parseHitGroup } from "../HitGroup.ts";
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
-class PlayerHurtEventQueryBuilder implements AnalyticsQueryBuilder<PlayerHurtEvent> {
-  private filterObject: Record<string, any> = {};
+class PlayerHurtEventQueryBuilder extends AnalyticsQueryBuilder<PlayerHurtEvent> {
+  constructor() { super(PlayerHurtEvent); }
 
   asAttacker(steamId64: string) {
-    this.filterObject = {
-      ...this.filterObject,
-      attacker_steam_id_64: steamId64,
-    };
-
+    this.filterObject = { ...this.filterObject, attacker_steam_id_64: steamId64 };
     return this;
   }
 
   withWeaponInRange(weapons: WeaponType[]) {
-    this.filterObject = {
-      ...this.filterObject,
-      weapon: { $in: weapons },
-    };
-
+    this.filterObject = { ...this.filterObject, weapon: { $in: weapons } };
     return this;
-  }
-
-  build(): EventConstructor<PlayerHurtEvent> {
-    return {
-      eventType: PlayerHurtEvent.eventType,
-      filterObject: this.filterObject,
-      is: PlayerHurtEvent.is.bind(PlayerHurtEvent),
-      fromRaw: PlayerHurtEvent.fromRaw.bind(PlayerHurtEvent),
-    };
   }
 }
 
@@ -53,15 +36,6 @@ export class PlayerHurtEvent extends MatchEvent.withBuilder(
     super();
   }
 
-  static asAttacker(steamId64: string): EventConstructor<PlayerHurtEvent> {
-    return {
-      eventType: PlayerHurtEvent.eventType,
-      filterObject: { attacker_steam_id_64: steamId64 },
-      is: PlayerHurtEvent.is.bind(PlayerHurtEvent),
-      fromRaw: PlayerHurtEvent.fromRaw.bind(PlayerHurtEvent),
-    };
-  }
-
   static is(event: unknown): event is PlayerHurtEvent {
     return event instanceof PlayerHurtEvent;
   }
@@ -69,6 +43,8 @@ export class PlayerHurtEvent extends MatchEvent.withBuilder(
   static fromRaw(raw: {
     type: string;
     data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
   }): PlayerHurtEvent {
     const d = raw.data;
     return new PlayerHurtEvent(

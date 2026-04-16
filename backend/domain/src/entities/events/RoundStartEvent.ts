@@ -16,7 +16,7 @@ export class RoundStartEvent extends MatchEvent {
     return event instanceof RoundStartEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): RoundStartEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): RoundStartEvent {
     const d = raw.data;
     return new RoundStartEvent(
       typeof d["time_limit"] === "number" ? d["time_limit"] : 0,

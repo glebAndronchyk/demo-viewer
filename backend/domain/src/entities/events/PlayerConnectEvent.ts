@@ -15,7 +15,7 @@ export class PlayerConnectEvent extends MatchEvent {
     return event instanceof PlayerConnectEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): PlayerConnectEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): PlayerConnectEvent {
     const d = raw.data;
     return new PlayerConnectEvent(
       typeof d["steam_id_64"] === "string" ? d["steam_id_64"] : "",

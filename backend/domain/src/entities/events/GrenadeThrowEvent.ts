@@ -1,25 +1,13 @@
-import { type EventConstructor, MatchEvent } from "./MatchEvent.ts";
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { MatchEvent } from "./MatchEvent.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 import type { GrenadesWeaponType } from "../WeaponType.ts";
 
-class GrenadeThrowEventQueryBuilder implements AnalyticsQueryBuilder<GrenadeThrowEvent> {
-  private filterObject: Record<string, any> = {};
+class GrenadeThrowEventQueryBuilder extends AnalyticsQueryBuilder<GrenadeThrowEvent> {
+  constructor() { super(GrenadeThrowEvent); }
 
   asThrower(steamId64: string) {
-    this.filterObject = {
-      ...this.filterObject,
-      thrower_steam_id_64: steamId64,
-    };
+    this.filterObject = { ...this.filterObject, thrower_steam_id_64: steamId64 };
     return this;
-  }
-
-  build(): EventConstructor<GrenadeThrowEvent> {
-    return {
-      eventType: GrenadeThrowEvent.eventType,
-      filterObject: this.filterObject,
-      is: GrenadeThrowEvent.is.bind(GrenadeThrowEvent),
-      fromRaw: GrenadeThrowEvent.fromRaw.bind(GrenadeThrowEvent),
-    };
   }
 }
 
@@ -46,6 +34,8 @@ export class GrenadeThrowEvent extends MatchEvent.withBuilder(
   static fromRaw(raw: {
     type: string;
     data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
   }): GrenadeThrowEvent {
     const d = raw.data;
     const pos = (d["grenade_position"] ?? {}) as Record<string, unknown>;

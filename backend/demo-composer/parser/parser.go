@@ -879,6 +879,21 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 
 	parser.RegisterEventHandler(func(e events.ItemPickup) {
 		data := map[string]interface{}{
+			"weapon":    e.Weapon.String(),
+			"is_bought": false,
+		}
+
+		if e.Player != nil {
+			data["player_steam_id_64"] = strconv.FormatUint(e.Player.SteamID64, 10)
+			data["player_name"] = e.Player.Name
+			data["is_bought"] = e.Player.IsInBuyZone()
+		}
+
+		p.addEventToCurrentFrame("item_pickup", data)
+	})
+
+	parser.RegisterEventHandler(func(e events.ItemRefund) {
+		data := map[string]interface{}{
 			"weapon": e.Weapon.String(),
 		}
 
@@ -887,7 +902,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			data["player_name"] = e.Player.Name
 		}
 
-		p.addEventToCurrentFrame("item_pickup", data)
+		p.addEventToCurrentFrame("item_refund", data)
 	})
 }
 

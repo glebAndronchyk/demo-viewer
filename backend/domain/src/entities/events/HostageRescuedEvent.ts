@@ -15,7 +15,7 @@ export class HostageRescuedEvent extends MatchEvent {
     return event instanceof HostageRescuedEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): HostageRescuedEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): HostageRescuedEvent {
     const d = raw.data;
     return new HostageRescuedEvent(
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,

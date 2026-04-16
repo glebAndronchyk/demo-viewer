@@ -14,7 +14,7 @@ export class BombExplodedEvent extends MatchEvent {
     return event instanceof BombExplodedEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): BombExplodedEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): BombExplodedEvent {
     const d = raw.data;
     const rawSite = d["site"];
     const site: "A" | "B" | "Unknown" =

@@ -1,6 +1,16 @@
 import { MatchEvent } from "./MatchEvent.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
-export class ItemDropEvent extends MatchEvent {
+class ItemDropEventQueryBuilder extends AnalyticsQueryBuilder<ItemDropEvent> {
+  constructor() { super(ItemDropEvent); }
+
+  asPlayer(steamId64: string) {
+    this.filterObject["player_steam_id_64"] = steamId64;
+    return this;
+  }
+}
+
+export class ItemDropEvent extends MatchEvent.withBuilder(ItemDropEventQueryBuilder) {
   static readonly eventType = "item_drop" as const;
   readonly type = ItemDropEvent.eventType;
 
@@ -8,6 +18,8 @@ export class ItemDropEvent extends MatchEvent {
     readonly playerSteamId64: string | null,
     readonly playerName: string | null,
     readonly weapon: string,
+    readonly demoTick: number,
+    readonly gameTick: number,
   ) {
     super();
   }
@@ -16,12 +28,14 @@ export class ItemDropEvent extends MatchEvent {
     return event instanceof ItemDropEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): ItemDropEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): ItemDropEvent {
     const d = raw.data;
     return new ItemDropEvent(
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,
       typeof d["player_name"] === "string" ? d["player_name"] : null,
       typeof d["weapon"] === "string" ? d["weapon"] : "",
+      raw.demoTick,
+      raw.gameTick,
     );
   }
 }

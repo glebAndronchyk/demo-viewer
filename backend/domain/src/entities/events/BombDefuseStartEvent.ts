@@ -16,7 +16,7 @@ export class BombDefuseStartEvent extends MatchEvent {
     return event instanceof BombDefuseStartEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): BombDefuseStartEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): BombDefuseStartEvent {
     const d = raw.data;
     return new BombDefuseStartEvent(
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,

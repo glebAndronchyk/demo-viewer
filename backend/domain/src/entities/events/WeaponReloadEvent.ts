@@ -15,7 +15,7 @@ export class WeaponReloadEvent extends MatchEvent {
     return event instanceof WeaponReloadEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): WeaponReloadEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): WeaponReloadEvent {
     const d = raw.data;
     return new WeaponReloadEvent(
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,

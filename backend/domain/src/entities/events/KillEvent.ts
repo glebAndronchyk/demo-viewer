@@ -1,43 +1,27 @@
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
-import { MatchEvent, type EventConstructor } from "./MatchEvent.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { MatchEvent } from "./MatchEvent.ts";
 
-class KillEventQueryBuilder implements AnalyticsQueryBuilder<KillEvent> {
-  private filterObject: Record<string, any> = {};
+class KillEventQueryBuilder extends AnalyticsQueryBuilder<KillEvent> {
+  constructor() { super(KillEvent); }
 
   asKiller(steamId64: string) {
     this.filterObject = { ...this.filterObject, killer_steam_id_64: steamId64 };
-
     return this;
   }
 
   asHeadshot() {
     this.filterObject = { ...this.filterObject, headshot: true };
-
     return this;
   }
 
   asVictim(steamId64: string) {
     this.filterObject = { ...this.filterObject, victim_steam_id_64: steamId64 };
-
     return this;
   }
 
   asAssister(steamId64: string) {
-    this.filterObject = {
-      ...this.filterObject,
-      assister_steam_id_64: steamId64,
-    };
-
+    this.filterObject = { ...this.filterObject, assister_steam_id_64: steamId64 };
     return this;
-  }
-
-  build(): EventConstructor<KillEvent> {
-    return {
-      eventType: KillEvent.eventType,
-      filterObject: this.filterObject,
-      is: KillEvent.is.bind(KillEvent),
-      fromRaw: KillEvent.fromRaw.bind(KillEvent),
-    };
   }
 }
 
@@ -66,6 +50,8 @@ export class KillEvent extends MatchEvent.withBuilder(KillEventQueryBuilder) {
   static fromRaw(raw: {
     type: string;
     data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
   }): KillEvent {
     const d = raw.data;
     return new KillEvent(

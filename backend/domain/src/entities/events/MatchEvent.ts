@@ -1,4 +1,4 @@
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
 export abstract class MatchEvent {
   static readonly filterObject: Record<string, unknown> | undefined = undefined;
@@ -22,8 +22,15 @@ export abstract class MatchEvent {
 export type EventConstructor<T extends MatchEvent> = {
   readonly eventType: string;
   readonly filterObject?: Record<string, unknown>;
+  readonly tickFilter?: Record<string, unknown>;
+  getFacetName(): string;
   is(event: unknown): event is T;
-  fromRaw(raw: { type: string; data: Record<string, unknown> }): T;
+  fromRaw(raw: {
+    type: string;
+    data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
+  }): T;
 };
 
 export type EventsFromConstructors<

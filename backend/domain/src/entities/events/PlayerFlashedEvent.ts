@@ -1,32 +1,20 @@
-import { MatchEvent, type EventConstructor } from "./MatchEvent.ts";
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { MatchEvent } from "./MatchEvent.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 import { GrenadeFlashExplodeEvent } from "./GrenadeFlashExplodeEvent.ts";
 import type { HitGroup } from "../HitGroup.ts";
 import type { TeamType } from "../TeamType.ts";
 
-class PlayerFlashedEventQueryBuilder implements AnalyticsQueryBuilder<PlayerFlashedEvent> {
-  private filterObject: Record<string, any> = {};
+class PlayerFlashedEventQueryBuilder extends AnalyticsQueryBuilder<PlayerFlashedEvent> {
+  constructor() { super(PlayerFlashedEvent); }
 
   asAttacker(steamId64: string) {
-    this.filterObject = {
-      ...this.filterObject,
-      attacker_steam_id_64: steamId64,
-    };
+    this.filterObject = { ...this.filterObject, attacker_steam_id_64: steamId64 };
     return this;
   }
 
   withTargetPlayerTeam(team: TeamType) {
     this.filterObject = { ...this.filterObject, player_team: team };
     return this;
-  }
-
-  build(): EventConstructor<PlayerFlashedEvent> {
-    return {
-      eventType: PlayerFlashedEvent.eventType,
-      filterObject: this.filterObject,
-      is: PlayerFlashedEvent.is.bind(PlayerFlashedEvent),
-      fromRaw: PlayerFlashedEvent.fromRaw.bind(PlayerFlashedEvent),
-    };
   }
 }
 
@@ -55,6 +43,8 @@ export class PlayerFlashedEvent extends MatchEvent.withBuilder(
   static fromRaw(raw: {
     type: string;
     data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
   }): PlayerFlashedEvent {
     const d = raw.data;
     return new PlayerFlashedEvent(

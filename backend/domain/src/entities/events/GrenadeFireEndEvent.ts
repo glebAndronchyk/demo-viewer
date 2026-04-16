@@ -1,28 +1,18 @@
-import { type EventConstructor, MatchEvent } from "./MatchEvent.ts";
-import type { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
+import { MatchEvent } from "./MatchEvent.ts";
+import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
-class GrenadeFireEndEventQueryBuilder implements AnalyticsQueryBuilder<GrenadeFireEndEvent> {
-  private filterObject: Record<string, any> = {};
+class GrenadeFireEndEventQueryBuilder extends AnalyticsQueryBuilder<GrenadeFireEndEvent> {
+  constructor() { super(GrenadeFireEndEvent); }
 
   asThrower(steamId64: string) {
-    this.filterObject = {
-      ...this.filterObject,
-      thrower_steam_id_64: steamId64,
-    };
+    this.filterObject = { ...this.filterObject, thrower_steam_id_64: steamId64 };
     return this;
-  }
-
-  build(): EventConstructor<GrenadeFireEndEvent> {
-    return {
-      eventType: GrenadeFireEndEvent.eventType,
-      filterObject: this.filterObject,
-      is: GrenadeFireEndEvent.is.bind(GrenadeFireEndEvent),
-      fromRaw: GrenadeFireEndEvent.fromRaw.bind(GrenadeFireEndEvent),
-    };
   }
 }
 
-export class GrenadeFireEndEvent extends MatchEvent.withBuilder(GrenadeFireEndEventQueryBuilder) {
+export class GrenadeFireEndEvent extends MatchEvent.withBuilder(
+  GrenadeFireEndEventQueryBuilder,
+) {
   static readonly eventType = "grenade_fire_end" as const;
   readonly type = GrenadeFireEndEvent.eventType;
 
@@ -40,11 +30,18 @@ export class GrenadeFireEndEvent extends MatchEvent.withBuilder(GrenadeFireEndEv
     return event instanceof GrenadeFireEndEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): GrenadeFireEndEvent {
+  static fromRaw(raw: {
+    type: string;
+    data: Record<string, unknown>;
+    demoTick: number;
+    gameTick: number;
+  }): GrenadeFireEndEvent {
     const d = raw.data;
     const pos = (d["grenade_position"] ?? {}) as Record<string, unknown>;
     return new GrenadeFireEndEvent(
-      typeof d["thrower_steam_id_64"] === "string" ? d["thrower_steam_id_64"] : null,
+      typeof d["thrower_steam_id_64"] === "string"
+        ? d["thrower_steam_id_64"]
+        : null,
       typeof d["thrower_name"] === "string" ? d["thrower_name"] : null,
       typeof d["grenade_type"] === "string" ? d["grenade_type"] : "",
       typeof d["grenade_entity_id"] === "number" ? d["grenade_entity_id"] : 0,

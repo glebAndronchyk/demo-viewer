@@ -24,4 +24,5 @@ export { RoundFreezetimeEndEvent } from "./RoundFreezetimeEndEvent.ts";
 export { RoundEndOfficialEvent } from "./RoundEndOfficialEvent.ts";
 export { ItemDropEvent } from "./ItemDropEvent.ts";
 export { ItemPickupEvent } from "./ItemPickupEvent.ts";
+export { ItemRefundEvent } from "./ItemRefundEvent.ts";
 export { HostageRescuedEvent } from "./HostageRescuedEvent.ts";

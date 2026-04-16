@@ -1,41 +1,33 @@
 import { MatchEvent } from "./MatchEvent.ts";
 import { AnalyticsQueryBuilder } from "./AnalyticsQueryBuilder.ts";
 
-class ItemPickupEventQueryBuilder extends AnalyticsQueryBuilder<ItemPickupEvent> {
-  constructor() {
-    super(ItemPickupEvent);
-  }
+class ItemRefundEventQueryBuilder extends AnalyticsQueryBuilder<ItemRefundEvent> {
+  constructor() { super(ItemRefundEvent); }
 
-  forPlayer(steamId64: string) {
+  asPlayer(steamId64: string) {
     this.filterObject["player_steam_id_64"] = steamId64;
-    return this;
-  }
-
-  asBought() {
-    this.filterObject["is_bought"] = true;
     return this;
   }
 }
 
-export class ItemPickupEvent extends MatchEvent.withBuilder(
-  ItemPickupEventQueryBuilder,
+export class ItemRefundEvent extends MatchEvent.withBuilder(
+  ItemRefundEventQueryBuilder,
 ) {
-  static readonly eventType = "item_pickup" as const;
-  readonly type = ItemPickupEvent.eventType;
+  static readonly eventType = "item_refund" as const;
+  readonly type = ItemRefundEvent.eventType;
 
   constructor(
     readonly playerSteamId64: string | null,
     readonly playerName: string | null,
     readonly weapon: string,
-    readonly isBought: boolean,
     readonly demoTick: number,
     readonly gameTick: number,
   ) {
     super();
   }
 
-  static is(event: unknown): event is ItemPickupEvent {
-    return event instanceof ItemPickupEvent;
+  static is(event: unknown): event is ItemRefundEvent {
+    return event instanceof ItemRefundEvent;
   }
 
   static fromRaw(raw: {
@@ -43,15 +35,14 @@ export class ItemPickupEvent extends MatchEvent.withBuilder(
     data: Record<string, unknown>;
     demoTick: number;
     gameTick: number;
-  }): ItemPickupEvent {
+  }): ItemRefundEvent {
     const d = raw.data;
-    return new ItemPickupEvent(
+    return new ItemRefundEvent(
       typeof d["player_steam_id_64"] === "string"
         ? d["player_steam_id_64"]
         : null,
       typeof d["player_name"] === "string" ? d["player_name"] : null,
       typeof d["weapon"] === "string" ? d["weapon"] : "",
-      typeof d["is_bought"] === "boolean" ? d["is_bought"] : false,
       raw.demoTick,
       raw.gameTick,
     );

@@ -15,7 +15,7 @@ export class BombDefuseAbortedEvent extends MatchEvent {
     return event instanceof BombDefuseAbortedEvent;
   }
 
-  static fromRaw(raw: { type: string; data: Record<string, unknown> }): BombDefuseAbortedEvent {
+  static fromRaw(raw: { type: string; data: Record<string, unknown>; demoTick: number; gameTick: number }): BombDefuseAbortedEvent {
     const d = raw.data;
     return new BombDefuseAbortedEvent(
       typeof d["player_steam_id_64"] === "string" ? d["player_steam_id_64"] : null,
