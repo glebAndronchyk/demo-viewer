@@ -73,7 +73,12 @@ const di = new DIContainer()
   .addSingleton(BackgroundController, [TypedApp, CommandBusService])
   .addSingleton(ParsingController, [TypedApp, CommandBusService])
   .addSingleton(StreamingController, [TypedApp, CommandBusService])
-  .addSingleton(TeamController, [TypedApp, EnvConfiguration, TeamRepository, CommandBusService])
+  .addSingleton(TeamController, [
+    TypedApp,
+    EnvConfiguration,
+    TeamRepository,
+    CommandBusService,
+  ])
   .addSingleton(UserController, [TypedApp, EnvConfiguration, CommandBusService])
   .addSingleton(StorageController, [TypedApp, CommandBusService])
   // cron

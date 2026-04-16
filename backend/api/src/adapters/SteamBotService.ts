@@ -1,6 +1,8 @@
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 import SteamUser, { EConnectionProtocol } from "steam-user";
 import GlobalOffensive from "globaloffensive";
+import { homedir } from "os";
+import { join } from "path";
 
 export class SteamBotService {
   get bot(): SteamUser {
@@ -24,7 +26,7 @@ export class SteamBotService {
 
     const bot = new SteamUser({
       autoRelogin: true,
-      dataDirectory: "./steam",
+      dataDirectory: join(homedir(), "auth", "steam"),
       protocol: EConnectionProtocol.TCP,
     });
 

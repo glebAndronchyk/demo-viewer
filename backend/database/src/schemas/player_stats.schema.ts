@@ -35,9 +35,6 @@ export const PlayerStatsSchema = new Schema<IPlayerStatsDocument>(
     total_apr: {
       type: Schema.Types.Decimal128,
     },
-    total_dpr: {
-      type: Schema.Types.Decimal128,
-    },
     total_score: {
       type: Number,
     },

@@ -21,7 +21,6 @@ export function toPlayerStatsEntity(doc: IPlayerStats): PlayerStatsEntity {
     totalHs: decimal128ToNumber(doc.total_hs),
     totalKpr: decimal128ToNumber(doc.total_kpr),
     totalApr: decimal128ToNumber(doc.total_apr),
-    totalDpr: decimal128ToNumber(doc.total_dpr),
     dateRecorded: doc.date_recorded,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,

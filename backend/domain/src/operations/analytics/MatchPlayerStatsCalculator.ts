@@ -53,7 +53,6 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
       totalApr,
       totalAssists,
       totalDeaths,
-      totalDpr,
       totalHs,
       totalKills,
       totalKpr,
@@ -66,7 +65,6 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
       this.getTotalApr().catch(() => 0),
       this.getTotalAssists().catch(() => 0),
       this.getTotalDeaths().catch(() => 0),
-      this.getTotalDpr().catch(() => 0),
       this.getTotalHs().catch(() => 0),
       this.getTotalKills().catch(() => 0),
       this.getTotalKpr().catch(() => 0),
@@ -88,7 +86,6 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
       totalApr,
       totalAssists,
       totalDeaths,
-      totalDpr,
       totalHs,
       totalKills,
       totalKpr,
@@ -113,7 +110,6 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    */
   async getTotalDeaths() {
     const [_, deathEvents] = await this.sharedKillsQuery();
-
     return deathEvents?.length ?? 0;
   }
 
@@ -145,10 +141,10 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
 
     const totalDamage = killerHurtEvents?.reduce<number>((acc, event) => {
-      return acc + event.healthDamage + event.armorDamage;
+      return acc + event.healthDamage;
     }, 0);
-    const totalRounds = await this.getTotalRoundsPlayed();
-    return totalRounds === 0 ? 0 : totalDamage / totalRounds;
+    const match = await this.matchOutbound.findByMatchId(this.matchId);
+    return !match ? 0 : totalDamage / match.rounds.length;
   }
 
   /**
@@ -173,16 +169,6 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     const totalRounds = await this.getTotalRoundsPlayed();
 
     return totalRounds === 0 ? 0 : totalKills / totalRounds;
-  }
-
-  /**
-   * Gets DPR(deaths per round). totalDeaths/totalRounds
-   */
-  async getTotalDpr() {
-    const totalDeaths = await this.getTotalDeaths();
-    const totalRounds = await this.getTotalRoundsPlayed();
-
-    return totalRounds === 0 ? 0 : totalDeaths / totalRounds;
   }
 
   /**

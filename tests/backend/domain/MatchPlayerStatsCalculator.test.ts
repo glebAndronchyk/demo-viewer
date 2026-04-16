@@ -315,21 +315,6 @@ describe("MatchPlayerStatsCalculator", () => {
   });
 
   // -------------------------------------------------------------------------
-  describe("getTotalDpr", () => {
-    test("returns 0 when there are no rounds", async () => {
-      mock.aggregatedEventsResult = [[], [makeKill()], [], []];
-      mock.roundsResult = [];
-      expect(await calc.getTotalDpr()).toBe(0);
-    });
-
-    test("returns correct deaths per round", async () => {
-      mock.aggregatedEventsResult = [[], [makeKill(), makeKill()], [], []];
-      mock.roundsResult = [makeRound(), makeRound(), makeRound(), makeRound()];
-      expect(await calc.getTotalDpr()).toBe(0.5);
-    });
-  });
-
-  // -------------------------------------------------------------------------
   describe("getTotalApr", () => {
     test("returns 0 when there are no rounds", async () => {
       mock.aggregatedEventsResult = [[], [], [makeKill()], []];
@@ -429,7 +414,6 @@ describe("MatchPlayerStatsCalculator", () => {
       expect(result.totalAdr).toBe(60); // (60+20+40+0) = 120 / 2 rounds
       expect(result.totalUtilityDamage).toBe(40); // only HE Grenade
       expect(result.totalKpr).toBe(1); // 2 kills / 2 rounds
-      expect(result.totalDpr).toBe(0.5); // 1 death / 2 rounds
       expect(result.totalApr).toBe(0.5); // 1 assist / 2 rounds
       expect(result.totalRoundsPlayed).toBe(2);
       expect(result.totalScore).toBe(10);
@@ -450,7 +434,6 @@ describe("MatchPlayerStatsCalculator", () => {
       expect(result.totalAdr).toBe(0);
       expect(result.totalUtilityDamage).toBe(0);
       expect(result.totalKpr).toBe(0);
-      expect(result.totalDpr).toBe(0);
       expect(result.totalApr).toBe(0);
       expect(result.totalRoundsPlayed).toBe(0);
       expect(result.totalScore).toBe(0);

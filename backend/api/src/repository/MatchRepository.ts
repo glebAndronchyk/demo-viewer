@@ -121,10 +121,7 @@ export class MatchRepository implements MatchOutboundPort {
                           input: "$frames.player_states",
                           as: "p",
                           cond: {
-                            $eq: [
-                              "$$p.steam_id_64",
-                              steamId64,
-                            ],
+                            $eq: ["$$p.steam_id_64", steamId64],
                           },
                         },
                       },
@@ -378,7 +375,7 @@ export class MatchRepository implements MatchOutboundPort {
 
     const match = await this.database.MatchModel.findOne({
       _id: filter.matchId,
-    });
+    }).lean();
 
     if (!match) throw new Error("No match found for matchId");
 
@@ -405,18 +402,19 @@ export class MatchRepository implements MatchOutboundPort {
       { $match: eventTypeFilter },
     ]);
 
-    const allEvents = result
-      .map((raw) => {
-        const ctor = eventsToProject.find((c) => c.eventType === raw.type);
-        return ctor
-          ? ctor.fromRaw(raw as { type: string; data: Record<string, unknown> })
-          : null;
-      })
-      .filter((e) => e !== null);
-
-    const projection = eventsToProject.map((ctor) =>
-      allEvents.filter((e) => ctor.is(e)),
-    ) as EventsFromConstructors<T>;
+    const projection = eventsToProject.map((ctor) => {
+      return result
+        .filter((raw) => {
+          if (raw.type !== ctor.eventType) return false;
+          if (!ctor.filterObject) return true;
+          return Object.entries(ctor.filterObject).every(
+            ([key, val]) => raw.data?.[key] === val,
+          );
+        })
+        .map((raw) =>
+          ctor.fromRaw(raw as { type: string; data: Record<string, unknown> }),
+        );
+    }) as EventsFromConstructors<T>;
 
     cache?.set(projection);
 

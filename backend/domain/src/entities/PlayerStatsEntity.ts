@@ -12,7 +12,6 @@ export interface PlayerStatsEntity {
   totalHs?: number;
   totalKpr?: number;
   totalApr?: number;
-  totalDpr?: number;
   dateRecorded?: Date;
   createdAt?: Date;
   updatedAt?: Date;

@@ -11,7 +11,6 @@ export interface IPlayerStats {
   total_assists?: number;
   total_kpr?: Types.Decimal128;
   total_apr?: Types.Decimal128;
-  total_dpr?: Types.Decimal128;
   total_score?: number;
   match_id?: string;
   total_rounds_played?: number;
