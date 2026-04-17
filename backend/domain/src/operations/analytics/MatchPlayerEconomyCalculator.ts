@@ -4,7 +4,6 @@ import {
   ItemPickupEvent,
   ItemRefundEvent,
 } from "../../entities/events";
-import type { MatchOutboundPort } from "../../ports/outbound/MatchOutboundPort.ts";
 import type { Frame } from "../../entities/DemoChunkEntity.ts";
 import { Weapon } from "../../entities/WeaponType.ts";
 import type { PlayerEconomyEntity } from "../../entities/PlayerEconomyEntity.ts";
@@ -18,14 +17,6 @@ import type { PlayerEconomyEntity } from "../../entities/PlayerEconomyEntity.ts"
 export class MatchPlayerEconomyCalculator extends AnalyticsCalculator<
   Omit<PlayerEconomyEntity, "statsId">
 > {
-  constructor(
-    private readonly matchId: string,
-    private readonly playerSteamId: string,
-    matchOutbound: MatchOutboundPort,
-  ) {
-    super(matchOutbound);
-  }
-
   private async sharedQuery() {
     let startFrames = this.dbCache.get("startFrames") as Frame[];
 
@@ -104,6 +95,7 @@ export class MatchPlayerEconomyCalculator extends AnalyticsCalculator<
       ]);
 
     return {
+      _analyticsType: "economy",
       roundsEco: ecoFrames.length,
       roundsForceBuy: forceFrames.length,
       roundsFullBuy: fullBuyFrames.length,

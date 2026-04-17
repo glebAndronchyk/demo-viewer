@@ -5,6 +5,8 @@ export interface ClutchStatEntity {
 
 export type PlayerEntityClutchField<T extends number = number> = `clutch1v${T}`;
 
+import type { PlayerAnalyticalEntity } from "./PlayerAnalyticalEntity.ts";
+
 export type PlayerClutchesEntity = {
   [K in PlayerEntityClutchField<1 | 2 | 3 | 4 | 5>]?: ClutchStatEntity;
-} & { statsId: string };
+} & { statsId: string; _analyticsType: "clutches" } & PlayerAnalyticalEntity;

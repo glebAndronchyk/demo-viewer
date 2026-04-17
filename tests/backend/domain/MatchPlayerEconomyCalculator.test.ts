@@ -3,13 +3,13 @@ import { MatchPlayerEconomyCalculator } from "@demo-viewer/domain/src/operations
 import { ItemPickupEvent } from "@demo-viewer/domain/src/entities/events/ItemPickupEvent.ts";
 import { ItemDropEvent } from "@demo-viewer/domain/src/entities/events/ItemDropEvent.ts";
 import { ItemRefundEvent } from "@demo-viewer/domain/src/entities/events/ItemRefundEvent.ts";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type {
   Frame,
   PlayerState,
   Equipment,
 } from "@demo-viewer/domain/src/entities/DemoChunkEntity.ts";
 import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity.ts";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,58 +139,6 @@ function makeRefundEvent(
 }
 
 // ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EconomyEventsTuple = [
-  ItemPickupEvent[],
-  ItemDropEvent[],
-  ItemRefundEvent[],
-];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  startFrames: Frame[] = [];
-  aggregatedEventsResult: EconomyEventsTuple = [[], [], []];
-  roundInfoMap: Map<Frame, RoundInfo | null> = new Map();
-
-  async getFirstGameTickOfEveryRound(_matchId: string): Promise<Frame[]> {
-    return this.startFrames;
-  }
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundInfoByFrame(
-    _matchId: string,
-    frame: Frame,
-  ): Promise<RoundInfo | null> {
-    return this.roundInfoMap.get(frame) ?? null;
-  }
-
-  // Unused stubs
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-  async findByMatchId(): Promise<any> {
-    return null;
-  }
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-  async getRoundsPlayedByPlayer(): Promise<RoundInfo[]> {
-    return [];
-  }
-  async getPlayerFinalStateForMatch(): Promise<any> {
-    return makePlayerState();
-  }
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -200,6 +148,7 @@ describe("MatchPlayerEconomyCalculator", () => {
 
   beforeEach(() => {
     mock = new MockMatchOutboundPort();
+    mock.playerStateResult = makePlayerState();
     calc = new MatchPlayerEconomyCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
   });
 

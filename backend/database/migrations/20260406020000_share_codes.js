@@ -2,22 +2,27 @@ module.exports = {
   async up(db) {
     const users = db.collection("users");
 
-    await users.updateMany(
-      { steam_id_key: { $exists: false } },
-      {
-        $set: {
-          steam_id_key: "",
-          latest_known_share_code: null,
-          initial_known_share_code: null,
-          share_code_verified_at: null,
-        },
-      },
-    );
+    // Drop any leftover index from a previous partial run before recreating as sparse
+    try {
+      await users.dropIndex("latest_known_share_code_1");
+    } catch (_) {}
 
-    // Create demo_id sparse unique index (sparse avoids conflict with empty-string legacy docs)
+    // Create sparse unique index before setting null values — sparse excludes nulls from uniqueness checks
     await users.createIndex(
       { latest_known_share_code: 1 },
       { unique: true, sparse: true },
+    );
+
+    await users.updateMany(
+      { steam_id_key: { $exists: false } },
+      {
+        $set: { steam_id_key: "" },
+        $unset: {
+          latest_known_share_code: "",
+          initial_known_share_code: "",
+          share_code_verified_at: "",
+        },
+      },
     );
   },
 

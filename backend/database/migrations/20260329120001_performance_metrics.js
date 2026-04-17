@@ -35,7 +35,10 @@ module.exports = {
       });
     }
 
-    await db.collection('player_accuracy').createIndex({ stats_id: 1 });
+    const accuracyIndexes = await db.collection('player_accuracy').indexes();
+    if (!accuracyIndexes.find((i) => i.name === 'stats_id_1')) {
+      await db.collection('player_accuracy').createIndex({ stats_id: 1 });
+    }
 
     // player_reaction
     if (!existingNames.has('player_reaction')) {
@@ -59,7 +62,10 @@ module.exports = {
       });
     }
 
-    await db.collection('player_reaction').createIndex({ stats_id: 1 });
+    const reactionIndexes = await db.collection('player_reaction').indexes();
+    if (!reactionIndexes.find((i) => i.name === 'stats_id_1')) {
+      await db.collection('player_reaction').createIndex({ stats_id: 1 });
+    }
 
     // player_behavior
     if (!existingNames.has('player_behavior')) {
@@ -85,7 +91,10 @@ module.exports = {
       });
     }
 
-    await db.collection('player_behavior').createIndex({ stats_id: 1 });
+    const behaviorIndexes = await db.collection('player_behavior').indexes();
+    if (!behaviorIndexes.find((i) => i.name === 'stats_id_1')) {
+      await db.collection('player_behavior').createIndex({ stats_id: 1 });
+    }
   },
 
   async down(db, client) {

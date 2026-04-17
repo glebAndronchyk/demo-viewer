@@ -9,14 +9,6 @@ import type {
 export class MatchClutchCalculator extends AnalyticsCalculator<
   Omit<PlayerClutchesEntity, "statsId">
 > {
-  constructor(
-    private readonly matchId: string,
-    private readonly playerSteamId: string,
-    matchOutbound: MatchOutboundPort,
-  ) {
-    super(matchOutbound);
-  }
-
   /**
    * Calculates clutches by outcome of the round
    */
@@ -30,14 +22,17 @@ export class MatchClutchCalculator extends AnalyticsCalculator<
       return `clutch1v${clutch.vs}` satisfies PlayerEntityClutchField;
     });
 
-    return Object.fromEntries(
-      Object.entries(groupedEntities).map(([key, value]) => [
-        key,
-        {
-          attempted: value?.length || 0,
-          won: value?.filter((v) => v.outcome === "won").length || 0,
-        } satisfies ClutchStatEntity,
-      ]),
-    );
+    return {
+      _analyticsType: "clutches",
+      ...Object.fromEntries(
+        Object.entries(groupedEntities).map(([key, value]) => [
+          key,
+          {
+            attempted: value?.length || 0,
+            won: value?.filter((v) => v.outcome === "won").length || 0,
+          } satisfies ClutchStatEntity,
+        ]),
+      ),
+    };
   }
 }

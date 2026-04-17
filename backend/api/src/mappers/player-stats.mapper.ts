@@ -8,6 +8,7 @@ function decimal128ToNumber(value?: Types.Decimal128): number | undefined {
 
 export function toPlayerStatsEntity(doc: IPlayerStats): PlayerStatsEntity {
   return {
+    _analyticsType: "stats",
     participantSteamId: doc.participant_steam_id,
     matchId: doc.match_id,
     totalKills: doc.total_kills,
@@ -24,5 +25,26 @@ export function toPlayerStatsEntity(doc: IPlayerStats): PlayerStatsEntity {
     dateRecorded: doc.date_recorded,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
+  };
+}
+
+export function toPlayerStatsModel(entity: PlayerStatsEntity): IPlayerStats {
+  return {
+    participant_steam_id: entity.participantSteamId,
+    match_id: entity.matchId,
+    total_kills: entity.totalKills,
+    total_deaths: entity.totalDeaths,
+    total_assists: entity.totalAssists,
+    total_mvps: entity.totalMvps,
+    total_score: entity.totalScore,
+    total_rounds_played: entity.totalRoundsPlayed,
+    total_utility_damage: entity.totalUtilityDamage as unknown as Types.Decimal128,
+    total_adr: entity.totalAdr as unknown as Types.Decimal128,
+    total_hs: entity.totalHs as unknown as Types.Decimal128,
+    total_kpr: entity.totalKpr as unknown as Types.Decimal128,
+    total_apr: entity.totalApr as unknown as Types.Decimal128,
+    date_recorded: entity.dateRecorded,
+    createdAt: entity.createdAt ?? new Date(),
+    updatedAt: entity.updatedAt ?? new Date(),
   };
 }

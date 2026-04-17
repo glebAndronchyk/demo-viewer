@@ -45,7 +45,11 @@ export class EnvConfiguration implements ConfigurationInboundPort {
   }
 
   get shareCodeSeekStep(): number {
-    return Number(this.env.SHARE_CODE_SEEK_STEP ?? 10);
+    return Number(this.env.SHARE_CODE_SEEK_STEP ?? 3);
+  }
+
+  get matchesForAnalyticsSeekStep(): number {
+    return Number(this.env.MATCHER_PER_ANALYTICS_SEEK_STEP ?? 3);
   }
 
   // todo: load from secure storage

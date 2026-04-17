@@ -5,10 +5,8 @@ import {
   PlayerHurtEvent,
   WeaponFireEvent,
 } from "@demo-viewer/domain/src/entities/events";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type { HitGroup } from "@demo-viewer/domain/src/entities/HitGroup.ts";
-import type { Frame } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
-import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -43,55 +41,6 @@ function makeHurt(hitGroup: HitGroup = "Chest"): PlayerHurtEvent {
 
 function makeShot(): WeaponFireEvent {
   return new WeaponFireEvent("player1", "Player1", "AK-47");
-}
-
-// ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EventsTuple = [KillEvent[], PlayerHurtEvent[], WeaponFireEvent[]];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
-    throw new Error("Method not implemented.");
-  }
-  getRoundInfoByFrame(
-    matchId: string,
-    frame: Frame,
-  ): Promise<RoundInfo | null> {
-    throw new Error("Method not implemented.");
-  }
-
-  aggregatedEventsResult: EventsTuple = [[], [], []];
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundsPlayedByPlayer(): Promise<any[]> {
-    return [];
-  }
-
-  async getPlayerFinalStateForMatch(): Promise<any> {
-    return null;
-  }
-
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-
-  async findByMatchId(): Promise<any> {
-    return null;
-  }
-
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
 }
 
 // ---------------------------------------------------------------------------

@@ -8,7 +8,10 @@ export interface WeaponStatsEntry {
   headshots: number;
 }
 
-export interface PlayerWeaponStatsEntity {
+import type { PlayerAnalyticalEntity } from "./PlayerAnalyticalEntity.ts";
+
+export interface PlayerWeaponStatsEntity extends PlayerAnalyticalEntity {
+  _analyticsType: "weaponStats";
   statsId: string;
   weapons: WeaponStatsEntry[];
   dateRecorded?: Date;

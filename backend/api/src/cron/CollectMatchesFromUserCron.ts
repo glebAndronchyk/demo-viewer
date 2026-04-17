@@ -6,11 +6,11 @@ import { persist } from "../lib/elysia/plugins/persist";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 
 interface CollectMatchFromUserCronState {
-  seekIndex: number;
+  parsingSeekIndex: number;
 }
 
 interface CronState {
-  isRunningLock: boolean;
+  isParsingRunning: boolean;
 }
 
 export class CollectMatchesFromUserCron {
@@ -20,32 +20,36 @@ export class CollectMatchesFromUserCron {
     configuration: ConfigurationInboundPort,
   ) {
     app
-      .state(persist({ seekIndex: 0 } satisfies CollectMatchFromUserCronState))
-      .state({ isRunningLock: false } satisfies CronState)
+      .state(
+        persist({
+          parsingSeekIndex: 0,
+        } satisfies CollectMatchFromUserCronState),
+      )
+      .state({ isParsingRunning: false } satisfies CronState)
       .use(
         cron({
           name: "collectMatchesFromUserCron",
           // pattern: "0 */1 * * * *", // todo scalable
-          pattern: "*/10 * * * * *", // todo scalable
+          pattern: "*/2 * * * * *", // todo scalable
           async run() {
             const store = app.store as CollectMatchFromUserCronState &
               CronState;
 
-            if (store.isRunningLock) {
+            if (store.isParsingRunning) {
               if (configuration.debug) {
                 console.log(
-                  `[CRON][CollectMatchesFromUserCron] Halted because previous execution wasn't finished yet. seekIndex:${store.seekIndex}`,
+                  `[CRON][CollectMatchesFromUserCron] Halted because previous execution wasn't finished yet. seekIndex:${store.parsingSeekIndex}`,
                 );
               }
 
               return;
             }
 
-            store.isRunningLock = true;
+            store.isParsingRunning = true;
 
             const { users, nextSeekIndex } = await commandBus.dispatch({
               type: "seek_next_available_code_of_next_users",
-              seekIndex: store.seekIndex,
+              seekIndex: store.parsingSeekIndex,
             });
 
             if (configuration.debug) {
@@ -54,7 +58,7 @@ export class CollectMatchesFromUserCron {
               );
             }
 
-            store.seekIndex = nextSeekIndex;
+            store.parsingSeekIndex = nextSeekIndex;
 
             await Promise.all(
               users.map((u) =>
@@ -70,7 +74,7 @@ export class CollectMatchesFromUserCron {
               ),
             );
 
-            store.isRunningLock = false;
+            store.isParsingRunning = false;
           },
         }),
       );

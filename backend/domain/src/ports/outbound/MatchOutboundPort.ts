@@ -9,6 +9,8 @@ import type {
   EventConstructor,
   EventsFromConstructors,
 } from "../../entities/events/MatchEvent.ts";
+import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
+import type { PlayerAnalyticalEntity } from "../../entities/PlayerAnalyticalEntity.ts";
 
 export interface AggregatedEventsFilter {
   matchId?: string;
@@ -63,4 +65,11 @@ export interface MatchOutboundPort {
   >;
 
   getRoundInfoByFrame(matchId: string, frame: Frame): Promise<RoundInfo | null>;
+
+  savePlayerAnalyticalData(
+    rootCollection: PlayerStatsEntity,
+    subCollections: PlayerAnalyticalEntity[],
+  ): Promise<{ rootCollectionId: string }>;
+
+  getMatchesPerStep(offset: number, limit: number): Promise<MatchEntity[]>;
 }

@@ -30,7 +30,11 @@ export abstract class AnalyticsCalculator<TReturn> {
     TReturn
   >();
 
-  protected constructor(protected readonly matchOutbound: MatchOutboundPort) {}
+  constructor(
+    protected readonly matchId: string,
+    protected readonly playerSteamId: string,
+    protected readonly matchOutbound: MatchOutboundPort,
+  ) {}
 
   /**
    * Aggregator function to calculate all required metrics

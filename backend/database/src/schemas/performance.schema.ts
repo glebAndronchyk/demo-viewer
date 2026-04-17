@@ -1,10 +1,10 @@
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 import {
   IPlayerAccuracyDocument,
   IPlayerReactionDocument,
   IPlayerBehaviorDocument,
   IPlayerUtilityDocument,
-} from '../types/performance.types';
+} from "../types/performance.types";
 
 const HitBreakdownSchema = new Schema(
   {
@@ -14,14 +14,13 @@ const HitBreakdownSchema = new Schema(
     arms: { type: Number },
     legs: { type: Number },
   },
-  { _id: false }
+  { _id: false },
 );
 
 export const PlayerAccuracySchema = new Schema<IPlayerAccuracyDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
       trim: true,
     },
     total_shots: {
@@ -45,8 +44,8 @@ export const PlayerAccuracySchema = new Schema<IPlayerAccuracyDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_accuracy',
-  }
+    collection: "player_accuracy",
+  },
 );
 
 // Indexes
@@ -56,7 +55,6 @@ export const PlayerReactionSchema = new Schema<IPlayerReactionDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
       trim: true,
     },
     avg_ttr: {
@@ -80,8 +78,8 @@ export const PlayerReactionSchema = new Schema<IPlayerReactionDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_reaction',
-  }
+    collection: "player_reaction",
+  },
 );
 
 // Indexes
@@ -91,7 +89,6 @@ export const PlayerBehaviorSchema = new Schema<IPlayerBehaviorDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
       trim: true,
     },
     aggression_signal: {
@@ -122,8 +119,8 @@ export const PlayerBehaviorSchema = new Schema<IPlayerBehaviorDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_behavior',
-  }
+    collection: "player_behavior",
+  },
 );
 
 // Indexes
@@ -133,7 +130,6 @@ export const PlayerUtilitySchema = new Schema<IPlayerUtilityDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
       trim: true,
     },
     grenades_thrown: {
@@ -175,8 +171,8 @@ export const PlayerUtilitySchema = new Schema<IPlayerUtilityDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_utility',
-  }
+    collection: "player_utility",
+  },
 );
 
 // Indexes

@@ -5,7 +5,7 @@ import {
   PlayerHurtEvent,
   WeaponFireEvent,
 } from "@demo-viewer/domain/src/entities/events";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,45 +58,6 @@ function makeHurt(
 
 function makeShot(weapon = "AK-47"): WeaponFireEvent {
   return new WeaponFireEvent("player1", "Player1", weapon);
-}
-
-// ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EventsTuple = [KillEvent[], KillEvent[], PlayerHurtEvent[], WeaponFireEvent[]];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  aggregatedEventsResult: EventsTuple = [[], [], [], []];
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundsPlayedByPlayer(): Promise<any[]> {
-    return [];
-  }
-
-  async getPlayerFinalStateForMatch(): Promise<any> {
-    return null;
-  }
-
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-
-  async findByMatchId(): Promise<any> {
-    return null;
-  }
-
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
 }
 
 // ---------------------------------------------------------------------------

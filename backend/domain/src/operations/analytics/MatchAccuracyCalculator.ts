@@ -1,6 +1,4 @@
 import { AnalyticsCalculator } from "./types/AnalyticsCalculator.ts";
-import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
-import type { MatchOutboundPort } from "../../ports/outbound/MatchOutboundPort.ts";
 import type { PlayerAccuracyEntity } from "../../entities/PlayerAccuracyEntity.ts";
 import {
   KillEvent,
@@ -14,14 +12,6 @@ import type { HitGroup } from "../../entities/HitGroup.ts";
 export class MatchAccuracyCalculator extends AnalyticsCalculator<
   Omit<PlayerAccuracyEntity, "statsId">
 > {
-  constructor(
-    private readonly matchId: string,
-    private readonly playerSteamId: string,
-    matchOutbound: MatchOutboundPort,
-  ) {
-    super(matchOutbound);
-  }
-
   private async sharedQuery() {
     return await this.matchOutbound.getAggregatedEvents(
       {
@@ -59,6 +49,7 @@ export class MatchAccuracyCalculator extends AnalyticsCalculator<
     const createdAt = new Date();
 
     return {
+      _analyticsType: "accuracy",
       dateRecorded: createdAt,
       headshots: headshots,
       hitBreakdown: hitBreakdown || ({} as Record<HitGroup, number>),

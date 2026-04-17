@@ -3,14 +3,12 @@ import { MatchPlayerUtilityUsageCalculator } from "@demo-viewer/domain/src/opera
 import { PlayerFlashedEvent } from "@demo-viewer/domain/src/entities/events/PlayerFlashedEvent.ts";
 import { GrenadeThrowEvent } from "@demo-viewer/domain/src/entities/events/GrenadeThrowEvent.ts";
 import { PlayerHurtEvent } from "@demo-viewer/domain/src/entities/events/PlayerHurtEvent.ts";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type { TeamType } from "@demo-viewer/domain/src/entities/TeamType.ts";
 import {
   Weapon,
   type WeaponType,
 } from "@demo-viewer/domain/src/entities/WeaponType.ts";
-import type { Frame } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
-import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -60,53 +58,6 @@ function makeHurt(weapon: WeaponType): PlayerHurtEvent {
     weapon,
     "Chest",
   );
-}
-
-// ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EventsTuple = [
-  PlayerFlashedEvent[],
-  GrenadeThrowEvent[],
-  PlayerHurtEvent[],
-];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
-    throw new Error("Method not implemented.");
-  }
-  getRoundInfoByFrame(
-    matchId: string,
-    frame: Frame,
-  ): Promise<RoundInfo | null> {
-    throw new Error("Method not implemented.");
-  }
-  aggregatedEventsResult: EventsTuple = [[], [], []];
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundsPlayedByPlayer(): Promise<any[]> {
-    return [];
-  }
-  async getPlayerFinalStateForMatch(): Promise<any> {
-    return null;
-  }
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-  async findByMatchId(): Promise<any> {
-    return null;
-  }
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
 }
 
 // ---------------------------------------------------------------------------

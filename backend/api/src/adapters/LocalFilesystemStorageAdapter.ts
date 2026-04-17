@@ -16,7 +16,7 @@ export class LocalFilesystemStorageAdapter implements StorageOutboundPort {
   async lsMapRadar(
     path: string,
     transform?: (p: string) => string,
-  ): Promise<Record<number | "buyzones", string>> {
+  ): Promise<Record<number | "buyzones" | "manifest", string>> {
     const layers = await this.ls(path);
 
     const namedGroups = layers.map((l) => [

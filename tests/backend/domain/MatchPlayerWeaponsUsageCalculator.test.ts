@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach } from "bun:test";
 import { MatchPlayerWeaponsUsageCalculator } from "@demo-viewer/domain/src/operations/analytics/MatchPlayerWeaponsUsageCalculator.ts";
 import { WeaponFireEvent } from "@demo-viewer/domain/src/entities/events";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
-import type { Frame } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
-import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -15,54 +13,6 @@ function makeShot(weapon: string): WeaponFireEvent {
 
 function makeShots(weapon: string, count: number): WeaponFireEvent[] {
   return Array.from({ length: count }, () => makeShot(weapon));
-}
-
-// ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EventsTuple = [WeaponFireEvent[]];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
-    throw new Error("Method not implemented.");
-  }
-  getRoundInfoByFrame(
-    matchId: string,
-    frame: Frame,
-  ): Promise<RoundInfo | null> {
-    throw new Error("Method not implemented.");
-  }
-  aggregatedEventsResult: EventsTuple = [[]];
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundsPlayedByPlayer(): Promise<any[]> {
-    return [];
-  }
-
-  async getPlayerFinalStateForMatch(): Promise<any> {
-    return null;
-  }
-
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-
-  async findByMatchId(): Promise<any> {
-    return null;
-  }
-
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
 }
 
 // ---------------------------------------------------------------------------

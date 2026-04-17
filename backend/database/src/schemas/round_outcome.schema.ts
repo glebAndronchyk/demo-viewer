@@ -1,15 +1,15 @@
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 import {
   IPlayerTradesDocument,
   IPlayerEconomyDocument,
   IPlayerClutchesDocument,
-} from '../types/round_outcome.types';
+} from "../types/round_outcome.types";
 
 export const PlayerTradesSchema = new Schema<IPlayerTradesDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     traded_teammates: {
@@ -24,8 +24,8 @@ export const PlayerTradesSchema = new Schema<IPlayerTradesDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_trades',
-  }
+    collection: "player_trades",
+  },
 );
 
 // Indexes
@@ -35,7 +35,7 @@ export const PlayerEconomySchema = new Schema<IPlayerEconomyDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     rounds_eco: {
@@ -59,8 +59,8 @@ export const PlayerEconomySchema = new Schema<IPlayerEconomyDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_economy',
-  }
+    collection: "player_economy",
+  },
 );
 
 // Indexes
@@ -71,14 +71,14 @@ const ClutchStatSchema = new Schema(
     attempted: { type: Number },
     won: { type: Number },
   },
-  { _id: false }
+  { _id: false },
 );
 
 export const PlayerClutchesSchema = new Schema<IPlayerClutchesDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     clutch_1v1: {
@@ -99,8 +99,8 @@ export const PlayerClutchesSchema = new Schema<IPlayerClutchesDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_clutches',
-  }
+    collection: "player_clutches",
+  },
 );
 
 // Indexes

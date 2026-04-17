@@ -1,14 +1,14 @@
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 import {
   IUtilitySchemaDocument,
   IPositionsStatsDocument,
-} from '../types/utility_positions.types';
+} from "../types/utility_positions.types";
 
 export const UtilitySchemaSchema = new Schema<IUtilitySchemaDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     grenades_thrown: {
@@ -50,8 +50,8 @@ export const UtilitySchemaSchema = new Schema<IUtilitySchemaDocument>(
   },
   {
     timestamps: false,
-    collection: 'utility_schema',
-  }
+    collection: "utility_schema",
+  },
 );
 
 // Indexes
@@ -86,8 +86,8 @@ export const PositionsStatsSchema = new Schema<IPositionsStatsDocument>(
   },
   {
     timestamps: false,
-    collection: 'positions_stats',
-  }
+    collection: "positions_stats",
+  },
 );
 
 // Indexes

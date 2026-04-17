@@ -44,6 +44,10 @@ export interface ConfigurationInboundPort {
    */
   shareCodeSeekStep: number;
   /**
+   * Number of matches to process per analytics seek step
+   */
+  matchesForAnalyticsSeekStep: number;
+  /**
    * Maximum ram usage for parallel demo parsing and analytics calculation in gigabytes
    */
   maxParallelRssGb: number;

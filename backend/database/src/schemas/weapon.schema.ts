@@ -1,14 +1,14 @@
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 import {
   IPlayerWeaponsUsageDocument,
   IWeaponStatsDocument,
-} from '../types/weapon.types';
+} from "../types/weapon.types";
 
 export const PlayerWeaponsUsageSchema = new Schema<IPlayerWeaponsUsageDocument>(
   {
     stats_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     pistols_pct: {
@@ -38,8 +38,8 @@ export const PlayerWeaponsUsageSchema = new Schema<IPlayerWeaponsUsageDocument>(
   },
   {
     timestamps: false,
-    collection: 'player_weapons_usage',
-  }
+    collection: "player_weapons_usage",
+  },
 );
 
 // Indexes
@@ -49,7 +49,7 @@ export const WeaponStatsSchema = new Schema<IWeaponStatsDocument>(
   {
     player_weapon_usage_id: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     weapon_name: {
@@ -78,8 +78,8 @@ export const WeaponStatsSchema = new Schema<IWeaponStatsDocument>(
   },
   {
     timestamps: false,
-    collection: 'weapon_stats',
-  }
+    collection: "weapon_stats",
+  },
 );
 
 // Indexes

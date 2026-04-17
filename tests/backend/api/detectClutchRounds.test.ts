@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { detectClutchRounds } from "@demo-viewer/api/src/repository/MatchRepository";
+import { detectClutchRounds } from "@demo-viewer/api/src/repository/detectClutchRounds";
 
 // ---------------------------------------------------------------------------
 // Helpers

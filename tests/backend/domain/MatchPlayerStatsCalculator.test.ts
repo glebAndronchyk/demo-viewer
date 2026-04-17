@@ -2,13 +2,10 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { MatchPlayerStatsCalculator } from "@demo-viewer/domain/src/operations/analytics/MatchPlayerStatsCalculator.ts";
 import { KillEvent } from "@demo-viewer/domain/src/entities/events";
 import { PlayerHurtEvent } from "@demo-viewer/domain/src/entities/events";
-import type { MatchOutboundPort } from "@demo-viewer/domain/src/ports/outbound/MatchOutboundPort.ts";
 import type { WeaponType } from "@demo-viewer/domain/src/entities/WeaponType.ts";
-import type {
-  Frame,
-  PlayerState,
-} from "@demo-viewer/domain/src/entities/DemoChunkEntity.ts";
+import type { PlayerState } from "@demo-viewer/domain/src/entities/DemoChunkEntity.ts";
 import type { RoundInfo } from "@demo-viewer/domain/src/entities/MatchEntity.ts";
+import { MockMatchOutboundPort } from "./mocks/MockMatchOutboundPort.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -81,54 +78,6 @@ const defaultPlayerState: PlayerState = {
 };
 
 // ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
-
-type EventsTuple = [KillEvent[], KillEvent[], KillEvent[], PlayerHurtEvent[]];
-
-class MockMatchOutboundPort implements MatchOutboundPort {
-  getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]> {
-    throw new Error("Method not implemented.");
-  }
-  getRoundInfoByFrame(
-    matchId: string,
-    frame: Frame,
-  ): Promise<RoundInfo | null> {
-    throw new Error("Method not implemented.");
-  }
-  aggregatedEventsResult: EventsTuple = [[], [], [], []];
-  roundsResult: RoundInfo[] = [];
-  playerStateResult: PlayerState = { ...defaultPlayerState };
-
-  async getAggregatedEvents(_filter: any, _events: any, cache?: any) {
-    if (cache) cache.set(this.aggregatedEventsResult);
-    return this.aggregatedEventsResult as any;
-  }
-
-  async getRoundsPlayedByPlayer() {
-    return this.roundsResult;
-  }
-
-  async getPlayerFinalStateForMatch() {
-    return this.playerStateResult;
-  }
-
-  async findByShareCode(): Promise<any> {
-    return null;
-  }
-  async findByMatchId(): Promise<any> {
-    return { rounds: this.roundsResult };
-  }
-  async getTicksRange(): Promise<any> {
-    return null;
-  }
-
-  async getClutchRounds(): Promise<any[]> {
-    return [];
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -141,6 +90,7 @@ describe("MatchPlayerStatsCalculator", () => {
 
   beforeEach(() => {
     mock = new MockMatchOutboundPort();
+    mock.playerStateResult = { ...defaultPlayerState };
     calc = new MatchPlayerStatsCalculator(MATCH_ID, PLAYER_STEAM_ID, mock);
   });
 

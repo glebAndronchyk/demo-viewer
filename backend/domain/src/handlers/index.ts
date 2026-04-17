@@ -13,3 +13,4 @@ export { default as removeUserFromTeamRegistration } from "./RemoveUserFromTeamH
 export { default as updateTeamRegistration } from "./UpdateTeamHandler.ts";
 export { default as getTeamRegistration } from "./GetTeamHandler.ts";
 export { default as getTeamMembersRegistration } from "./GetTeamMembersHandler.ts";
+export { default as seekNextAvailableMatchForAnalyticsAggregationRegistration } from "./SeekNextAvailableMatchForAnalyticsAggregation.ts";

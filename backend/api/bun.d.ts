@@ -7,6 +7,8 @@ declare module "bun" {
     DB_CONNECTION_STRING: string;
     STORAGE_TYPE: "local";
     STORAGE_LOCAL_BASE_PATH: string;
+    SHARE_CODE_SEEK_STEP: string;
+    MATCHER_PER_ANALYTICS_SEEK_STEP: string;
 
     STEAM_BASE_URL: string;
     STEAM_API_KEY: string;

@@ -24,6 +24,8 @@ import { UserRepository } from "./repository/UserRepository";
 import { SteamBotService } from "./adapters/SteamBotService";
 import { ComputeResourcesQueueService } from "./adapters/ComputeResourcesQueueService";
 import { LocalFilesystemStorageAdapter } from "./adapters/LocalFilesystemStorageAdapter";
+import { CollectMatchAnalyticsCron } from "./cron/CollectMatchAnalyticsCron";
+import { LayeredAnalyticsCalculator } from "./repository/LayeredAnalyticsCalculator";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -36,7 +38,7 @@ const steamBot = await SteamBotService.create(config);
 const di = new DIContainer()
   .addInstance(EnvConfiguration, config)
   .addSingleton(TypedApp as any, [EnvConfiguration])
-  .addInstance(DatabaseService, db)
+  .addInstance(DatabaseService as never, db as never)
   .addInstance(SteamBotService, steamBot)
   .addSingleton(CommandBusService, [
     AuthRepository,
@@ -54,8 +56,8 @@ const di = new DIContainer()
   .addSingleton(AuthRepository, [EnvConfiguration])
   .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
   .addSingleton(ParserRepository, [EnvConfiguration])
-  .addSingleton(UserRepository, [DatabaseService])
-  .addSingleton(MatchRepository, [DatabaseService])
+  .addSingleton(UserRepository, [DatabaseService as never])
+  .addSingleton(MatchRepository, [DatabaseService as never])
   .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
   .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
   // controllers
@@ -86,6 +88,17 @@ const di = new DIContainer()
     TypedApp,
     CommandBusService,
     EnvConfiguration,
+  ])
+  .addSingleton(LayeredAnalyticsCalculator, [
+    MatchRepository,
+    ComputeResourcesQueueService,
+    EnvConfiguration,
+  ])
+  .addSingleton(CollectMatchAnalyticsCron, [
+    TypedApp,
+    CommandBusService,
+    EnvConfiguration,
+    LayeredAnalyticsCalculator,
   ]);
 
 di.activate();

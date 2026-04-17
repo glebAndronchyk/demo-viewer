@@ -8,14 +8,6 @@ import { Weapon } from "../../entities/WeaponType.ts";
  * Aggregates the data related to basic match metrics (like KAST except of trades)
  */
 export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsEntity> {
-  constructor(
-    private readonly matchId: string,
-    private readonly playerSteamId: string,
-    matchOutbound: MatchOutboundPort,
-  ) {
-    super(matchOutbound);
-  }
-
   /**
    * Events should be primary source of truth. Using the aggregated player_states might ignore some cases
    * @private
@@ -74,6 +66,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
     const createdAt = new Date();
 
     return {
+      _analyticsType: "stats",
       createdAt: createdAt,
       dateRecorded: createdAt,
       updatedAt: createdAt,
@@ -141,7 +134,9 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
       return acc + event.healthDamage;
     }, 0);
     const match = await this.matchOutbound.findByMatchId(this.matchId);
-    return !match || match.rounds.length === 0 ? 0 : totalDamage / match.rounds.length;
+    return !match || match.rounds.length === 0
+      ? 0
+      : totalDamage / match.rounds.length;
   }
 
   /**

@@ -1,0 +1,17 @@
+db.player_stats.aggregate([
+      { $match: { participant_steam_id: steamId, match_id: matchId } },
+      { $addFields: { _id_str: { $toString: "$_id" } } },
+      { $lookup: { from: "player_clutches", localField: "_id_str", foreignField: "stats_id", as: "clutches" } },
+      { $lookup: { from: "player_economy", localField: "_id_str", foreignField: "stats_id", as: "economy" } },
+      { $lookup: { from: "player_utility", localField: "_id_str", foreignField: "stats_id", as: "utility" } },
+      { $lookup: { from: "player_accuracy", localField: "_id_str", foreignField: "stats_id", as: "accuracy" } },
+      { $lookup: { from: "player_weapons_usage", localField: "_id_str", foreignField: "stats_id", as: "weaponsUsage" } },
+      { $lookup: { from: "weapon_stats", localField: "_id_str", foreignField: "stats_id", as: "weaponStats" } },
+      { $addFields: {
+        clutches: { $arrayElemAt: ["$clutches", 0] },
+        economy: { $arrayElemAt: ["$economy", 0] },
+        utility: { $arrayElemAt: ["$utility", 0] },
+        accuracy: { $arrayElemAt: ["$accuracy", 0] },
+        weaponsUsage: { $arrayElemAt: ["$weaponsUsage", 0] }
+      }}
+  ])

@@ -27,58 +27,130 @@ import type {
 import type { MatchEvent } from "@demo-viewer/domain/src/entities/events/MatchEvent";
 import { NotFoundError } from "elysia";
 import { toPlayerStateEntity } from "../mappers/player-state.mapper";
+import { PlayerAnalyticalEntity } from "@demo-viewer/domain/src/entities/PlayerAnalyticalEntity";
+import { PlayerStatsEntity } from "@demo-viewer/domain/src/entities/PlayerStatsEntity";
+import type { PlayerClutchesEntity } from "@demo-viewer/domain/src/entities/PlayerClutchesEntity";
+import type { PlayerEconomyEntity } from "@demo-viewer/domain/src/entities/PlayerEconomyEntity";
+import type { PlayerUtilityEntity } from "@demo-viewer/domain/src/entities/PlayerUtilityEntity";
+import type { PlayerWeaponsUsageEntity } from "@demo-viewer/domain/src/entities/PlayerWeaponsUsageEntity";
+import type { PlayerWeaponStatsEntity } from "@demo-viewer/domain/src/entities/PlayerWeaponStatsEntity";
+import { toPlayerStatsModel } from "../mappers/player-stats.mapper";
+import {
+  toPlayerAccuracyModel,
+  toPlayerClutchesModel,
+  toPlayerEconomyModel,
+  toPlayerUtilityModel,
+  toPlayerWeaponsUsageModel,
+  toWeaponStatsModels,
+} from "../mappers/player-analytics.mapper";
+import { detectClutchRounds, type RawClutchRound } from "./detectClutchRounds";
+import { PlayerAccuracyEntity } from "@demo-viewer/domain/src/entities/PlayerAccuracyEntity";
 
-type ClutchFrame = {
-  demo_tick: number;
-  counts: { myTeam: string; aliveTeammates: number; aliveEnemies: number };
-};
-
-type RawClutchRound = { _id: number; frames: ClutchFrame[] };
-
-export function detectClutchRounds(
-  rawFrames: RawClutchRound[],
-  roundWinnerMap: Map<number, string>,
-): { roundNumber: number; vs: number; outcome: "lost" | "won" }[] {
-  const results: {
-    roundNumber: number;
-    vs: number;
-    outcome: "lost" | "won";
-  }[] = [];
-
-  for (const round of rawFrames) {
-    const roundNumber = round._id;
-    const winner = roundWinnerMap.get(roundNumber);
-    if (!winner) continue;
-
-    const frames = round.frames
-      .slice()
-      .sort((a, b) => a.demo_tick - b.demo_tick);
-
-    let clutchEnemyCount: number | null = null;
-    let playerTeam: string | null = null;
-
-    for (const frame of frames) {
-      const { myTeam, aliveTeammates, aliveEnemies } = frame.counts;
-      if (!playerTeam) playerTeam = myTeam;
-
-      if (aliveTeammates === 1) {
-        clutchEnemyCount = aliveEnemies;
-        break;
-      }
-    }
-
-    if (clutchEnemyCount === null || clutchEnemyCount === 0 || !playerTeam)
-      continue;
-
-    const outcome = winner === playerTeam ? "won" : "lost";
-    results.push({ roundNumber, vs: clutchEnemyCount, outcome });
-  }
-
-  return results;
-}
+export { detectClutchRounds };
 
 export class MatchRepository implements MatchOutboundPort {
   constructor(private readonly database: DatabaseService) {}
+
+  async getMatchesPerStep(
+    offset: number,
+    limit: number,
+  ): Promise<MatchEntity[]> {
+    const docs = await this.database.MatchModel.find()
+      .skip(offset)
+      .limit(limit)
+      .lean();
+
+    return docs.map(toMatchEntity);
+  }
+
+  /**
+   * Saves analytical calculations to database. Established relations to created PlayerStatsEntity
+   */
+  async savePlayerAnalyticalData(
+    rootCollection: PlayerStatsEntity,
+    subCollections: PlayerAnalyticalEntity[],
+  ): Promise<{ rootCollectionId: string }> {
+    const result = await this.database.transaction(async () => {
+      const { _id: statsId } = await this.database.PlayerStatsModel.create(
+        toPlayerStatsModel(rootCollection),
+      );
+
+      const weaponsUsageEntity = subCollections.find(
+        (s): s is PlayerWeaponsUsageEntity =>
+          s._analyticsType === "weaponsUsage",
+      );
+      const others = subCollections.filter(
+        (s) =>
+          s._analyticsType !== "weaponStats" &&
+          s._analyticsType !== "weaponsUsage",
+      );
+
+      await Promise.all(
+        others.map((item) => {
+          switch (item._analyticsType) {
+            case "clutches":
+              return this.database.PlayerClutchesModel.create(
+                toPlayerClutchesModel({
+                  ...item,
+                  statsId: statsId.toString(),
+                } as PlayerClutchesEntity),
+              );
+            case "economy":
+              return this.database.PlayerEconomyModel.create(
+                toPlayerEconomyModel({
+                  ...item,
+                  statsId: statsId.toString(),
+                } as PlayerEconomyEntity),
+              );
+            case "accuracy":
+              return this.database.PlayerAccuracyModel.create(
+                toPlayerAccuracyModel({
+                  ...item,
+                  statsId: statsId.toString(),
+                } as PlayerAccuracyEntity),
+              );
+            case "utility":
+              return this.database.PlayerUtilityModel.create(
+                toPlayerUtilityModel({
+                  ...item,
+                  statsId: statsId.toString(),
+                } as PlayerUtilityEntity),
+              );
+          }
+        }),
+      );
+
+      if (weaponsUsageEntity) {
+        const { _id: usageId } =
+          await this.database.PlayerWeaponsUsageModel.create(
+            toPlayerWeaponsUsageModel({
+              ...weaponsUsageEntity,
+              statsId: statsId.toString(),
+            }),
+          );
+
+        const weaponStatsEntity = subCollections.find(
+          (s): s is PlayerWeaponStatsEntity =>
+            s._analyticsType === "weaponStats",
+        );
+        if (weaponStatsEntity) {
+          await Promise.all(
+            toWeaponStatsModels(
+              {
+                ...weaponStatsEntity,
+                statsId: statsId.toString(),
+              },
+              usageId.toString(),
+            ).map((doc) => this.database.WeaponStatsModel.create(doc)),
+          );
+        }
+      }
+
+      return { rootCollectionId: statsId.toString() };
+    });
+
+    return result;
+  }
 
   async getClutchRounds(
     matchId: string,

@@ -1,4 +1,7 @@
-export interface PlayerUtilityEntity {
+import type { PlayerAnalyticalEntity } from "./PlayerAnalyticalEntity.ts";
+
+export interface PlayerUtilityEntity extends PlayerAnalyticalEntity {
+  _analyticsType: "utility";
   statsId: string;
   grenadesThrown?: number;
   heThrown?: number;

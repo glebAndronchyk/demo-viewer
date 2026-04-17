@@ -1,5 +1,4 @@
 import { AnalyticsCalculator } from "./types/AnalyticsCalculator.ts";
-import type { MatchOutboundPort } from "../../ports/outbound/MatchOutboundPort.ts";
 import type { PlayerWeaponsUsageEntity } from "../../entities/PlayerWeaponsUsageEntity.ts";
 import { WeaponFireEvent } from "../../entities/events";
 import { Weapon } from "../../entities/WeaponType.ts";
@@ -7,14 +6,6 @@ import { Weapon } from "../../entities/WeaponType.ts";
 export class MatchPlayerWeaponsUsageCalculator extends AnalyticsCalculator<
   Omit<PlayerWeaponsUsageEntity, "statsId">
 > {
-  constructor(
-    private readonly matchId: string,
-    private readonly playerSteamId: string,
-    matchOutbound: MatchOutboundPort,
-  ) {
-    super(matchOutbound);
-  }
-
   private async sharedQuery() {
     return await this.matchOutbound.getAggregatedEvents(
       { matchId: this.matchId },
@@ -53,6 +44,7 @@ export class MatchPlayerWeaponsUsageCalculator extends AnalyticsCalculator<
     ]);
 
     return {
+      _analyticsType: "weaponsUsage",
       pistolsPct,
       utilityPct,
       meleePct,

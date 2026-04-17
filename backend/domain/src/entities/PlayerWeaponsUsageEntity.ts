@@ -1,4 +1,7 @@
-export interface PlayerWeaponsUsageEntity {
+import type { PlayerAnalyticalEntity } from "./PlayerAnalyticalEntity.ts";
+
+export interface PlayerWeaponsUsageEntity extends PlayerAnalyticalEntity {
+  _analyticsType: "weaponsUsage";
   statsId: string;
   pistolsPct?: number;
   utilityPct?: number;
