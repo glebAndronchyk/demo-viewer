@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense } from "react";
 import {
   Canvas,
   type Euler,
