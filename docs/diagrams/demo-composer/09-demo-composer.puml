@@ -1,0 +1,222 @@
+@startuml
+allowmixing
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+skinparam packageFontSize 11
+left to right direction
+
+' ── TS boundary ────────────────────────────────────────────
+component "index.ts\n[@demo-viewer/demo-composer]" as ts_wrapper <<Bun / TypeScript>> {
+  class "parse(args: ParseArgs)" as ts_parse {
+    +framesInChunkCount: number
+    +filePath?: string
+    +fileUrl?: string
+    +shareCode?: string
+    --
+    returns: {pid: number, promise: Promise<number>}
+    spawns main.bin via Bun.spawn()
+  }
+}
+
+' ── Go binary boundary ─────────────────────────────────────
+package "main.bin (Go binary)" as go_binary <<Go + demoinfocs-golang>> {
+
+  component "cmd/main.go\n<<CLI entry>>" as cli {
+    note as cli_note
+      Flags:
+        --demo  (local .dem path)
+        --url   (remote .dem URL)
+        --chunk-size (default 1000)
+        --share-code
+      Env:
+        DB_CONNECTION_STRING (required)
+    end note
+  }
+
+  class Parser <<struct>> {
+    -demoFile: string
+    -demoUrl: string
+    -framesAmountPerChunk: int
+    -demoID: string
+    -shareCode: string
+    -framesBuffer: []Frame
+    -rounds: []RoundInfo
+    -participantsSeen: map[uint64]ParticipantInfo
+    -repo: *Repository
+    --
+    +NewParser(...): *Parser
+    +Parse(): error
+    +IsLocalParse(): bool
+    +IsRemoteParse(): bool
+    -registerEventHandlers(parser)
+    -flushChunk(): error
+  }
+
+  class Repository <<struct>> {
+    -client: *mongo.Client
+    -matchesCol: *mongo.Collection
+    -chunksCol: *mongo.Collection
+    --
+    +Connect(uri: string): error
+    +Disconnect(): error
+    +InsertMatch(header: DemoHeader): error
+    +UpdateMatchMetadata(demoID: string, header: DemoHeader): error
+    +InsertChunkBatch(chunks: []DemoChunk): error
+    +FinalizeMatch(demoID: string, totalChunks: int, participants: []MatchParticipant): error
+  }
+
+  component "demoinfocs-golang/v4" as demolib <<external Go library>> {
+    note as demolib_note
+      markus-wa/demoinfocs-golang
+      Parses CS2 binary .dem format.
+      Emits per-tick player states,
+      game events, and round info.
+    end note
+  }
+}
+
+' ── Data types ─────────────────────────────────────────────
+package "parser/types.go\n<<MongoDB document shapes>>" as types {
+
+  class DemoHeader <<bson: matches>> {
+    +DemoID: string
+    +ShareCode: string
+    +MapName: string
+    +ServerName: string
+    +Duration: float64
+    +TickRate: float32
+    +FrameRate: float32
+    +PlaybackTicks: int
+    +PlaybackFrames: int
+    +ParsedAt: string
+    +Rounds: []RoundInfo
+    +Outcome: MatchOutcome
+  }
+
+  class DemoChunk <<bson: demo_chunks>> {
+    +DemoID: string
+    +ChunkIndex: int
+    +StartTick: int
+    +EndTick: int
+    +StartGameTick: int
+    +EndGameTick: int
+    +Frames: []Frame
+  }
+
+  class Frame {
+    +DemoTick: int
+    +GameTick: int
+    +Timestamp: float64
+    +PlayerStates: []PlayerState
+    +GameState: GameState
+    +Events: []Event
+    +Reconnections: []Reconnection
+  }
+
+  class PlayerState {
+    +SteamID64: string
+    +Name: string
+    +Team: string
+    +Position: Vector3
+    +ViewDirection: Vector2
+    +HP: int
+    +Armor: int
+    +Money: int
+    +CurrentEquipment: Equipment
+    +IsAlive: bool
+    +Kills: int
+    +Deaths: int
+    +Assists: int
+    +Score: int
+    +MVPs: int
+  }
+
+  class GameState {
+    +RoundNumber: int
+    +Phase: string
+    +CTScore: int
+    +TScore: int
+    +TimeRemaining: float64
+    +BombPlanted: bool
+    +BombSite: string
+    +BombTimeRemaining: float64
+  }
+
+  class Event {
+    +Type: string
+    +Data: map[string]interface{}
+  }
+
+  class Reconnection {
+    +SteamID64: string
+    +Name: string
+    +ReconnectType: string
+  }
+
+  class Equipment {
+    +ActiveWeapon: string
+    +Weapons: []string
+    +Grenades: []string
+  }
+
+  class Vector3 {
+    +X: float64
+    +Y: float64
+    +Z: float64
+  }
+
+  class Vector2 {
+    +X: float64
+    +Y: float64
+  }
+
+  class RoundInfo {
+    +RoundNumber: int
+    +Winner: string
+    +StartDemoTick: int
+    +EndDemoTick: int
+    +StartGameTick: int
+    +EndGameTick: int
+  }
+
+  class MatchOutcome {
+    +Winner: string
+    +TScore: int
+    +CTScore: int
+  }
+
+  class MatchParticipant {
+    +SteamID: string
+    +PlayerName: string
+    +IsBot: bool
+  }
+}
+
+database "MongoDB\n(matches, demo_chunks)" as mongodb
+
+' ── Relationships ──────────────────────────────────────────
+ts_parse ..> cli : spawns via Bun.spawn()
+
+cli --> Parser : creates
+cli --> Repository : creates
+
+Parser --> Repository : uses
+Parser --> demolib : parses .dem stream
+
+Repository --> mongodb : mongo-driver/v2
+
+
+' Composition
+DemoHeader *-- RoundInfo
+DemoHeader *-- MatchOutcome
+DemoChunk *-- Frame
+Frame *-- PlayerState
+Frame *-- GameState
+Frame *-- Event
+Frame *-- Reconnection
+PlayerState *-- Equipment
+PlayerState *-- Vector3
+PlayerState *-- Vector2
+
+@enduml

@@ -1,0 +1,98 @@
+@startuml
+skinparam linetype ortho
+top to bottom direction
+skinparam ranksep 120
+skinparam nodesep 40
+skinparam componentFontSize 10
+skinparam packageFontSize 11
+skinparam noteFontSize 9
+
+actor "Share Code Aggregator\n(@elysiajs/cron)" as share_code_aggregator <<scheduler>>
+actor "Analytics Aggregator\n(@elysiajs/cron)" as analytics_aggregator <<scheduler>>
+
+package "@demo-viewer/client\n[Vite + React 19 + Three.js]" as pkg_client {
+  [Authorization\n<react-router>]         as ui_auth
+  [Match List\n<React component>]         as ui_ml
+  [Match View\n<@react-three/fiber>]      as ui_mv
+  [Team\n<React component>]               as ui_team
+  [Analytics\n<React component>]          as ui_an
+}
+
+package "@demo-viewer/api\n[Bun + Elysia]" as pkg_api {
+  [Authorization Controller\n<Elysia route + JWT>]   as api_auth
+  [Demo View Controller\n<Elysia route>]             as api_demo
+  [Teams Controller\n<Elysia route>]                 as api_teams
+  [Analytics Controller\n<Elysia route>]             as api_an
+  [Demo Parsing Controller\n<Elysia route>]          as api_parse
+  [Storage Controller\n<Elysia route>]               as api_store
+}
+
+package "@demo-viewer/domain\n[Pure TypeScript — no framework]" as pkg_domain {
+  [Use Cases\n<CommandBus + Handlers>] as domain_uc
+}
+
+package "@demo-viewer/demo-composer\n[Go binary + TS wrapper]" as pkg_dc {
+  [Parser\n<Go CLI via Bun.$>] as dc_parser
+}
+
+package "@demo-viewer/database\n[Mongoose + migrate-mongo]" as pkg_db {
+  [Mongoose Models\n<Schema + Model>] as db_models
+}
+
+cloud "Steam Platform" as steam {
+  [OAuth Service\n<steam-user>]         as s_oauth
+  [Developer API\n<HTTP/axios>]         as s_dev
+  [Game Coordinator\n<globaloffensive>] as s_gc
+}
+
+storage "File System\n[StorageOutboundPort]" as fs {
+  [Asset Storage\n<Bun.file>] as fs_assets
+}
+
+database "MongoDB" as mongodb
+
+' ── hidden spacers ────────────────────────────────────────
+share_code_aggregator -[hidden]right- analytics_aggregator
+pkg_client            -[hidden]down-  pkg_api
+pkg_api               -[hidden]down-  pkg_domain
+pkg_domain            -[hidden]down-  steam
+steam                 -[hidden]right- fs
+fs                    -[hidden]right- mongodb
+pkg_domain            -[hidden]right- pkg_dc
+
+' ── UI → API ──────────────────────────────────────────────
+api_auth  -u0)- ui_auth
+api_demo  -u0)- ui_ml
+api_demo  -u0)- ui_mv
+api_teams -u0)- ui_team
+api_an    -u0)- ui_an
+api_store -u0)- pkg_client
+
+' ── API → Domain ──────────────────────────────────────────
+domain_uc -u0)- api_auth
+domain_uc -u0)- api_demo
+domain_uc -u0)- api_teams
+domain_uc -u0)- api_an
+domain_uc -u0)- api_parse
+domain_uc -u0)- api_store
+
+' ── Schedulers → Domain ───────────────────────────────────
+domain_uc -u0)- share_code_aggregator
+domain_uc -u0)- analytics_aggregator
+
+' ── Domain → Steam ────────────────────────────────────────
+s_oauth -u0)- domain_uc
+s_dev   -u0)- domain_uc
+s_gc    -u0)- domain_uc
+
+' ── Domain → Storage / DB ─────────────────────────────────
+fs_assets  -u0)- domain_uc
+db_models  -u0)- domain_uc
+
+' ── Database package → MongoDB ────────────────────────────
+db_models --> mongodb : Mongoose ODM
+
+' ── Demo Composer ─────────────────────────────────────────
+dc_parser -u0)- domain_uc
+
+@enduml

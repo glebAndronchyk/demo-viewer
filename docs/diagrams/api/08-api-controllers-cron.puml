@@ -1,0 +1,94 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 5
+skinparam classFontSize 8
+skinparam classHeaderBackgroundColor #f0f0f0
+skinparam defaultFontSize 8
+skinparam minClassWidth 0
+skinparam roundCorner 4
+skinparam nodesep 5
+skinparam ranksep 5
+skinparam padding 2
+skinparam ArrowFontSize 7
+skinparam ClassAttributeFontSize 8
+skinparam classBorderThickness 0.5
+skinparam ArrowThickness 0.5
+skinparam shadowing false
+
+class App <<Elysia>> {
+    +GET /health
+    +onError: global error → HTTP status mapping
+    +use(openapi()): auto-generates OpenAPI docs
+    +use(serverTiming()): adds Server-Timing header
+}
+package "controllers" {
+  class AuthorizationController <<Elysia plugin>> {
+    +GET /auth/steam
+    +GET /auth/steam/callback
+  }
+  class AnalyticsController <<Elysia plugin>> {
+    +GET /analytics/:matchId/:steamId
+  }
+  class StreamingController <<Elysia plugin>> {
+    +GET /stream/:demoId
+  }
+  class ParsingController <<Elysia plugin>> {
+    +POST /parse
+  }
+  class StorageController <<Elysia plugin>> {
+    +GET /storage/map/:mapId/:layer
+  }
+  class TeamController <<Elysia plugin>> {
+    +POST /team
+    +GET /team/:id
+    +PUT /team/:id
+    +POST /team/:id/member
+    +DELETE /team/:id/member
+  }
+  class UserController <<Elysia plugin>> {
+    +GET /user/me
+    +PUT /user/sharing
+  }
+  class BackgroundController <<Elysia plugin>> {
+    +POST /background/parse
+  }
+  class MaintenanceController <<Elysia plugin>> {
+    +GET /maintenance/reset-share-code/:userId
+  }
+
+  AuthorizationController -[hidden]down-> AnalyticsController
+  AnalyticsController -[hidden]down-> StreamingController
+  StreamingController -[hidden]down-> ParsingController
+  ParsingController -[hidden]down-> StorageController
+  StorageController -[hidden]down-> TeamController
+  TeamController -[hidden]down-> UserController
+  UserController -[hidden]down-> BackgroundController
+  BackgroundController -[hidden]down-> MaintenanceController
+}
+package "cron" {
+  class CollectMatchesFromUserCron <<@elysiajs/cron>> {
+    -schedule: "* * * * *"
+    +SeekNextAvailableCodeOfNextUsersCommand
+    +DownloadAndParseDemoCommand
+  }
+  class CollectMatchAnalyticsCron <<@elysiajs/cron>> {
+    -schedule: "* * * * *"
+    +SeekNextAvailableMatchForAnalyticsAggregationCommand
+    +LayeredAnalyticsCalculator.calculate()
+  }
+}
+App <.. AuthorizationController : registered on
+App <.. AnalyticsController : registered on
+App <.. StreamingController : registered on
+App <.. ParsingController : registered on
+App <.. StorageController : registered on
+App <.. TeamController : registered on
+App <.. UserController : registered on
+App <.. BackgroundController : registered on
+App <.. MaintenanceController : registered on
+App <.. CollectMatchesFromUserCron : registered on
+App <.. CollectMatchAnalyticsCron : registered on
+controllers ..> CommandBusService : dispatch()
+CollectMatchesFromUserCron ..> CommandBusService : dispatch()
+CollectMatchAnalyticsCron ..> CommandBusService : dispatch()
+@enduml

@@ -1,0 +1,104 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+
+note as N1
+  Repositories implement Domain outbound ports.
+  They use DatabaseService to access Mongoose models
+  and mappers to convert documents to domain entities.
+end note
+
+interface AuthOutboundPort {
+    +findUserBySteamId(steamId): Promise<UserRecord>
+    +createUser(steamId): Promise<UserRecord>
+    +linkMatchesToUser(steamId, userId): Promise<number>
+    +signJwt(payload): Promise<string>
+}
+
+interface UserOutboundPort {
+    +getUserById(id): Promise<UserEntity>
+    +setUserSharingData(payload): Promise<UserEntity>
+    +updateKnownShareCode(id, code): Promise<void>
+    +resetUserShareCode(id): Promise<void>
+    +getUsersWithSharingData(offset, limit): Promise<UserEntity[]>
+    +getUserBySteamId(steamId): Promise<UserEntity>
+}
+
+interface TeamOutboundPort {
+    +createTeam(name, ownerId): Promise<GroupEntity>
+    +getTeamById(id): Promise<GroupEntity>
+    +getTeamByOwnerId(ownerId): Promise<GroupEntity>
+    +addMember(groupId, userId): Promise<GroupMemberEntity>
+    +removeMember(groupId, userId): Promise<void>
+    +getMembers(groupId): Promise<GroupMemberEntity[]>
+    +isMember(groupId, userId): Promise<boolean>
+    +updateTeam(id, updates): Promise<GroupEntity>
+}
+
+interface MatchOutboundPort {
+    +findByMatchId(matchId): Promise<MatchEntity>
+    +getTicksRange(payload): Promise<Frame[]>
+    +getAggregatedEvents(filter, events, cache?): Promise<EventsFromConstructors>
+    +getRoundsPlayedByPlayer(matchId, steamId64): Promise<RoundInfo[]>
+    +getClutchRounds(matchId, steamId64): Promise<ClutchRound[]>
+    +getPlayerFinalStateForMatch(matchId, steamId64): Promise<PlayerState>
+    +savePlayerAnalyticalData(root, subCollections): Promise<{rootCollectionId}>
+    +getMatchesPerStep(offset, limit): Promise<MatchEntity[]>
+}
+
+interface GameCoordinatorOutboundPort {
+    +getNextAvailableShareCode(...): Promise<BaseResponse>
+    +decodeShareCode(shareCode): Promise<BaseResponse>
+    +getMatchUrlById(matchId): Promise<BaseResponse>
+    +downloadMatchById(matchId): Promise<BaseResponse>
+    +pingMatchUrl(url?): Promise<BaseResponse>
+}
+
+interface ParserOutbound {
+    +parseDemoFromRemote(url, shareCode?): ParseProcess
+    +parseDemoFromLocal(path): ParseProcess
+}
+
+class AuthRepository implements AuthOutboundPort {
+    -db: DatabaseService
+    -config: EnvConfiguration
+}
+class UserRepository implements UserOutboundPort {
+    -db: DatabaseService
+}
+class TeamRepository implements TeamOutboundPort {
+    -db: DatabaseService
+}
+class MatchRepository implements MatchOutboundPort {
+    -db: DatabaseService
+}
+class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
+    -config: EnvConfiguration
+    -steamBot: SteamBotService
+}
+class ParserRepository implements ParserOutbound {
+    -config: EnvConfiguration
+}
+
+class LayeredAnalyticsCalculator {
+    -pipelines: {l1: AnalyticsCalculator[], l2: []}
+    +calculate(matchId, participants): Promise<void>
+}
+
+class DatabaseService {
+    +UserModel: Model
+    +MatchModel: Model
+    +DemoChunkModel: Model
+    +PlayerStatsModel: Model
+}
+
+AuthRepository --> DatabaseService : uses models
+UserRepository --> DatabaseService : uses models
+TeamRepository --> DatabaseService : uses models
+MatchRepository --> DatabaseService : uses models
+
+LayeredAnalyticsCalculator --> MatchOutboundPort : aggregates events
+LayeredAnalyticsCalculator --> MatchRepository : saves results
+
+@enduml

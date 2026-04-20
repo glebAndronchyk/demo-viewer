@@ -1,0 +1,111 @@
+@startuml parser-block-schema
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontSize 12
+skinparam componentBackgroundColor #EEF4FF
+skinparam componentBorderColor #3366CC
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #555555
+skinparam arrowColor #333333
+
+title CS2 Demo Parser — Block Schema (parser.go)
+
+package "Parser Struct" {
+  component [demoFile / demoUrl] as input
+  component [framesBuffer : Frame slice] as buffer
+  component [participantsSeen] as participants
+  component [rounds : RoundInfo slice] as rounds
+  component [repo : *Repository] as repo
+  component [chunkSize / chunksProcessed] as counters
+}
+
+package "Entry Point" {
+  component [NewParser()] as newparser
+  component [Parse()] as parse
+}
+
+package "Input Readers" {
+  component [openFileReader()] as filereader
+  component [openUrlReader()] as urlreader
+}
+
+package "Frame Capture" {
+  component [captureFrame()] as captureframe
+  component [capturePlayerStates()] as captureplayers
+  component [capturePlayerState()] as captureone
+  component [captureGameState()] as capturegame
+}
+
+package "Event Handlers" {
+  component [connect / disconnect] as ev_player
+  component [Kill] as ev_kill
+  component [Bomb events] as ev_bomb
+  component [Round events] as ev_round
+  component [Weapon events] as ev_weapon
+  component [Damage events] as ev_damage
+  component [Grenade events] as ev_grenade
+  component [Misc events] as ev_misc
+}
+
+package "Chunking & Persistence" {
+  component [FrameDone handler] as framedone
+  component [flushBuffer()] as flushbuf
+  component [chunksBatch : DemoChunk slice] as batch
+  component [repo.InsertChunkBatch()] as insertchunk
+  component [repo.InsertMatch()] as insertmatch
+  component [repo.FinalizeMatch()] as finalize
+  component [repo.UpdateMatchMetadata()] as updatemeta
+}
+
+' Construction
+newparser --> input : initialises
+newparser --> buffer
+newparser --> participants
+newparser --> rounds
+newparser --> repo
+
+' Parse flow
+parse --> filereader : IsLocalParse
+parse --> urlreader  : IsRemoteParse
+parse --> insertmatch : DemoHeader (partial)
+parse --> framedone  : registers handler
+parse --> captureframe : called per FrameDone
+
+' Frame capture chain
+captureframe --> captureplayers
+captureplayers --> captureone
+captureframe --> capturegame
+captureframe --> buffer : append Frame
+
+' Chunking
+framedone --> buffer : check len == chunkSize
+buffer --> batch : emit DemoChunk
+batch --> insertchunk : every 50 chunks
+framedone --> flushbuf : after chunk emitted
+
+' Post-parse
+parse --> batch : flush remaining partial chunk
+parse --> finalize : totalChunksProcessed + participants
+parse --> updatemeta : full DemoHeader
+
+' Event handlers write into framesBuffer
+ev_player --> buffer : addReconnection / addEvent
+ev_kill --> buffer : addEvent
+ev_bomb --> buffer : addEvent
+ev_round --> buffer : addEvent / update rounds
+ev_weapon --> buffer : addEvent
+ev_damage --> buffer : addEvent
+ev_grenade --> buffer : addEvent
+ev_misc --> buffer : addEvent
+
+' registerEventHandlers called from Parse
+parse --> ev_player
+parse --> ev_kill
+parse --> ev_bomb
+parse --> ev_round
+parse --> ev_weapon
+parse --> ev_damage
+parse --> ev_grenade
+parse --> ev_misc
+
+@enduml

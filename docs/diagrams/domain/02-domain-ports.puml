@@ -1,0 +1,116 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+
+interface DomainOutbound {
+    +teamRepository: TeamOutboundPort
+    +authRepository: AuthOutboundPort
+    +gameCoordinatorRepository: GameCoordinatorOutboundPort
+    +parserRepository: ParserOutbound
+    +userRepository: UserOutboundPort
+    +matchRepository: MatchOutboundPort
+    +configuration: ConfigurationInboundPort
+    +queue: QueueOutboundPort
+    +fileStorage: StorageOutboundPort
+}
+
+interface TeamOutboundPort {
+    +createTeam(name: string, ownerId: string): Promise<GroupEntity>
+    +getTeamById(id: string): Promise<GroupEntity>
+    +getTeamByOwnerId(ownerId: string): Promise<GroupEntity>
+    +addMember(groupId: string, userId: string): Promise<GroupMemberEntity>
+    +removeMember(groupId: string, userId: string): Promise<void>
+    +getMembers(groupId: string): Promise<GroupMemberEntity[]>
+    +isMember(groupId: string, userId: string): Promise<boolean>
+    +updateTeam(id: string, updates: {...}): Promise<GroupEntity>
+}
+
+interface AuthOutboundPort {
+    +findUserBySteamId(steamId: string): Promise<UserRecord>
+    +createUser(steamId: string): Promise<UserRecord>
+    +linkMatchesToUser(steamId: string, userId: string): Promise<number>
+    +signJwt(payload: {...}): Promise<string>
+}
+
+interface UserOutboundPort {
+    +getUserById(id: string): Promise<UserEntity>
+    +setUserSharingData(payload: {...}): Promise<UserEntity>
+    +updateKnownShareCode(id: string, shareCode: string): Promise<void>
+    +resetUserShareCode(id: string): Promise<void>
+    +getUsersWithSharingData(offset: number, limit: number): Promise<UserEntity[]>
+    +getUserBySteamId(steamId: string): Promise<UserEntity>
+}
+
+interface GameCoordinatorOutboundPort {
+    +getNextAvailableShareCode(...): Promise<BaseResponse>
+    +decodeShareCode(shareCode: string): Promise<BaseResponse>
+    +getMatchUrlById(matchId: string): Promise<BaseResponse>
+    +downloadMatchById(matchId: string): Promise<BaseResponse>
+    +pingMatchUrl(url?: string): Promise<BaseResponse>
+}
+
+interface ParserOutbound {
+    +parseDemoFromRemote(url: string, shareCode?: string): ParseProcess
+    +parseDemoFromLocal(path: string): ParseProcess
+}
+
+interface MatchOutboundPort {
+    +findByShareCode(shareCode: string): Promise<{id: string}>
+    +findByMatchId(matchId: string): Promise<MatchEntity>
+    +getTicksRange(payload: {...}): Promise<Frame[]>
+    +getAggregatedEvents(filter, eventsToProject, cache?): Promise<EventsFromConstructors>
+    +getRoundsPlayedByPlayer(matchId: string, steamId64: string): Promise<RoundInfo[]>
+    +getFirstGameTickOfEveryRound(matchId: string): Promise<Frame[]>
+    +getPlayerFinalStateForMatch(matchId: string, steamId64: string): Promise<PlayerState>
+    +getClutchRounds(matchId: string, steamId64: string): Promise<ClutchRound[]>
+    +getRoundInfoByFrame(matchId: string, frame: Frame): Promise<RoundInfo>
+    +savePlayerAnalyticalData(root, subCollections): Promise<{rootCollectionId: string}>
+    +getMatchesPerStep(offset: number, limit: number): Promise<MatchEntity[]>
+}
+
+interface StorageOutboundPort {
+    +getAsset(objectPath: string): Promise<string | StreamAssetResponse>
+    +resolveAssetUrl(objectPath: string): Promise<string>
+    +streamAsset(objectPath: string): Promise<StreamAssetResponse>
+    +ls(path: string): Promise<string[]>
+    +lsMapRadar(path: string, transform?): Promise<Record>
+    +usesRedirect: boolean
+}
+
+interface QueueOutboundPort {
+    +enqueue(outbound: () => Promise<unknown>): Promise<void>
+}
+
+interface ConfigurationInboundPort {
+    +steamBaseUrl: string
+    +steamApiKey: string
+    +steamNextMatchShareUrl: string
+    +cs2AppId: number
+    +jwtSecret: string
+    +apiBaseUrl: string
+    +databaseConnectionString: string
+    +frontendUrl: string
+    +steamGameCoordinatorBotAccountName: string
+    +steamGameCoordinatorBotAccountPassword: string
+    +shareCodeSeekStep: number
+    +matchesForAnalyticsSeekStep: number
+    +maxParallelRssGb: number
+    +debug: boolean
+    +storageType: string
+    +storageLocalBasePath: string
+    +getMapRadarFileAssetsPath(mapId: string): string
+    +getMapRadarApiPath(mapId: string, layer: string): string
+}
+
+DomainOutbound o-- TeamOutboundPort
+DomainOutbound o-- AuthOutboundPort
+DomainOutbound o-- UserOutboundPort
+DomainOutbound o-- GameCoordinatorOutboundPort
+DomainOutbound o-- ParserOutbound
+DomainOutbound o-- MatchOutboundPort
+DomainOutbound o-- StorageOutboundPort
+DomainOutbound o-- QueueOutboundPort
+DomainOutbound o-- ConfigurationInboundPort
+
+@enduml

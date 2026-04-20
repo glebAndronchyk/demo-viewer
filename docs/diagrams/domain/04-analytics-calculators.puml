@@ -1,0 +1,174 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 11
+
+interface PlayerAnalyticalEntity {
+    +_analyticsType: string
+}
+
+interface ClutchStatEntity {
+    +attempted: number
+    +won: number
+}
+
+interface PlayerStatsEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "stats"
+    +participantSteamId: string
+    +matchId?: string
+    +totalKills?: number
+    +totalDeaths?: number
+    +totalAssists?: number
+    +totalMvps?: number
+    +totalScore?: number
+    +totalRoundsPlayed?: number
+    +totalUtilityDamage?: number
+    +totalAdr?: number
+    +totalHs?: number
+    +totalKpr?: number
+    +totalApr?: number
+    +dateRecorded?: Date
+    +createdAt?: Date
+    +updatedAt?: Date
+}
+
+interface PlayerClutchesEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "clutches"
+    +statsId: string
+    +clutch1v1?: ClutchStatEntity
+    +clutch1v2?: ClutchStatEntity
+    +clutch1v3?: ClutchStatEntity
+    +clutch1v4?: ClutchStatEntity
+    +clutch1v5?: ClutchStatEntity
+}
+
+interface PlayerWeaponsUsageEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "weaponsUsage"
+    +statsId: string
+    +pistolsPct?: number
+    +utilityPct?: number
+    +meleePct?: number
+    +shotgunsPct?: number
+    +smgPct?: number
+    +assaultRiflePct?: number
+    +sniperRiflePct?: number
+    +machineGunPct?: number
+    +dateRecorded?: Date
+}
+
+interface WeaponStatsEntry {
+    +weaponName: string
+    +kills: number
+    +deaths: number
+    +hits: number
+    +shots: number
+    +damage: number
+    +headshots: number
+}
+
+interface PlayerWeaponStatsEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "weaponStats"
+    +statsId: string
+    +weapons: WeaponStatsEntry[]
+    +dateRecorded?: Date
+}
+
+interface PlayerUtilityEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "utility"
+    +statsId: string
+    +grenadesThrown?: number
+    +heThrown?: number
+    +smokesThrown?: number
+    +molotovsThrown?: number
+    +flashesThrown?: number
+    +incendiariesThrown?: number
+    +teammatesFlashed?: number
+    +molotovsDamage?: number
+    +heDamage?: number
+    +enemiesFlashed?: number
+    +flashDuration?: number
+    +dateRecorded?: Date
+}
+
+interface PlayerEconomyEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "economy"
+    +statsId: string
+    +roundsEco?: number
+    +roundsForceBuy?: number
+    +roundsFullBuy?: number
+    +roundsPistol?: number
+    +roundsEcoWon?: number
+    +dateRecorded?: Date
+}
+
+interface PlayerAccuracyEntity extends PlayerAnalyticalEntity {
+    +_analyticsType: "accuracy"
+    +statsId: string
+    +totalShots?: number
+    +totalHits?: number
+    +headshots?: number
+    +topLevelAccuracy?: number
+    +hitBreakdown?: Record<HitGroup, number>
+    +dateRecorded?: Date
+}
+
+abstract class AnalyticsCalculator<TReturn> {
+    #matchId: string
+    #playerSteamId: string
+    #matchOutbound: MatchOutboundPort
+    #dbCache: Map<string, any>
+    #operationCache: Map<string, TReturn>
+    +{abstract} calculate(...args: any[]): TReturn | Promise<TReturn>
+    #{static} cache(): PropertyDecorator
+}
+
+class MatchPlayerStatsCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerStatsEntity>
+    +getTotalKills(): Promise<number>
+    +getTotalDeaths(): Promise<number>
+    +getTotalAssists(): Promise<number>
+    +getTotalHs(): Promise<number>
+    +getTotalAdr(): Promise<number>
+    +getTotalUtilityDamage(): Promise<number>
+    +getTotalKpr(): Promise<number>
+    +getTotalApr(): Promise<number>
+    +getTotalMvps(): Promise<number>
+    +getTotalScore(): Promise<number>
+    +getTotalRoundsPlayed(): Promise<number>
+}
+
+class MatchClutchCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerClutchesEntity>
+}
+
+class MatchPlayerWeaponsUsageCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerWeaponsUsageEntity>
+}
+
+class MatchPlayerWeaponStatsCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerWeaponStatsEntity>
+}
+
+class MatchPlayerEconomyCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerEconomyEntity>
+}
+
+class MatchPlayerUtilityUsageCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerUtilityEntity>
+}
+
+class MatchAccuracyCalculator extends AnalyticsCalculator {
+    +calculate(): Promise<PlayerAccuracyEntity>
+}
+
+MatchPlayerStatsCalculator ..> PlayerStatsEntity : produces
+MatchClutchCalculator ..> PlayerClutchesEntity : produces
+MatchPlayerWeaponsUsageCalculator ..> PlayerWeaponsUsageEntity : produces
+MatchPlayerWeaponStatsCalculator ..> PlayerWeaponStatsEntity : produces
+MatchPlayerEconomyCalculator ..> PlayerEconomyEntity : produces
+MatchPlayerUtilityUsageCalculator ..> PlayerUtilityEntity : produces
+MatchAccuracyCalculator ..> PlayerAccuracyEntity : produces
+PlayerClutchesEntity ..> ClutchStatEntity : uses
+PlayerWeaponStatsEntity ..> WeaponStatsEntry : uses
+
+@enduml

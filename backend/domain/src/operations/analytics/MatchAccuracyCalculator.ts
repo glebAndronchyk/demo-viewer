@@ -78,7 +78,10 @@ export class MatchAccuracyCalculator extends AnalyticsCalculator<
   }
 
   async getAccuracyPercentage() {
-    return (await this.getTotalHits()) / (await this.getHeadshots());
+    const hits = await this.getTotalHits();
+    const shots = await this.getTotalShots();
+
+    return shots === 0 ? 0 : hits / shots;
   }
 
   async getHitBreakdown() {

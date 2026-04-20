@@ -1,0 +1,44 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 11
+
+interface GenericCommand<TType extends string> {
+    +type: TType
+}
+
+interface GenericCommandHandler<TCommand, TReturn> {
+    +match(command: object): command is TCommand
+    +{abstract} (command: TCommand): TReturn | Promise<TReturn>
+}
+
+interface HandlerRegistration<TCommand, TResult> {
+    +commandType: TCommand["type"]
+    +factory: (outbound: DomainOutbound) => GenericCommandHandler<TCommand, TResult>
+}
+
+class CommandBus<TMap> {
+    -map: TMap
+    +dispatch(command: T): Promise<HandlerResult<TMap[T["type"]]>>
+}
+
+note as NCreateReg
+  **createRegistration()**
+  Helper to bind a command type string
+  to a handler factory.
+  Returns: HandlerRegistration<TCommand, TResult>
+end note
+
+note as NBuildOps
+  **buildOperations()**
+  Iterates all HandlerRegistrations,
+  calls each factory with DomainOutbound,
+  returns the populated TMap for CommandBus.
+end note
+
+GenericCommandHandler ..> GenericCommand : handles
+HandlerRegistration ..> GenericCommandHandler : creates
+CommandBus ..> HandlerRegistration : uses via buildOperations
+CommandBus ..> GenericCommand : dispatches
+
+@enduml

@@ -1,0 +1,81 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+
+note as N1
+  Adapters are the infrastructure bridge layer.
+  Each implements a Domain outbound port and is
+  injected into CommandBusService via DIContainer.
+end note
+
+class CommandBusService extends CommandBus {
+    +constructor(auth, gc, parser, team, user, match,\n  config, queue, storage)
+}
+
+class DatabaseService {
+    +UserModel: Model
+    +MatchModel: Model
+    +DemoChunkModel: Model
+    +PlayerStatsModel: Model
+    +PlayerClutchesModel: Model
+    +PlayerEconomyModel: Model
+    +PlayerUtilityModel: Model
+    +PlayerWeaponsUsageModel: Model
+    +WeaponStatsModel: Model
+    +{static} connect(config): Promise<DatabaseService>
+    +transaction(cb): Promise<T>
+}
+
+class SteamBotService {
+    +bot: SteamUser
+    +gc: GlobalOffensive
+    +{static} create(config): Promise<SteamBotService>
+}
+
+class LocalFilesystemStorageAdapter implements StorageOutboundPort {
+    +usesRedirect: false
+    +getAsset(path): Promise<string | StreamAssetResponse>
+    +streamAsset(path): Promise<StreamAssetResponse>
+    +resolveAssetUrl(path): Promise<string>
+    +ls(path): Promise<string[]>
+    +lsMapRadar(path, transform?): Promise<Record>
+}
+
+class ComputeResourcesQueueService implements QueueOutboundPort {
+    -queue: QueueJob[]
+    -maxParallelJobs: number
+    -activeRegisteredParallelTasks: number
+    +enqueue(task): Promise<void>
+    -tryDrain(): void
+}
+
+class EnvConfiguration implements ConfigurationInboundPort {
+    +steamBaseUrl: string
+    +steamApiKey: string
+    +cs2AppId: number
+    +jwtSecret: string
+    +apiBaseUrl: string
+    +apiPort: number
+    +databaseConnectionString: string
+    +shareCodeSeekStep: number
+    +matchesForAnalyticsSeekStep: number
+    +maxParallelRssGb: number
+    +debug: boolean
+    +storageType: string
+    +storageLocalBasePath: string
+    +getMapRadarFileAssetsPath(mapId): string
+    +getMapRadarApiPath(mapId, layer): string
+    +toJson(): string
+}
+
+CommandBusService --> LocalFilesystemStorageAdapter : fileStorage
+CommandBusService --> ComputeResourcesQueueService : queue
+CommandBusService o-- EnvConfiguration : configuration
+
+DatabaseService --> EnvConfiguration : reads connection string
+SteamBotService --> EnvConfiguration : reads bot credentials
+LocalFilesystemStorageAdapter --> EnvConfiguration : reads base path
+ComputeResourcesQueueService --> EnvConfiguration : reads maxParallelRssGb
+
+@enduml

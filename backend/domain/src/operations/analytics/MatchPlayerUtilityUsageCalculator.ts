@@ -130,17 +130,19 @@ export class MatchPlayerUtilityUsageCalculator extends AnalyticsCalculator<
   async getTotalMolotovsDamage() {
     const [_, __, hurtEvents] = await this.sharedQuery();
 
-    return hurtEvents.filter((g) =>
-      (["Molotov", "Incendiary Grenade"] as WeaponType[]).includes(g.weapon),
-    ).length;
+    return hurtEvents
+      .filter((g) =>
+        (["Molotov", "Incendiary Grenade"] as WeaponType[]).includes(g.weapon),
+      )
+      .reduce((sum, e) => sum + e.healthDamage + e.armorDamage, 0);
   }
 
   async getHeDamage() {
     const [_, __, hurtEvents] = await this.sharedQuery();
 
-    return hurtEvents.filter((g) =>
-      (["HE Grenade"] as WeaponType[]).includes(g.weapon),
-    ).length;
+    return hurtEvents
+      .filter((g) => (["HE Grenade"] as WeaponType[]).includes(g.weapon))
+      .reduce((sum, e) => sum + e.healthDamage + e.armorDamage, 0);
   }
 
   async getFlashDuration() {

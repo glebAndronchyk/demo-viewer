@@ -1,0 +1,220 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+skinparam packageFontSize 11
+left to right direction
+
+package "app" {
+  class App {
+    +{static} getTypedConstructor(): typeof Elysia
+  }
+}
+
+package "configuration" {
+  class EnvConfiguration {
+    +steamBaseUrl: string
+    +steamApiKey: string
+    +cs2AppId: number
+    +jwtSecret: string
+    +apiBaseUrl: string
+    +databaseConnectionString: string
+    +shareCodeSeekStep: number
+    +matchesForAnalyticsSeekStep: number
+    +maxParallelRssGb: number
+    +debug: boolean
+    +storageType: string
+    +storageLocalBasePath: string
+    +apiPort: number
+    +getMapRadarFileAssetsPath(mapId: string): string
+    +getMapRadarApiPath(mapId: string, layer: string): string
+    +toJson(): string
+  }
+}
+
+package "adapters" {
+  class CommandBusService extends CommandBus {
+    +constructor(...repositories, config, queue, storage)
+  }
+  class DatabaseService {
+    +UserModel: Model
+    +MatchModel: Model
+    +DemoChunkModel: Model
+    +PlayerStatsModel: Model
+    +PlayerClutchesModel: Model
+    +PlayerEconomyModel: Model
+    +PlayerUtilityModel: Model
+    +PlayerWeaponsUsageModel: Model
+    +WeaponStatsModel: Model
+    +{static} connect(config): Promise<DatabaseService>
+    +transaction(cb): Promise<T>
+  }
+  class SteamBotService {
+    +bot: SteamUser
+    +gc: GlobalOffensive
+    +{static} create(config): Promise<SteamBotService>
+  }
+  class LocalFilesystemStorageAdapter implements StorageOutboundPort {
+    +usesRedirect: false
+    +getAsset(path): Promise<string | StreamAssetResponse>
+    +streamAsset(path): Promise<StreamAssetResponse>
+    +resolveAssetUrl(path): Promise<string>
+    +ls(path): Promise<string[]>
+    +lsMapRadar(path, transform?): Promise<Record>
+  }
+  class ComputeResourcesQueueService implements QueueOutboundPort {
+    -queue: QueueJob[]
+    -maxParallelJobs: number
+    -activeRegisteredParallelTasks: number
+    +enqueue(task): Promise<void>
+    +tryDrain(): void
+  }
+}
+
+package "repository" {
+  class AuthRepository implements AuthOutboundPort {
+    +findUserBySteamId(steamId): Promise<UserRecord>
+    +createUser(steamId): Promise<UserRecord>
+    +linkMatchesToUser(steamId, userId): Promise<number>
+    +signJwt(payload): Promise<string>
+  }
+  class UserRepository implements UserOutboundPort {
+    +getUserById(id): Promise<UserEntity>
+    +setUserSharingData(payload): Promise<UserEntity>
+    +updateKnownShareCode(id, code): Promise<void>
+    +resetUserShareCode(id): Promise<void>
+    +getUsersWithSharingData(offset, limit): Promise<UserEntity[]>
+    +getUserBySteamId(steamId): Promise<UserEntity>
+  }
+  class TeamRepository implements TeamOutboundPort {
+    +createTeam(name, ownerId): Promise<GroupEntity>
+    +getTeamById(id): Promise<GroupEntity>
+    +addMember(groupId, userId): Promise<GroupMemberEntity>
+    +removeMember(groupId, userId): Promise<void>
+    +getMembers(groupId): Promise<GroupMemberEntity[]>
+    +isMember(groupId, userId): Promise<boolean>
+    +updateTeam(id, updates): Promise<GroupEntity>
+  }
+  class MatchRepository implements MatchOutboundPort {
+    +findByMatchId(matchId): Promise<MatchEntity>
+    +getTicksRange(payload): Promise<Frame[]>
+    +getAggregatedEvents(filter, events, cache?): Promise<EventsFromConstructors>
+    +getRoundsPlayedByPlayer(matchId, steamId64): Promise<RoundInfo[]>
+    +savePlayerAnalyticalData(root, subCollections): Promise<{rootCollectionId}>
+    +getMatchesPerStep(offset, limit): Promise<MatchEntity[]>
+  }
+  class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
+    +getNextAvailableShareCode(...): Promise<BaseResponse>
+    +decodeShareCode(shareCode): Promise<BaseResponse>
+    +getMatchUrlById(matchId): Promise<BaseResponse>
+    +downloadMatchById(matchId): Promise<BaseResponse>
+    +pingMatchUrl(url?): Promise<BaseResponse>
+  }
+  class ParserRepository implements ParserOutbound {
+    +parseDemoFromRemote(url, shareCode?): ParseProcess
+    +parseDemoFromLocal(path): ParseProcess
+  }
+  class LayeredAnalyticsCalculator {
+    -pipelines: {l1: AnalyticsCalculator[], l2: []}
+    +calculate(matchId, participants): Promise<void>
+  }
+}
+
+package "controllers" {
+  class AuthorizationController {
+    +GET /auth/steam : redirect to Steam OpenID
+    +GET /auth/steam/callback : handle OAuth return
+  }
+  class AnalyticsController {
+    +GET /analytics/:matchId/:steamId : player analytics
+  }
+  class StreamingController {
+    +GET /stream/:demoId : tick-seek stream
+  }
+  class ParsingController {
+    +POST /parse : enqueue demo parse
+  }
+  class StorageController {
+    +GET /storage/map/:mapId : radar assets
+  }
+  class TeamController {
+    +POST /team : create team
+    +GET /team/:id : get team
+    +PUT /team/:id : update team
+    +POST /team/:id/member : add member
+    +DELETE /team/:id/member : remove member
+  }
+  class UserController {
+    +GET /user/me : current user
+    +PUT /user/sharing : set sharing data
+  }
+  class BackgroundController {
+    +POST /background/parse : manual trigger
+  }
+  class MaintenanceController {
+    +GET /maintenance/... : admin utilities
+  }
+}
+
+package "cron" {
+  class CollectMatchesFromUserCron {
+    -schedule: "every minute"
+    +run(commandBus): Promise<void>
+  }
+  class CollectMatchAnalyticsCron {
+    -schedule: "every minute"
+    +run(commandBus, calculator): Promise<void>
+  }
+}
+
+package "lib/elysia/plugins" {
+  class jwtPlugin <<Elysia plugin>> {
+    +derive: JWTPayload
+  }
+  class userPlugin <<Elysia plugin>> {
+    +derive: UserEntity
+  }
+  class teamOwnerPlugin <<Elysia plugin>> {
+    +derive: GroupEntity
+  }
+  class teamMemberPlugin <<Elysia plugin>> {
+    +derive: GroupMemberEntity
+  }
+}
+
+' ── DI wiring ─────────────────────────────────────────────
+EnvConfiguration --> App : configures
+EnvConfiguration --> DatabaseService : provides connection string
+EnvConfiguration --> AuthRepository : provides jwtSecret
+EnvConfiguration --> EnvConfiguration : implements ConfigurationInboundPort
+
+CommandBusService --> AuthRepository : injects
+CommandBusService --> UserRepository : injects
+CommandBusService --> TeamRepository : injects
+CommandBusService --> MatchRepository : injects
+CommandBusService --> GameCoordinatorRepository : injects
+CommandBusService --> ParserRepository : injects
+CommandBusService --> ComputeResourcesQueueService : injects
+CommandBusService --> LocalFilesystemStorageAdapter : injects
+
+AuthRepository --> DatabaseService : uses models
+UserRepository --> DatabaseService : uses models
+TeamRepository --> DatabaseService : uses models
+MatchRepository --> DatabaseService : uses models
+
+GameCoordinatorRepository --> SteamBotService : uses bot + gc
+
+LayeredAnalyticsCalculator --> MatchRepository : uses
+LayeredAnalyticsCalculator --> ComputeResourcesQueueService : uses
+
+controllers ..> CommandBusService : dispatch commands
+controllers ..> jwtPlugin : uses
+controllers ..> userPlugin : uses
+controllers ..> teamOwnerPlugin : uses
+controllers ..> teamMemberPlugin : uses
+
+CollectMatchesFromUserCron ..> CommandBusService : dispatch
+CollectMatchAnalyticsCron ..> CommandBusService : dispatch
+CollectMatchAnalyticsCron ..> LayeredAnalyticsCalculator : trigger
+
+@enduml

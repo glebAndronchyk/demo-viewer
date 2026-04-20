@@ -1,0 +1,239 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam pageMargin 10
+skinparam classFontSize 10
+left to right direction
+
+abstract class MatchEvent {
+    +{abstract} type: string
+    +{static} filterObject: Record<string, unknown>
+    +{static} withBuilder(ctor): typeof BuiltBase
+}
+
+abstract class AnalyticsQueryBuilder<T extends MatchEvent> {
+    #filterObject: Record<string, any>
+    #tickFilter: Record<string, any>
+    +inTickRange(range: [number, number]): this
+    +build(): EventConstructor<T>
+}
+
+' ── Round events ──────────────────────────────────────────
+class RoundStartEvent extends MatchEvent {
+    +type: "round_start"
+    +timeLimit: number
+    +fragLimit: number
+    +objective: string
+}
+class RoundFreezetimeEndEvent extends MatchEvent {
+    +type: "round_freezetime_end"
+}
+class RoundEndEvent extends MatchEvent {
+    +type: "round_end"
+    +winner: "Unknown" | "T" | "CT" | "Spectators"
+    +reason: string
+}
+class RoundEndOfficialEvent extends MatchEvent {
+    +type: "round_end_official"
+}
+
+' ── Kill / Damage events ───────────────────────────────────
+class KillEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asKiller(steamId64: string): this
+    +asVictim(steamId64: string): this
+    +asAssister(steamId64: string): this
+    +asHeadshot(): this
+}
+class KillEvent extends MatchEvent {
+    +type: "kill"
+    +killerSteamId64: string
+    +killerName: string
+    +victimSteamId64: string
+    +victimName: string
+    +assisterSteamId64: string
+    +assisterName: string
+    +weapon: string
+    +isHeadshot: boolean
+    +penetratedObjects: number
+}
+class PlayerHurtEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asAttacker(steamId64: string): this
+    +withWeaponInRange(weapons: WeaponType[]): this
+}
+class PlayerHurtEvent extends MatchEvent {
+    +type: "player_hurt"
+    +playerSteamId64: string
+    +attackerSteamId64: string
+    +healthDamage: number
+    +armorDamage: number
+    +weapon: WeaponType
+    +hitGroup: HitGroup
+}
+class WeaponFireEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asShooter(steamId64: string): this
+}
+class WeaponFireEvent extends MatchEvent {
+    +type: "weapon_fire"
+    +shooterSteamId64: string
+    +weapon: string
+}
+class WeaponReloadEvent extends MatchEvent {
+    +type: "weapon_reload"
+    +playerSteamId64: string
+}
+
+' ── Flash events ───────────────────────────────────────────
+class PlayerFlashedEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asAttacker(steamId64: string): this
+    +withTargetPlayerTeam(team: TeamType): this
+}
+class PlayerFlashedEvent extends MatchEvent {
+    +type: "player_flashed"
+    +playerSteamId64: string
+    +attackerSteamId64: string
+    +flashDuration: number
+    +attackerTeam: TeamType
+    +playerTeam: TeamType
+}
+
+' ── Player connection events ───────────────────────────────
+class PlayerConnectEvent extends MatchEvent {
+    +type: "player_connect"
+    +steamId64: string
+    +name: string
+}
+class PlayerDisconnectEvent extends MatchEvent {
+    +type: "player_disconnect"
+    +steamId64: string
+    +name: string
+}
+
+' ── Grenade events ─────────────────────────────────────────
+class GrenadeThrowEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeThrowEvent extends MatchEvent {
+    +type: "grenade_throw"
+    +throwerSteamId64: string
+    +weapon: WeaponType
+    +grenadeEntityId: number
+}
+class GrenadeFireStartEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeFireStartEvent extends MatchEvent {
+    +type: "grenade_fire_start"
+    +throwerSteamId64: string
+    +grenadeType: string
+    +grenadeEntityId: number
+}
+class GrenadeFireEndEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeFireEndEvent extends MatchEvent {
+    +type: "grenade_fire_end"
+    +throwerSteamId64: string
+    +grenadeType: string
+    +grenadeEntityId: number
+}
+class GrenadeFlashExplodeEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeFlashExplodeEvent extends MatchEvent {
+    +type: "grenade_flash_explode"
+    +throwerSteamId64: string
+    +grenadeType: string
+    +grenadeEntityId: number
+}
+class GrenadeHeExplodeEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeHeExplodeEvent extends MatchEvent {
+    +type: "grenade_he_explode"
+    +throwerSteamId64: string
+    +grenadeType: string
+    +grenadeEntityId: number
+}
+class GrenadeDestroyEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asThrower(steamId64: string): this
+}
+class GrenadeDestroyEvent extends MatchEvent {
+    +type: "grenade_destroy"
+    +throwerSteamId64: string
+    +grenadeEntityId: number
+}
+
+' ── Bomb / Hostage events ──────────────────────────────────
+class BombPlantedEvent extends MatchEvent {
+    +type: "bomb_planted"
+    +playerSteamId64: string
+    +site: "A" | "B" | "Unknown"
+}
+class BombDefuseStartEvent extends MatchEvent {
+    +type: "bomb_defuse_start"
+    +playerSteamId64: string
+    +hasKit: boolean
+}
+class BombDefuseAbortedEvent extends MatchEvent {
+    +type: "bomb_defuse_aborted"
+    +playerSteamId64: string
+}
+class BombDefusedEvent extends MatchEvent {
+    +type: "bomb_defused"
+    +playerSteamId64: string
+}
+class BombExplodedEvent extends MatchEvent {
+    +type: "bomb_exploded"
+    +site: "A" | "B" | "Unknown"
+}
+class HostageRescuedEvent extends MatchEvent {
+    +type: "hostage_rescued"
+    +playerSteamId64: string
+}
+
+' ── Item events ────────────────────────────────────────────
+class ItemPickupEventQueryBuilder extends AnalyticsQueryBuilder {
+    +forPlayer(steamId64: string): this
+    +asBought(): this
+}
+class ItemPickupEvent extends MatchEvent {
+    +type: "item_pickup"
+    +playerSteamId64: string
+    +weapon: WeaponType
+    +isBought: boolean
+    +weaponEntityId: string
+}
+class ItemDropEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asPlayer(steamId64: string): this
+}
+class ItemDropEvent extends MatchEvent {
+    +type: "item_drop"
+    +playerSteamId64: string
+    +weapon: string
+    +weaponEntityId: string
+}
+class ItemRefundEventQueryBuilder extends AnalyticsQueryBuilder {
+    +asPlayer(steamId64: string): this
+}
+class ItemRefundEvent extends MatchEvent {
+    +type: "item_refund"
+    +playerSteamId64: string
+    +weapon: string
+    +weaponEntityId: string
+}
+
+' ── QueryBuilder associations ──────────────────────────────
+KillEvent ..> KillEventQueryBuilder : built by
+PlayerHurtEvent ..> PlayerHurtEventQueryBuilder : built by
+WeaponFireEvent ..> WeaponFireEventQueryBuilder : built by
+PlayerFlashedEvent ..> PlayerFlashedEventQueryBuilder : built by
+GrenadeThrowEvent ..> GrenadeThrowEventQueryBuilder : built by
+GrenadeFireStartEvent ..> GrenadeFireStartEventQueryBuilder : built by
+GrenadeFireEndEvent ..> GrenadeFireEndEventQueryBuilder : built by
+GrenadeFlashExplodeEvent ..> GrenadeFlashExplodeEventQueryBuilder : built by
+GrenadeHeExplodeEvent ..> GrenadeHeExplodeEventQueryBuilder : built by
+GrenadeDestroyEvent ..> GrenadeDestroyEventQueryBuilder : built by
+ItemPickupEvent ..> ItemPickupEventQueryBuilder : built by
+ItemDropEvent ..> ItemDropEventQueryBuilder : built by
+ItemRefundEvent ..> ItemRefundEventQueryBuilder : built by
+
+@enduml

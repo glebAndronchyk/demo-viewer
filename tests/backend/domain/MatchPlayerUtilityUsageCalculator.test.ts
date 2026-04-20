@@ -284,7 +284,7 @@ describe("MatchPlayerUtilityUsageCalculator", () => {
           makeHurt("HE Grenade"), // should not count
         ],
       ];
-      expect(await calc.getTotalMolotovsDamage()).toBe(2);
+      expect(await calc.getTotalMolotovsDamage()).toBe(100);
     });
   });
 
@@ -305,7 +305,7 @@ describe("MatchPlayerUtilityUsageCalculator", () => {
           makeHurt("Molotov"), // should not count
         ],
       ];
-      expect(await calc.getHeDamage()).toBe(2);
+      expect(await calc.getHeDamage()).toBe(100);
     });
   });
 
@@ -381,8 +381,8 @@ describe("MatchPlayerUtilityUsageCalculator", () => {
       expect(result.incendiariesThrown).toBe(0);
       expect(result.enemiesFlashed).toBe(1);
       expect(result.teammatesFlashed).toBe(1);
-      expect(result.heDamage).toBe(1);
-      expect(result.molotovsDamage).toBe(1);
+      expect(result.heDamage).toBe(50);
+      expect(result.molotovsDamage).toBe(50);
       expect(result.flashDuration).toBeCloseTo(2.0);
       expect(result.dateRecorded).toBeInstanceOf(Date);
     });

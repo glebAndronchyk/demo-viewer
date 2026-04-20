@@ -377,11 +377,11 @@ func (p *Parser) capturePlayerState(player *common.Player) PlayerState {
 		IsScoped:         player.IsScoped(),
 		IsWalking:        player.IsWalking(),
 		FlashDuration:    player.FlashDuration,
-		Kills:            0, // Will be updated through events
-		Deaths:           0,
-		Assists:          0,
-		Score:            0,
-		MVPs:             0,
+		Kills:            player.Kills(),
+		Deaths:           player.Deaths(),
+		Assists:          player.Assists(),
+		Score:            player.Score(),
+		MVPs:             player.MVPs(),
 	}
 }
 
@@ -420,7 +420,7 @@ func (p *Parser) captureGameState(gs dem.GameState) GameState {
 	ctState := gs.TeamCounterTerrorists()
 
 	return GameState{
-		RoundNumber:       gs.TotalRoundsPlayed(),
+		RoundNumber:       p.currentRoundNumber,
 		Phase:             phase,
 		CTScore:           ctState.Score(),
 		TScore:            tState.Score(),
