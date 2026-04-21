@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useLayoutEffect } from "react";
 import {
   Canvas,
   type Euler,
@@ -18,6 +18,10 @@ import {
   Plane,
   useHelper,
 } from "@react-three/drei";
+import {
+  DemoViewerViewModel,
+  useDemoViewerViewModel,
+} from "../viewmodel/DemoViewerViewModel";
 
 interface DebugThreeProps {
   orbit?: boolean;
@@ -57,18 +61,26 @@ const DebugThree = (props: DebugThreeProps) => {
 
 export default function DemoViewer() {
   return (
-    <>
+    <DemoViewerViewModel>
       <Canvas className="[&_canvas]:!w-[500px] [&_canvas]:!h-[500px]">
         <Suspense fallback={null}>
           <Scene />
         </Suspense>
         <DebugThree axes camera orbit />
       </Canvas>
-    </>
+    </DemoViewerViewModel>
   );
 }
 
 export const Scene = () => {
+  const { applyScene } = useDemoViewerViewModel();
+
+  const { scene } = useThree();
+
+  useLayoutEffect(() => {
+    applyScene(scene);
+  }, [scene]);
+
   const mapTexture = useLoader(
     TextureLoader,
     "assets/textures/maps/de_dust2.png",

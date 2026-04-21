@@ -1,0 +1,15 @@
+{
+  "name": "@demo-viewer/shared-types",
+  "version": "1.0.0",
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "type-check": "bunx tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

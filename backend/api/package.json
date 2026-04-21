@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@demo-viewer/backend-shared": "workspace:*",
+    "@demo-viewer/shared-types": "workspace:*",
     "@demo-viewer/database": "workspace:*",
     "@demo-viewer/demo-composer": "workspace:*",
     "@demo-viewer/domain": "workspace:*",
