@@ -12,7 +12,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Events should be primary source of truth. Using the aggregated player_states might ignore some cases
    * @private
    */
-  private async sharedKillsQuery() {
+  private async sharedQuery() {
     return await this.matchOutbound.getAggregatedEvents(
       { matchId: this.matchId },
       [
@@ -35,7 +35,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
   }
 
   override async calculate(): Promise<PlayerStatsEntity> {
-    await this.sharedKillsQuery(); // pre-cache frequently used events
+    await this.sharedQuery(); // pre-cache frequently used events
 
     const [
       totalAdr,
@@ -90,7 +90,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total kills of the player in the match by counting KillEvent where killer is player
    */
   async getTotalKills() {
-    const [killEvents] = await this.sharedKillsQuery();
+    const [killEvents] = await this.sharedQuery();
 
     return killEvents?.length ?? 0;
   }
@@ -99,7 +99,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total deaths of the player in the match by counting KillEvent where killer is any opponent
    */
   async getTotalDeaths() {
-    const [_, deathEvents] = await this.sharedKillsQuery();
+    const [_, deathEvents] = await this.sharedQuery();
     return deathEvents?.length ?? 0;
   }
 
@@ -107,7 +107,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total assists of the player in the match by counting KillEvent where killer is any teammate/opponent
    */
   async getTotalAssists() {
-    const [_, __, assistEvents] = await this.sharedKillsQuery();
+    const [_, __, assistEvents] = await this.sharedQuery();
 
     return assistEvents?.length ?? 0;
   }
@@ -116,7 +116,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total kills with headshot in the match by counting KillEvent where killer is player
    */
   async getTotalHs() {
-    const [killEvents] = await this.sharedKillsQuery();
+    const [killEvents] = await this.sharedQuery();
 
     const total = killEvents?.length ?? 0;
 
@@ -128,7 +128,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total ADR(average damage per round). totalDamage/totalRounds
    */
   async getTotalAdr() {
-    const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
+    const [_, __, ___, killerHurtEvents] = await this.sharedQuery();
 
     const totalDamage = killerHurtEvents?.reduce<number>((acc, event) => {
       return acc + event.healthDamage;
@@ -143,7 +143,7 @@ export class MatchPlayerStatsCalculator extends AnalyticsCalculator<PlayerStatsE
    * Gets total utility damage by counting PlayerHurtEvents where weapon is grenade
    */
   async getTotalUtilityDamage() {
-    const [_, __, ___, killerHurtEvents] = await this.sharedKillsQuery();
+    const [_, __, ___, killerHurtEvents] = await this.sharedQuery();
 
     const hurtEventsWhereWeaponUtility = killerHurtEvents.filter((e) =>
       Weapon.grenades.includes(e.weapon as (typeof Weapon.grenades)[number]),

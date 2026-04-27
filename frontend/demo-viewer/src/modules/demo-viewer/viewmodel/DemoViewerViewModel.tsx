@@ -2,12 +2,16 @@ import {
   createContext,
   type PropsWithChildren,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import { Mesh, Scene } from "three";
 import { PlayerPawnMesh } from "../entities/PlayerPawnMesh.ts";
-import type { FrameDto } from "@demo-viewer/shared-types";
+import type { FrameDto, SeekResponseDto } from "@demo-viewer/shared-types";
+import { useFrame } from "@react-three/fiber";
+import { DemoCache } from "../entities/DemoCache.ts";
+import { Tick } from "@demo-viewer/shared-entities";
 
 const useDemoViewer = () => {
   // #region types
@@ -16,6 +20,8 @@ const useDemoViewer = () => {
     finalBufferedTick: number;
     currentTick: number;
     speed: number;
+    bufferingWindow: number;
+    tickRate: Tick;
     state: "pause" | "play";
     geometries: Map<string, Mesh>;
   }
@@ -25,17 +31,25 @@ const useDemoViewer = () => {
   // #endregion
   // #region variables
 
+  // todo single class
+  const bufferingWindow = Tick.rate(64).ticksInSeconds(10);
+
   const [scene, _setScene] = useState<Scene>(null as never);
+  const _cache = useRef(
+    new DemoCache(new Map<number, FrameDto>(), {}, bufferingWindow),
+  );
+  const _isLooping = useRef(false);
+  const _tickAccumulator = useRef(0);
   const _listeners = useRef<Set<StateConsumer>>(new Set());
-  const _l1Cache = useRef(new Map<string, number>());
   const staticState = useRef<ViewerState>({
     geometries: new Map(),
     currentTick: 0,
     finalBufferedTick: 0,
     speed: 1,
-    state: "play",
+    tickRate: Tick.rate(64),
+    bufferingWindow,
+    state: "pause",
   });
-  const _idb = {} as never;
 
   // #endregion
   // #region public
@@ -83,9 +97,13 @@ const useDemoViewer = () => {
     staticState.current.speed = v;
   };
 
-  const subscribe = () => {};
+  const subscribe = (consumer: StateConsumer) => {
+    _listeners.current.add(consumer);
+  };
 
-  const unsubscribe = () => {};
+  const unsubscribe = (consumer: StateConsumer) => {
+    _listeners.current.delete(consumer);
+  };
 
   const applyScene = (scene: Scene) => _setScene(scene);
 
@@ -118,7 +136,7 @@ const useDemoViewer = () => {
   };
 
   const _snapshot = () => {
-    return structuredClone(staticState.current);
+    return structuredClone(staticState.current); // todo fix geometries clonning
   };
 
   const _notify = (...args: Parameters<StateConsumer>) => {
@@ -127,10 +145,67 @@ const useDemoViewer = () => {
     _listeners.current.forEach((l) => l(event, data));
   };
 
-  const _bufferDemo = (startTick?: number) => {
-    return Promise.resolve({
-      frame: {} as never as FrameDto,
-    });
+  const _bufferDemo = async (forceStartTick?: number) => {
+    // todo deal with _l2Cache
+    const startTick = forceStartTick || staticState.current.currentTick;
+
+    const cachedCurrentFrame = await _cache.current.getByTick(
+      startTick + staticState.current.tickRate.oneSecond(),
+    );
+
+    if (cachedCurrentFrame) {
+      if (
+        staticState.current.finalBufferedTick - startTick <
+        staticState.current.finalBufferedTick * (1 / 4) // 25% of staticState.current.finalBufferedTick
+      ) {
+        // delegate to service worker
+        _pollFrames()
+          .then((r) => _cache.current.store(r))
+          .then((cache) => {
+            staticState.current.finalBufferedTick =
+              cache.l1GetFinalAvailableFrame().gameTick;
+          });
+      }
+
+      staticState.current.currentTick = cachedCurrentFrame.gameTick;
+
+      return { frame: cachedCurrentFrame };
+    }
+
+    await _cache.current.store(await _pollFrames());
+    const currentFrame = await _cache.current.getByTick(startTick);
+
+    if (!currentFrame) {
+      throw new Error(`Requested tick:${startTick} is not in range`);
+    }
+
+    staticState.current.currentTick = currentFrame.gameTick;
+    staticState.current.finalBufferedTick =
+      _cache.current.l1GetFinalAvailableFrame().gameTick;
+
+    return {
+      frame: currentFrame,
+    };
+  };
+
+  const _pollFrames = async () => {
+    const params = new URLSearchParams();
+    params.set("startGameTick", String(staticState.current.finalBufferedTick));
+    params.set(
+      "endGameTick",
+      String(staticState.current.finalBufferedTick + bufferingWindow),
+    );
+    params.set("step", String(64)); // todo: based on demo tickrate
+
+    // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
+    const framesResult = await fetch(
+      `http://localhost:3000/streaming/player/seek/69ea17924a40f3efe7effee7?${params.toString()}`,
+    )
+      .then((r) => r.json())
+      .then((r) => (r as SeekResponseDto).data)
+      .catch(() => [] as FrameDto[]);
+
+    return Promise.resolve(framesResult);
   };
 
   const _addGeometry = (key: string, geom: Mesh) => {
@@ -146,13 +221,29 @@ const useDemoViewer = () => {
     scene.remove(geom);
   };
 
-  const _updateL1Cache = () => {};
+  // #endregion
+  // #region operation
 
-  const _updateL2Cache = () => {};
+  useFrame((_, delta) => {
+    if (staticState.current.state !== "play" || _isLooping.current) return;
 
-  const _invalidateL1Cache = () => {};
+    const tickInterval = 1 / staticState.current.speed;
+    _tickAccumulator.current += delta * staticState.current.speed;
 
-  const _invalidateL2Cache = () => {};
+    if (_tickAccumulator.current >= tickInterval) {
+      _tickAccumulator.current -= tickInterval;
+      _isLooping.current = true;
+      loop().finally(() => {
+        _isLooping.current = false;
+      });
+    }
+  });
+
+  useEffect(() => {
+    setTimeout(() => {
+      play();
+    }, 3000);
+  }, []);
 
   // #endregion
 

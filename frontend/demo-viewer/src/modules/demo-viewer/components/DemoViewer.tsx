@@ -61,14 +61,14 @@ const DebugThree = (props: DebugThreeProps) => {
 
 export default function DemoViewer() {
   return (
-    <DemoViewerViewModel>
-      <Canvas className="[&_canvas]:!w-[500px] [&_canvas]:!h-[500px]">
+    <Canvas className="[&_canvas]:!w-[500px] [&_canvas]:!h-[500px]">
+      <DemoViewerViewModel>
         <Suspense fallback={null}>
           <Scene />
         </Suspense>
         <DebugThree axes camera orbit />
-      </Canvas>
-    </DemoViewerViewModel>
+      </DemoViewerViewModel>
+    </Canvas>
   );
 }
 

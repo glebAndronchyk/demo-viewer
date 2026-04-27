@@ -16,12 +16,14 @@ import {
 } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
 import { EnvConfiguration } from "../configuration/EnvConfiguration";
 import serverTiming from "@elysiajs/server-timing";
+import { cors } from "@elysia/cors";
 
 export class App {
   constructor(config: EnvConfiguration) {
     return new Elysia()
       .use(openapi())
       .use(serverTiming())
+      .use(cors())
       .onRequest(({ request }) => {
         if (config.debug) {
           const url = new URL(request.url);
@@ -121,11 +123,15 @@ export class App {
           isSuccess: false,
         };
       })
-      .get("/health", () => ({
-        data: { status: "up" },
-        error: null,
-        isSuccess: true,
-      }), { detail: { tags: ["health"] } });
+      .get(
+        "/health",
+        () => ({
+          data: { status: "up" },
+          error: null,
+          isSuccess: true,
+        }),
+        { detail: { tags: ["health"] } },
+      );
   }
 
   static getTypedConstructor() {

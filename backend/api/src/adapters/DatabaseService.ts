@@ -3,6 +3,7 @@ import {
   DatabaseConnection,
   DemoChunkModel,
   MatchModel,
+  PlayerAccuracyModel,
   PlayerClutchesModel,
   PlayerEconomyModel,
   PlayerStatsModel,
@@ -40,7 +41,7 @@ export class DatabaseService {
   }
 
   get PlayerAccuracyModel() {
-    return PlayerEconomyModel;
+    return PlayerAccuracyModel;
   }
 
   get PlayerUtilityModel() {
