@@ -21,6 +21,8 @@ export function toDemoChunkFrame(f: IFrame): Frame {
     events: f.events.map((e) => ({
       type: e.type,
       data: e.data,
+      demoTick: e.demo_tick ?? f.demo_tick,
+      gameTick: e.game_tick ?? f.game_tick,
     })),
     reconnections: f.reconnections?.map((r) => ({
       steamId64: r.steam_id_64,

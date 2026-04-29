@@ -349,6 +349,11 @@ export class MatchRepository implements MatchOutboundPort {
                 $lte: payload.endGameTick,
               },
             },
+            // include chunks that start before the range (e.g. tick-0 chunk with connect events)
+            {
+              start_game_tick: { $lte: payload.startGameTick },
+              end_game_tick: { $gte: 0 },
+            },
           ],
         },
       },
@@ -370,7 +375,7 @@ export class MatchRepository implements MatchOutboundPort {
               in: {
                 $let: {
                   vars: {
-                    // set targetFrame
+                    // pick the last frame at this tick for player state (most up-to-date snapshot)
                     targetFrame: {
                       $arrayElemAt: [
                         {
@@ -380,10 +385,10 @@ export class MatchRepository implements MatchOutboundPort {
                             cond: { $eq: ["$$frame.game_tick", "$$tick"] },
                           },
                         },
-                        0,
+                        -1,
                       ],
                     },
-                    // aggregate events between requested frames
+                    // collect events from all frames in range (prev tick, current tick]
                     accumulatedEvents: {
                       $reduce: {
                         input: {
@@ -395,16 +400,48 @@ export class MatchRepository implements MatchOutboundPort {
                                 {
                                   $gt: [
                                     "$$frame.game_tick",
-                                    { $subtract: ["$$tick", payload.step] },
-                                  ], // use previous requested tick as lower bound of operation
+                                    {
+                                      $cond: {
+                                        if: {
+                                          $eq: [
+                                            "$$tick",
+                                            payload.startGameTick,
+                                          ],
+                                        },
+                                        then: -1,
+                                        else: {
+                                          $subtract: ["$$tick", payload.step],
+                                        },
+                                      },
+                                    },
+                                  ],
                                 },
-                                { $lt: ["$$frame.game_tick", "$$tick"] }, // use current requested tick as upper bound of operation
+                                { $lte: ["$$frame.game_tick", "$$tick"] }, // inclusive upper bound to capture all frames at this tick
                               ],
                             },
                           },
                         },
                         initialValue: [],
-                        in: { $concatArrays: ["$$value", "$$this.events"] }, // join events of all received frames
+                        in: {
+                          $concatArrays: [
+                            "$$value",
+                            {
+                              $map: {
+                                input: "$$this.events",
+                                as: "evt",
+                                in: {
+                                  $mergeObjects: [
+                                    "$$evt",
+                                    {
+                                      demo_tick: "$$this.demo_tick",
+                                      game_tick: "$$this.game_tick",
+                                    },
+                                  ],
+                                },
+                              },
+                            },
+                          ],
+                        },
                       },
                     },
                   },
@@ -412,13 +449,8 @@ export class MatchRepository implements MatchOutboundPort {
                     $mergeObjects: [
                       "$$targetFrame",
                       {
-                        events: {
-                          $concatArrays: [
-                            "$$accumulatedEvents",
-                            { $ifNull: ["$$targetFrame.events", []] },
-                          ],
-                        },
-                      }, // override current requested freame events with aggregated one
+                        events: "$$accumulatedEvents",
+                      },
                     ],
                   },
                 },

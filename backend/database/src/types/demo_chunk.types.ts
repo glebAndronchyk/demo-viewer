@@ -62,6 +62,8 @@ export interface IGameState {
 export interface IEvent {
   type: string;
   data: Record<string, unknown>;
+  demo_tick?: number;
+  game_tick?: number;
 }
 
 export interface IReconnection {

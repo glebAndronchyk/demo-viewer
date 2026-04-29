@@ -60,6 +60,8 @@ export interface GameState {
 export interface DemoEvent {
   type: string;
   data: Record<string, unknown>;
+  demoTick: number;
+  gameTick: number;
 }
 
 export interface Reconnection {

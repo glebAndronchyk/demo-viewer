@@ -273,7 +273,12 @@ export interface HostageRescuedEventDto {
   };
 }
 
-export type DemoEventDto =
+export type DemoEventBase = {
+  demoTick: number;
+  gameTick: number;
+};
+
+export type DemoEventDto = DemoEventBase & (
   | KillEventDto
   | PlayerHurtEventDto
   | WeaponFireEventDto
@@ -299,7 +304,8 @@ export type DemoEventDto =
   | ItemPickupEventDto
   | ItemDropEventDto
   | ItemRefundEventDto
-  | HostageRescuedEventDto;
+  | HostageRescuedEventDto
+);
 
 export interface ReconnectionDto {
   steamId64: string;

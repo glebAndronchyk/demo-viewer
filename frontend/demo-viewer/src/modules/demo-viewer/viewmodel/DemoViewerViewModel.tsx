@@ -2,37 +2,36 @@ import {
   createContext,
   type PropsWithChildren,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from "react";
 import { Mesh, Scene } from "three";
 import { PlayerPawnMesh } from "../entities/PlayerPawnMesh.ts";
-import type { FrameDto, SeekResponseDto } from "@demo-viewer/shared-types";
+import type {
+  FrameDto,
+  ManifestResponseData,
+  ManifestResponseDto,
+  SeekResponseDto,
+} from "@demo-viewer/shared-types";
 import { useFrame } from "@react-three/fiber";
 import { DemoCache } from "../entities/DemoCache.ts";
 import { Tick } from "@demo-viewer/shared-entities";
+import { type LoaderFunction, useLoaderData } from "react-router";
+import { PlaygroundConfiguration } from "../entities/PlaygroundConfiguration.ts";
+import type { ViewerState } from "../types/ViewerState.ts";
 
 const useDemoViewer = () => {
   // #region types
-
-  interface ViewerState {
-    finalBufferedTick: number;
-    currentTick: number;
-    speed: number;
-    bufferingWindow: number;
-    tickRate: Tick;
-    state: "pause" | "play";
-    geometries: Map<string, Mesh>;
-  }
 
   type StateConsumer = (event: string, data: object) => void;
 
   // #endregion
   // #region variables
 
+  const matchData = useLoaderData<ManifestResponseData>();
+
   // todo single class
-  const bufferingWindow = Tick.rate(64).ticksInSeconds(10);
+  const bufferingWindow = Tick.rate(matchData.tickRate).ticksInSeconds(10);
 
   const [scene, _setScene] = useState<Scene>(null as never);
   const _cache = useRef(
@@ -46,9 +45,22 @@ const useDemoViewer = () => {
     currentTick: 0,
     finalBufferedTick: 0,
     speed: 1,
-    tickRate: Tick.rate(64),
+    tickRate: Tick.rate(matchData.tickRate),
     bufferingWindow,
     state: "pause",
+    playground: new PlaygroundConfiguration({
+      // todo: from map manifest
+      surfaceRotation: [-Math.PI / 2, 0, 0], // horizontal plane
+      surfaceSize: [1024, 1024], // 1024x1024 square
+      orthographicCameraPosition: [0, 10, 0], // view from above on the plane
+      cameraZoom: 30,
+      frustumHeight: 10,
+      mapResolution: 5.25,
+      mapOriginOffset: {
+        x: 2830,
+        y: 2030,
+      },
+    }),
   });
 
   // #endregion
@@ -65,23 +77,20 @@ const useDemoViewer = () => {
   };
 
   const play = async () => {
-    const { frame } = await _bufferDemo();
-
+    staticState.current.state = "play";
     _notify("play", {
       snapshot: _snapshot(),
-      frame,
     });
-    staticState.current.state = "play";
   };
 
   const pause = async () => {
     const { frame } = await _bufferDemo();
 
+    staticState.current.state = "pause";
     _notify("pause", {
       snapshot: _snapshot(),
       frame,
     });
-    staticState.current.state = "pause";
   };
 
   const jump = async (tick: number) => {
@@ -95,6 +104,7 @@ const useDemoViewer = () => {
 
   const speed = (v: number) => {
     staticState.current.speed = v;
+    _notify("speed", { speed: v });
   };
 
   const subscribe = (consumer: StateConsumer) => {
@@ -111,32 +121,35 @@ const useDemoViewer = () => {
   // #region private
 
   const _drawFrame = (frame: FrameDto) => {
-    frame.events.forEach((evt) => {
-      switch (evt.type) {
-        case "player_connect":
-          return _addGeometry(evt.data.steam_id_64, new PlayerPawnMesh());
-        case "player_disconnect":
-          return _destroyGeometry(evt.data.steam_id_64);
-      }
+    frame.events
+      .sort((e) => e.gameTick)
+      .forEach((evt) => {
+        switch (evt.type) {
+          case "player_connect":
+            return _addGeometry(
+              evt.data.steam_id_64,
+              PlayerPawnMesh.join(staticState.current.playground),
+            );
+          case "player_disconnect":
+            return _destroyGeometry(evt.data.steam_id_64);
+        }
 
-      _notify(evt.type, evt.data);
-    });
+        _notify(evt.type, evt.data);
+      });
 
     frame.playerStates.forEach((player) => {
       const mesh = staticState.current.geometries.get(player.steamId64);
 
-      if (!(mesh instanceof PlayerPawnMesh)) {
-        throw new Error(
-          `Tried to update player:${player.steamId64} that is not PlayerPawnMesh`,
-        );
-      }
+      if (!(mesh instanceof PlayerPawnMesh)) return;
 
-      mesh.move(player);
+      mesh.teamSwitch(player);
+      mesh.move(player.position);
     });
   };
 
   const _snapshot = () => {
-    return structuredClone(staticState.current); // todo fix geometries clonning
+    // return structuredClone(staticState.current); // todo fix geometries clonning
+    return {} as never;
   };
 
   const _notify = (...args: Parameters<StateConsumer>) => {
@@ -173,10 +186,14 @@ const useDemoViewer = () => {
     }
 
     await _cache.current.store(await _pollFrames());
-    const currentFrame = await _cache.current.getByTick(startTick);
+    const frameTick = Math.max(
+      0,
+      startTick - staticState.current.tickRate.oneSecond(),
+    );
+    const currentFrame = await _cache.current.getByTick(frameTick);
 
     if (!currentFrame) {
-      throw new Error(`Requested tick:${startTick} is not in range`);
+      throw new Error(`Requested tick:${frameTick} is not in range`);
     }
 
     staticState.current.currentTick = currentFrame.gameTick;
@@ -195,7 +212,7 @@ const useDemoViewer = () => {
       "endGameTick",
       String(staticState.current.finalBufferedTick + bufferingWindow),
     );
-    params.set("step", String(64)); // todo: based on demo tickrate
+    params.set("step", String(matchData.tickRate)); // todo: based on demo tickrate
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
@@ -209,6 +226,7 @@ const useDemoViewer = () => {
   };
 
   const _addGeometry = (key: string, geom: Mesh) => {
+    if (staticState.current.geometries.has(key)) return;
     staticState.current.geometries.set(key, geom);
     scene.add(geom);
   };
@@ -224,10 +242,18 @@ const useDemoViewer = () => {
   // #endregion
   // #region operation
 
+  /**
+   * Main viewer loop
+   */
   useFrame((_, delta) => {
+    const tickInterval = 1 / staticState.current.speed;
+
+    staticState.current.geometries.forEach((geom) => {
+      if (geom instanceof PlayerPawnMesh) geom.animate(delta, tickInterval); // todo: generic .animate()
+    });
+
     if (staticState.current.state !== "play" || _isLooping.current) return;
 
-    const tickInterval = 1 / staticState.current.speed;
     _tickAccumulator.current += delta * staticState.current.speed;
 
     if (_tickAccumulator.current >= tickInterval) {
@@ -239,16 +265,11 @@ const useDemoViewer = () => {
     }
   });
 
-  useEffect(() => {
-    setTimeout(() => {
-      play();
-    }, 3000);
-  }, []);
-
   // #endregion
 
   return {
     staticState,
+    matchData,
     play,
     speed,
     jump,
@@ -268,6 +289,19 @@ const DemoViewerViewModelContext = createContext<
 export const useDemoViewerViewModel = () => {
   return useContext(DemoViewerViewModelContext);
 };
+
+useDemoViewerViewModel.matchManifestLoader = (async () => {
+  const matchManifest = await fetch(
+    `http://localhost:3000/streaming/player/manifest/69ea17924a40f3efe7effee7`,
+  )
+    .then((r) => r.json())
+    .then((r) => (r as ManifestResponseDto).data)
+    .catch(() => null);
+
+  if (!matchManifest) return; // todo: handle
+
+  return matchManifest;
+}) as LoaderFunction;
 
 export const DemoViewerViewModel = (props: PropsWithChildren) => {
   const vm = useDemoViewer();
