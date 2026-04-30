@@ -2,9 +2,14 @@ import { CircleGeometry, Euler, Matrix4, Mesh, MeshBasicMaterial } from "three";
 import type { Vector3 } from "../types/Vector3.ts";
 import type { PlaygroundConfiguration } from "./PlaygroundConfiguration.ts";
 import { tlerp } from "../../../lib/tlerp.ts";
-import type { PlayerStateDto } from "@demo-viewer/shared-types";
+import type {
+  PlayerStateDto,
+  WeaponFireEventDto,
+} from "@demo-viewer/shared-types";
+import { WeaponTracer } from "./WeaponTracer.ts";
+import type { Animatable } from "../types/Animatable.ts";
 
-export class PlayerPawnMesh extends Mesh {
+export class PlayerPawn extends Mesh implements Animatable {
   static readonly r = 10;
   static readonly s = 64;
   static readonly ctColor = 0x00c4ff;
@@ -16,12 +21,6 @@ export class PlayerPawnMesh extends Mesh {
   private _moveTarget: Vector3 | null = null;
   private _moveFrom: Vector3 | null = null;
   private _moveTimeElapsed = 0;
-
-  get pg() {
-    if (!this._pg) throw new Error("Playground not defined");
-
-    return this._pg;
-  }
 
   static join(playground: PlaygroundConfiguration) {
     const mesh = new this(
@@ -53,6 +52,28 @@ export class PlayerPawnMesh extends Mesh {
     return mesh;
   }
 
+  get pg() {
+    if (!this._pg) throw new Error("Playground not defined");
+
+    return this._pg;
+  }
+
+  get shouldDestroy() {
+    return false;
+  }
+
+  timing(tick: number) {
+    void tick;
+    return;
+  }
+
+  isAnimatable(currentTick: number): {
+    animate(delta: number, tickInterval: number): void;
+  } | null {
+    void currentTick;
+    return this;
+  }
+
   withPlayground(playground: PlaygroundConfiguration) {
     this._pg = playground;
   }
@@ -76,7 +97,7 @@ export class PlayerPawnMesh extends Mesh {
   teamSwitch(p: PlayerStateDto) {
     if (p.team !== this._team) {
       this.material = new MeshBasicMaterial({
-        color: p.team === "CT" ? PlayerPawnMesh.ctColor : PlayerPawnMesh.tColor,
+        color: p.team === "CT" ? PlayerPawn.ctColor : PlayerPawn.tColor,
       });
     }
   }
@@ -93,8 +114,16 @@ export class PlayerPawnMesh extends Mesh {
     };
   }
 
-  shot() {
-    // todo: shot
+  shot(evt: WeaponFireEventDto, shootingOffset: number): WeaponTracer {
+    const startTick = evt.gameTick + shootingOffset;
+    const endTick = startTick + shootingOffset;
+
+    return WeaponTracer.create(
+      { x: this.position.x, y: this.position.y, z: this.position.z },
+      evt.data.direction,
+      startTick,
+      endTick,
+    );
   }
 
   throw() {
@@ -104,6 +133,8 @@ export class PlayerPawnMesh extends Mesh {
   drop() {
     // todo: drop
   }
+
+  resurrect() {}
 
   die() {
     // todo: die

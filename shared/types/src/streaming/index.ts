@@ -5,7 +5,12 @@ export type {
   ManifestResponseData,
   ManifestResponseDto,
 } from "./ManifestDto.ts";
+export {
+  GRENADE_WEAPON_TYPES,
+  MELEE_AND_EQUIPMENT_WEAPON_TYPES,
+} from "./SeekDto.ts";
 export type {
+  WeaponTypeDto,
   Vector2Dto,
   Vector3Dto,
   EquipmentDto,

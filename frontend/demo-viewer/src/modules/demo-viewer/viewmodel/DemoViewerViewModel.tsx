@@ -5,8 +5,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { Mesh, Scene } from "three";
-import { PlayerPawnMesh } from "../entities/PlayerPawnMesh.ts";
+import { type Line, Mesh, Scene } from "three";
+import { PlayerPawn } from "../entities/PlayerPawn.ts";
+import {
+  GRENADE_WEAPON_TYPES,
+  MELEE_AND_EQUIPMENT_WEAPON_TYPES,
+} from "@demo-viewer/shared-types";
 import type {
   FrameDto,
   ManifestResponseData,
@@ -19,6 +23,7 @@ import { Tick } from "@demo-viewer/shared-entities";
 import { type LoaderFunction, useLoaderData } from "react-router";
 import { PlaygroundConfiguration } from "../entities/PlaygroundConfiguration.ts";
 import type { ViewerState } from "../types/ViewerState.ts";
+import { type Animatable, isAnimatableInterface } from "../types/Animatable.ts";
 
 const useDemoViewer = () => {
   // #region types
@@ -48,6 +53,9 @@ const useDemoViewer = () => {
     tickRate: Tick.rate(matchData.tickRate),
     bufferingWindow,
     state: "pause",
+    get crossTracerDelay() {
+      return this.tickRate.updateRate + this.tickRate.ticksInSeconds(0.2);
+    },
     playground: new PlaygroundConfiguration({
       // todo: from map manifest
       surfaceRotation: [-Math.PI / 2, 0, 0], // horizontal plane
@@ -55,10 +63,10 @@ const useDemoViewer = () => {
       orthographicCameraPosition: [0, 10, 0], // view from above on the plane
       cameraZoom: 30,
       frustumHeight: 10,
-      mapResolution: 5.25,
+      mapResolution: 5.02,
       mapOriginOffset: {
-        x: 2830,
-        y: 2030,
+        x: 3240,
+        y: 3410,
       },
     }),
   });
@@ -128,10 +136,26 @@ const useDemoViewer = () => {
           case "player_connect":
             return _addGeometry(
               evt.data.steam_id_64,
-              PlayerPawnMesh.join(staticState.current.playground),
+              PlayerPawn.join(staticState.current.playground),
             );
           case "player_disconnect":
             return _destroyGeometry(evt.data.steam_id_64);
+          case "weapon_fire": {
+            // TODO: per-weapon-type tracer styling (color, length, etc.)
+            if (
+              GRENADE_WEAPON_TYPES.includes(evt.data.weapon) ||
+              MELEE_AND_EQUIPMENT_WEAPON_TYPES.includes(evt.data.weapon)
+            ) return;
+            const shooter = _getGeometry<PlayerPawn>(
+              evt.data.shooter_steam_id_64,
+            );
+            const tracer = shooter?.shot(
+              evt,
+              staticState.current.tickRate.updateRate +
+                staticState.current.crossTracerDelay,
+            );
+            return _addGeometry(crypto.randomUUID(), tracer);
+          }
         }
 
         _notify(evt.type, evt.data);
@@ -140,7 +164,7 @@ const useDemoViewer = () => {
     frame.playerStates.forEach((player) => {
       const mesh = staticState.current.geometries.get(player.steamId64);
 
-      if (!(mesh instanceof PlayerPawnMesh)) return;
+      if (!(mesh instanceof PlayerPawn)) return;
 
       mesh.teamSwitch(player);
       mesh.move(player.position);
@@ -216,7 +240,7 @@ const useDemoViewer = () => {
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
-      `http://localhost:3000/streaming/player/seek/69ea17924a40f3efe7effee7?${params.toString()}`,
+      `http://localhost:3000/streaming/player/seek/69f27c4cb7b6acee7e74bfb7?${params.toString()}`,
     )
       .then((r) => r.json())
       .then((r) => (r as SeekResponseDto).data)
@@ -225,10 +249,23 @@ const useDemoViewer = () => {
     return Promise.resolve(framesResult);
   };
 
-  const _addGeometry = (key: string, geom: Mesh) => {
-    if (staticState.current.geometries.has(key)) return;
+  const _addGeometry = <T extends Animatable & (Mesh | Line)>(
+    key: string,
+    geom: T | null | undefined,
+  ) => {
+    if (!geom || staticState.current.geometries.has(key)) return;
     staticState.current.geometries.set(key, geom);
     scene.add(geom);
+
+    return geom;
+  };
+
+  const _getGeometry = <T extends Animatable & Mesh>(
+    key: string | null,
+  ): T | null => {
+    if (!key) return null;
+
+    return staticState.current.geometries.get(key) as T;
   };
 
   const _destroyGeometry = (key: string) => {
@@ -246,16 +283,29 @@ const useDemoViewer = () => {
    * Main viewer loop
    */
   useFrame((_, delta) => {
-    const tickInterval = 1 / staticState.current.speed;
+    const tickInterval = 1 / staticState.current.speed; // ticks received in 1s format
+    const singleTickInterval =
+      1 / (staticState.current.tickRate.updateRate * staticState.current.speed); // time of single game tick accoingly to specified speed
+    const currentGameTick =
+      staticState.current.currentTick +
+      Math.floor(_tickAccumulator.current / singleTickInterval);
 
-    staticState.current.geometries.forEach((geom) => {
-      if (geom instanceof PlayerPawnMesh) geom.animate(delta, tickInterval); // todo: generic .animate()
+    // animate geometries
+    staticState.current.geometries.forEach((geom, key) => {
+      if (isAnimatableInterface(geom)) {
+        geom.isAnimatable(currentGameTick)?.animate(delta, tickInterval);
+        geom.timing(currentGameTick);
+        if (geom.shouldDestroy) {
+          _destroyGeometry(key);
+        }
+      }
     });
 
     if (staticState.current.state !== "play" || _isLooping.current) return;
 
     _tickAccumulator.current += delta * staticState.current.speed;
 
+    // start buffering loop
     if (_tickAccumulator.current >= tickInterval) {
       _tickAccumulator.current -= tickInterval;
       _isLooping.current = true;
@@ -292,7 +342,7 @@ export const useDemoViewerViewModel = () => {
 
 useDemoViewerViewModel.matchManifestLoader = (async () => {
   const matchManifest = await fetch(
-    `http://localhost:3000/streaming/player/manifest/69ea17924a40f3efe7effee7`,
+    `http://localhost:3000/streaming/player/manifest/69f27c4cb7b6acee7e74bfb7`,
   )
     .then((r) => r.json())
     .then((r) => (r as ManifestResponseDto).data)

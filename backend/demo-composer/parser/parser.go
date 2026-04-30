@@ -4,6 +4,7 @@ import (
 	"compress/bzip2"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -659,12 +660,20 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 	// Weapon events
 	parser.RegisterEventHandler(func(e events.WeaponFire) {
 		data := map[string]interface{}{
-			"weapon": e.Weapon.String(),
+			"weapon":    e.Weapon.String(),
+			"direction": Vector3{X: 0, Y: 0, Z: 0},
 		}
 
 		if e.Shooter != nil {
 			data["shooter_steam_id_64"] = strconv.FormatUint(e.Shooter.SteamID64, 10)
 			data["shooter_name"] = e.Shooter.Name
+			yaw := float64(e.Shooter.ViewDirectionX()) * math.Pi / 180
+			pitch := float64(e.Shooter.ViewDirectionY()) * math.Pi / 180
+			data["direction"] = Vector3{
+				X: math.Cos(pitch) * math.Cos(yaw), // basic formula
+				Y: math.Cos(pitch) * math.Sin(yaw), // math.Cos(pitch) shrink the component
+				Z: -math.Sin(pitch),
+			}
 		}
 
 		p.addEventToCurrentFrame("weapon_fire", data)

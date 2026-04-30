@@ -1,16 +1,20 @@
 export class Tick {
-  private updateRate: number = 0;
+  private _updateRate: number = 0;
   private _tick: number = 0;
+
+  get updateRate() {
+    return this._updateRate;
+  }
 
   static rate(t: number) {
     const i = new this();
 
-    i.updateRate = t;
+    i._updateRate = t;
     return i;
   }
 
   asSecond() {
-    return this._tick / this.updateRate;
+    return this._tick / this._updateRate;
   }
 
   tick(t: number) {
@@ -23,6 +27,6 @@ export class Tick {
   }
 
   ticksInSeconds(s: number) {
-    return s * this.updateRate;
+    return s * this._updateRate;
   }
 }
