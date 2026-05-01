@@ -7,6 +7,7 @@ import {
 } from "react";
 import { type Line, Mesh, Scene } from "three";
 import { PlayerPawn } from "../entities/PlayerPawn.ts";
+import { Bomb } from "../entities/Bomb.ts";
 import {
   GRENADE_WEAPON_TYPES,
   MELEE_AND_EQUIPMENT_WEAPON_TYPES,
@@ -175,12 +176,31 @@ const useDemoViewer = () => {
             victimGeometry?.die(evt, staticState.current.crossTracerDelay); // apply cross tracer delay for proper scheduling the event
             break;
           }
+          case "bomb_planted": {
+            const planterState = frame.playerStates.find(
+              (p) => p.steamId64 === evt.data.player_steam_id_64,
+            );
+            if (!planterState) break;
+
+            _addGeometry(
+              "bomb",
+              Bomb.create(staticState.current.playground, planterState.position),
+            );
+            break;
+          }
+          case "bomb_defused":
+            _destroyGeometry("bomb");
+            break;
+          case "bomb_exploded":
+            _destroyGeometry("bomb");
+            break;
           case "round_freezetime_end":
             staticState.current.geometries.forEach((g) => {
               if (g instanceof PlayerPawn) {
                 g.resurrect();
               }
             });
+            _destroyGeometry("bomb");
             break;
           case "round_start":
             staticState.current.geometries.forEach((g) => {
@@ -188,6 +208,7 @@ const useDemoViewer = () => {
                 g.resurrect();
               }
             });
+            _destroyGeometry("bomb");
             break;
         }
 
