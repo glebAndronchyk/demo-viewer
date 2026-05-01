@@ -13,17 +13,17 @@ import {
 } from "@demo-viewer/shared-types";
 import type {
   FrameDto,
-  ManifestResponseData,
   ManifestResponseDto,
   SeekResponseDto,
 } from "@demo-viewer/shared-types";
 import { useFrame } from "@react-three/fiber";
 import { DemoCache } from "../entities/DemoCache.ts";
 import { Tick } from "@demo-viewer/shared-entities";
-import { type LoaderFunction, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 import { PlaygroundConfiguration } from "../entities/PlaygroundConfiguration.ts";
 import type { ViewerState } from "../types/ViewerState.ts";
 import { type Animatable, isAnimatableInterface } from "../types/Animatable.ts";
+import { PlayerTextureAtlas } from "../entities/PlayerTextureAtlas.ts";
 
 const useDemoViewer = () => {
   // #region types
@@ -33,10 +33,15 @@ const useDemoViewer = () => {
   // #endregion
   // #region variables
 
-  const matchData = useLoaderData<ManifestResponseData>();
+  const matchData =
+    useLoaderData<
+      Awaited<ReturnType<typeof useDemoViewerViewModel.matchManifestLoader>>
+    >();
 
   // todo single class
-  const bufferingWindow = Tick.rate(matchData.tickRate).ticksInSeconds(10);
+  const bufferingWindow = Tick.rate(
+    matchData.matchManifest.tickRate,
+  ).ticksInSeconds(10);
 
   const [scene, _setScene] = useState<Scene>(null as never);
   const _cache = useRef(
@@ -50,7 +55,7 @@ const useDemoViewer = () => {
     currentTick: 0,
     finalBufferedTick: 0,
     speed: 1,
-    tickRate: Tick.rate(matchData.tickRate),
+    tickRate: Tick.rate(matchData.matchManifest.tickRate),
     bufferingWindow,
     state: "pause",
     get crossTracerDelay() {
@@ -134,18 +139,24 @@ const useDemoViewer = () => {
       .forEach((evt) => {
         switch (evt.type) {
           case "player_connect":
-            return _addGeometry(
+            _addGeometry(
               evt.data.steam_id_64,
-              PlayerPawn.join(staticState.current.playground),
+              PlayerPawn.join(
+                staticState.current.playground,
+                matchData.playerTextureAtlas,
+              ),
             );
+            break;
           case "player_disconnect":
-            return _destroyGeometry(evt.data.steam_id_64);
+            _destroyGeometry(evt.data.steam_id_64);
+            break;
           case "weapon_fire": {
             // TODO: per-weapon-type tracer styling (color, length, etc.)
             if (
               GRENADE_WEAPON_TYPES.includes(evt.data.weapon) ||
               MELEE_AND_EQUIPMENT_WEAPON_TYPES.includes(evt.data.weapon)
-            ) return;
+            )
+              break;
             const shooter = _getGeometry<PlayerPawn>(
               evt.data.shooter_steam_id_64,
             );
@@ -154,8 +165,24 @@ const useDemoViewer = () => {
               staticState.current.tickRate.updateRate +
                 staticState.current.crossTracerDelay,
             );
-            return _addGeometry(crypto.randomUUID(), tracer);
+            _addGeometry(crypto.randomUUID(), tracer);
+            break;
           }
+          case "kill": {
+            const victimGeometry = _getGeometry<PlayerPawn>(
+              evt.data.victim_steam_id_64,
+            );
+
+            victimGeometry?.die();
+            break;
+          }
+          case "round_start":
+            staticState.current.geometries.forEach((g) => {
+              if (g instanceof PlayerPawn) {
+                g.resurrect();
+              }
+            });
+            break;
         }
 
         _notify(evt.type, evt.data);
@@ -214,7 +241,9 @@ const useDemoViewer = () => {
       0,
       startTick - staticState.current.tickRate.oneSecond(),
     );
-    const currentFrame = await _cache.current.getByTick(frameTick);
+    const currentFrame =
+      (await _cache.current.getByTick(frameTick)) ??
+      _cache.current.l1GetFirstAvailableFrame();
 
     if (!currentFrame) {
       throw new Error(`Requested tick:${frameTick} is not in range`);
@@ -236,7 +265,7 @@ const useDemoViewer = () => {
       "endGameTick",
       String(staticState.current.finalBufferedTick + bufferingWindow),
     );
-    params.set("step", String(matchData.tickRate)); // todo: based on demo tickrate
+    params.set("step", String(matchData.matchManifest.tickRate)); // todo: based on demo tickrate
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
@@ -340,18 +369,31 @@ export const useDemoViewerViewModel = () => {
   return useContext(DemoViewerViewModelContext);
 };
 
-useDemoViewerViewModel.matchManifestLoader = (async () => {
-  const matchManifest = await fetch(
+useDemoViewerViewModel.matchManifestLoader = async () => {
+  const matchManifestPromise = fetch(
     `http://localhost:3000/streaming/player/manifest/69f27c4cb7b6acee7e74bfb7`,
   )
     .then((r) => r.json())
     .then((r) => (r as ManifestResponseDto).data)
     .catch(() => null);
 
-  if (!matchManifest) return; // todo: handle
+  const playerTextureAtlasPromise = PlayerTextureAtlas.create();
 
-  return matchManifest;
-}) as LoaderFunction;
+  const [matchManifest, playerTextureAtlas] = await Promise.all([
+    matchManifestPromise,
+    playerTextureAtlasPromise,
+  ]);
+  console.log({
+    matchManifest,
+    playerTextureAtlas,
+  });
+  if (!matchManifest || !playerTextureAtlas) return; // todo
+
+  return {
+    matchManifest,
+    playerTextureAtlas,
+  };
+};
 
 export const DemoViewerViewModel = (props: PropsWithChildren) => {
   const vm = useDemoViewer();

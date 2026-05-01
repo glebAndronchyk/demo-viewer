@@ -8,48 +8,65 @@ import type {
 } from "@demo-viewer/shared-types";
 import { WeaponTracer } from "./WeaponTracer.ts";
 import type { Animatable } from "../types/Animatable.ts";
+import type { PlayerTextureAtlas } from "./PlayerTextureAtlas.ts";
 
 export class PlayerPawn extends Mesh implements Animatable {
-  static readonly r = 10;
+  static readonly r = 14;
   static readonly s = 64;
-  static readonly ctColor = 0x00c4ff;
-  static readonly tColor = 0xff0000;
-  static readonly neutralColor = 0x30ff00;
+  static readonly neutralColor = 0x30ff00; // todo: neutral mesh
   private _pg: PlaygroundConfiguration | null = null;
+  private _textureAtlas: PlayerTextureAtlas | null = null;
 
   private _team: "CT" | "T" | null = null;
   private _moveTarget: Vector3 | null = null;
   private _moveFrom: Vector3 | null = null;
   private _moveTimeElapsed = 0;
 
-  static join(playground: PlaygroundConfiguration) {
+  static join(
+    playground: PlaygroundConfiguration,
+    textureAtlas: PlayerTextureAtlas,
+  ) {
     const mesh = new this(
       this.createGeom(playground),
       new MeshBasicMaterial({ color: this.neutralColor }),
     );
     mesh.withPlayground(playground);
+    mesh.setTextureAtlas(textureAtlas);
+
     mesh.position.y = 1;
     return mesh;
   }
 
-  static t(playground: PlaygroundConfiguration) {
+  static t(
+    playground: PlaygroundConfiguration,
+    textureAtlas: PlayerTextureAtlas,
+  ) {
     const mesh = new this(
       this.createGeom(playground),
-      new MeshBasicMaterial({ color: this.tColor }),
+      new MeshBasicMaterial({ map: textureAtlas.get("t_pawn"), transparent: true }),
     );
     mesh.withPlayground(playground);
     mesh.position.y = 1;
     return mesh;
   }
 
-  static ct(playground: PlaygroundConfiguration) {
+  static ct(
+    playground: PlaygroundConfiguration,
+    textureAtlas: PlayerTextureAtlas,
+  ) {
     const mesh = new this(
       this.createGeom(playground),
-      new MeshBasicMaterial({ color: this.ctColor }),
+      new MeshBasicMaterial({ map: textureAtlas.get("ct_pawn"), transparent: true }),
     );
     mesh.withPlayground(playground);
     mesh.position.y = 1;
     return mesh;
+  }
+
+  get textureAtlas(): PlayerTextureAtlas {
+    if (!this._textureAtlas) throw new Error("Texture atlas not defined");
+
+    return this._textureAtlas;
   }
 
   get pg() {
@@ -78,6 +95,10 @@ export class PlayerPawn extends Mesh implements Animatable {
     this._pg = playground;
   }
 
+  setTextureAtlas(textureAtlas: PlayerTextureAtlas) {
+    this._textureAtlas = textureAtlas;
+  }
+
   animate(delta: number, tickInterval: number) {
     this._moveTimeElapsed += delta;
 
@@ -96,8 +117,10 @@ export class PlayerPawn extends Mesh implements Animatable {
 
   teamSwitch(p: PlayerStateDto) {
     if (p.team !== this._team) {
+      this._team = p.team as typeof this._team;
       this.material = new MeshBasicMaterial({
-        color: p.team === "CT" ? PlayerPawn.ctColor : PlayerPawn.tColor,
+        map: this.textureAtlas.get(p.team === "CT" ? "ct_pawn" : "t_pawn"),
+        transparent: true,
       });
     }
   }
@@ -134,10 +157,23 @@ export class PlayerPawn extends Mesh implements Animatable {
     // todo: drop
   }
 
-  resurrect() {}
+  resurrect() {
+    const castedMaterial = this.material as MeshBasicMaterial;
 
+    castedMaterial.map = this.textureAtlas.get(
+      this._team === "CT" ? "ct_pawn" : "t_pawn",
+    );
+    castedMaterial.needsUpdate = true;
+  }
+
+  // todo: fix die timing
   die() {
-    // todo: die
+    const castedMaterial = this.material as MeshBasicMaterial;
+
+    castedMaterial.map = this.textureAtlas.get(
+      this._team === "CT" ? "ct_dead" : "t_dead",
+    );
+    castedMaterial.needsUpdate = true;
   }
 
   jump() {

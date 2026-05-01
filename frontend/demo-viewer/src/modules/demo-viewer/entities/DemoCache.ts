@@ -49,4 +49,8 @@ export class DemoCache {
 
     return final[1];
   }
+
+  l1GetFirstAvailableFrame() {
+    return this.l1Source.values().next().value as FrameDto | undefined;
+  }
 }

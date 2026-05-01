@@ -112,7 +112,7 @@ export class App {
         }
 
         // Catch-all
-        console.error("[App] Unhandled error:", error);
+        console.error("[App] Unhandled error:", error, error?.stack);
         set.status = 500;
         return {
           data: null,

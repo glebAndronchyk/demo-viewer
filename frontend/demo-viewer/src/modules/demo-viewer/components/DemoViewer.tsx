@@ -120,7 +120,7 @@ export const Scene = () => {
     applyScene(scene);
   }, [scene]);
 
-  const mapTexture = useTexture(matchData.mapRadarLayers["0"]);
+  const mapTexture = useTexture(matchData?.matchManifest.mapRadarLayers["0"]);
   // plain sizes should come accordingly to map bounds
   // apply scale factor to properly show on three js units
 

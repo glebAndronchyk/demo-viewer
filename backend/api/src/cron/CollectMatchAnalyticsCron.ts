@@ -31,6 +31,8 @@ export class CollectMatchAnalyticsCron {
           // pattern: "0 */1 * * * *", // todo scalable
           pattern: "*/10 * * * * *", // todo scalable
           async run() {
+            return;
+
             const store = app.store as CollectMatchAnalyticsCronState;
 
             if (store.isAnalyticsRunning) {

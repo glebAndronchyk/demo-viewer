@@ -349,10 +349,10 @@ export class MatchRepository implements MatchOutboundPort {
                 $lte: payload.endGameTick,
               },
             },
-            // include chunks that start before the range (e.g. tick-0 chunk with connect events)
+            // include chunks that overlap the range start (e.g. tick-0 chunk with connect events)
             {
               start_game_tick: { $lte: payload.startGameTick },
-              end_game_tick: { $gte: 0 },
+              end_game_tick: { $gte: payload.startGameTick },
             },
           ],
         },
@@ -459,7 +459,7 @@ export class MatchRepository implements MatchOutboundPort {
           },
         },
       },
-    ]);
+    ], { allowDiskUse: true });
 
     if (!result || result.length === 0) return null;
 
@@ -467,7 +467,7 @@ export class MatchRepository implements MatchOutboundPort {
       (doc) => doc.frames,
     ) as IDemoChunkDocument["frames"];
 
-    return frames.map(toDemoChunkFrame);
+    return frames.filter((f) => f?.game_state != null).map(toDemoChunkFrame);
   }
 
   async getAggregatedEvents<
