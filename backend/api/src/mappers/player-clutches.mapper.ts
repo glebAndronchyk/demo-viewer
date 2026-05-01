@@ -12,6 +12,7 @@ function toClutchStatEntity(stat?: IClutchStat): ClutchStatEntity | undefined {
 export function toPlayerClutchesEntity(doc: IPlayerClutches): PlayerClutchesEntity {
   return {
     statsId: doc.stats_id,
+    _analyticsType: "clutches",
     clutch1v1: toClutchStatEntity(doc.clutch_1v1),
     clutch1v2: toClutchStatEntity(doc.clutch_1v2),
     clutch1v3: toClutchStatEntity(doc.clutch_1v3),

@@ -14,7 +14,6 @@ export const registerOrLoginWithSteamHandler = (outbound: DomainOutbound) => {
     const existing = await outbound.authRepository.findUserBySteamId(
       command.steamId,
     );
-    console.log(command);
     const user =
       existing ?? (await outbound.authRepository.createUser(command.steamId));
     const isNewUser = existing === null;

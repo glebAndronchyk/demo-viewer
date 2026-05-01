@@ -162,8 +162,7 @@ const useDemoViewer = () => {
             );
             const tracer = shooter?.shot(
               evt,
-              staticState.current.tickRate.updateRate +
-                staticState.current.crossTracerDelay,
+              staticState.current.crossTracerDelay,
             );
             _addGeometry(crypto.randomUUID(), tracer);
             break;
@@ -173,9 +172,16 @@ const useDemoViewer = () => {
               evt.data.victim_steam_id_64,
             );
 
-            victimGeometry?.die();
+            victimGeometry?.die(evt, staticState.current.crossTracerDelay); // apply cross tracer delay for proper scheduling the event
             break;
           }
+          case "round_freezetime_end":
+            staticState.current.geometries.forEach((g) => {
+              if (g instanceof PlayerPawn) {
+                g.resurrect();
+              }
+            });
+            break;
           case "round_start":
             staticState.current.geometries.forEach((g) => {
               if (g instanceof PlayerPawn) {
@@ -383,11 +389,8 @@ useDemoViewerViewModel.matchManifestLoader = async () => {
     matchManifestPromise,
     playerTextureAtlasPromise,
   ]);
-  console.log({
-    matchManifest,
-    playerTextureAtlas,
-  });
-  if (!matchManifest || !playerTextureAtlas) return; // todo
+  if (!matchManifest || !playerTextureAtlas)
+    throw new Error("Failed to load match manifest"); // todo
 
   return {
     matchManifest,

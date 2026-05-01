@@ -3,6 +3,7 @@ import type { Vector3 } from "../types/Vector3.ts";
 import type { PlaygroundConfiguration } from "./PlaygroundConfiguration.ts";
 import { tlerp } from "../../../lib/tlerp.ts";
 import type {
+  KillEventDto,
   PlayerStateDto,
   WeaponFireEventDto,
 } from "@demo-viewer/shared-types";
@@ -20,6 +21,8 @@ export class PlayerPawn extends Mesh implements Animatable {
   private _team: "CT" | "T" | null = null;
   private _moveTarget: Vector3 | null = null;
   private _moveFrom: Vector3 | null = null;
+  private _dieTick: number | null = null;
+  private _dead: boolean = false;
   private _moveTimeElapsed = 0;
 
   static join(
@@ -43,7 +46,10 @@ export class PlayerPawn extends Mesh implements Animatable {
   ) {
     const mesh = new this(
       this.createGeom(playground),
-      new MeshBasicMaterial({ map: textureAtlas.get("t_pawn"), transparent: true }),
+      new MeshBasicMaterial({
+        map: textureAtlas.get("t_pawn"),
+        transparent: true,
+      }),
     );
     mesh.withPlayground(playground);
     mesh.position.y = 1;
@@ -56,7 +62,10 @@ export class PlayerPawn extends Mesh implements Animatable {
   ) {
     const mesh = new this(
       this.createGeom(playground),
-      new MeshBasicMaterial({ map: textureAtlas.get("ct_pawn"), transparent: true }),
+      new MeshBasicMaterial({
+        map: textureAtlas.get("ct_pawn"),
+        transparent: true,
+      }),
     );
     mesh.withPlayground(playground);
     mesh.position.y = 1;
@@ -80,8 +89,7 @@ export class PlayerPawn extends Mesh implements Animatable {
   }
 
   timing(tick: number) {
-    void tick;
-    return;
+    this._dieTiming(tick);
   }
 
   isAnimatable(currentTick: number): {
@@ -158,6 +166,9 @@ export class PlayerPawn extends Mesh implements Animatable {
   }
 
   resurrect() {
+    this._dieTick = null;
+    this._dead = false;
+
     const castedMaterial = this.material as MeshBasicMaterial;
 
     castedMaterial.map = this.textureAtlas.get(
@@ -166,14 +177,8 @@ export class PlayerPawn extends Mesh implements Animatable {
     castedMaterial.needsUpdate = true;
   }
 
-  // todo: fix die timing
-  die() {
-    const castedMaterial = this.material as MeshBasicMaterial;
-
-    castedMaterial.map = this.textureAtlas.get(
-      this._team === "CT" ? "ct_dead" : "t_dead",
-    );
-    castedMaterial.needsUpdate = true;
+  die(evt: KillEventDto, offset: number = 0) {
+    this._dieTick = evt.gameTick + offset;
   }
 
   jump() {
@@ -182,6 +187,20 @@ export class PlayerPawn extends Mesh implements Animatable {
 
   crouch() {
     // todo: jump
+  }
+
+  private _dieTiming(tick: number) {
+    const delta = (this._dieTick ?? 0) - tick;
+    if (this._dead || !this._dieTick || delta > 2) return;
+
+    const castedMaterial = this.material as MeshBasicMaterial;
+    castedMaterial.map = this.textureAtlas.get(
+      this._team === "CT" ? "ct_dead" : "t_dead",
+    );
+
+    castedMaterial.needsUpdate = true;
+    this._dead = true;
+    this._dieTick = null;
   }
 
   private static createGeom(playground: PlaygroundConfiguration) {

@@ -2,14 +2,14 @@ import type { MatchOutboundPort } from "../../../ports/outbound/MatchOutboundPor
 
 export abstract class AnalyticsCalculator<TReturn> {
   protected static cache<TReturn>() {
-    return function (target: AnalyticsCalculator<TReturn>, key: string) {
-      if (typeof target[key as never] !== "function") {
-        throw new Error("Tried to invoke .cache for non method type.");
-      }
+    return function (
+      target: AnalyticsCalculator<TReturn>,
+      key: string,
+      descriptor: PropertyDescriptor,
+    ) {
+      const original = descriptor.value as Function;
 
-      const original = target[key as never] as Function;
-
-      (target[key as never] as any) = async function (
+      descriptor.value = async function (
         this: AnalyticsCalculator<TReturn>,
         ...args: any[]
       ) {

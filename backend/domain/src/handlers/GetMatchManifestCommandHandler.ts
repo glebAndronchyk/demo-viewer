@@ -18,7 +18,6 @@ export const getMatchManifestCommandHandler = (outbound: DomainOutbound) => {
     const matchResult = await outbound.matchRepository.findByMatchId(
       command.matchId,
     );
-    console.log(matchResult);
     if (!matchResult) {
       throw new DomainNotFoundError(
         `Match with id:${command.matchId} not found`,

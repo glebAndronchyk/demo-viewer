@@ -91,7 +91,7 @@ export class MatchAccuracyCalculator extends AnalyticsCalculator<
     });
 
     return Object.fromEntries(
-      Object.entries(hitGroups).map(([key, value]) => [key, value.length]),
+      Object.entries(hitGroups).map(([key, value]) => [key, value?.length ?? 0]),
     ) as Record<HitGroup, number>;
   }
 }

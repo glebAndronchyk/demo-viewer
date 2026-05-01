@@ -86,33 +86,34 @@ export class App {
         }
 
         // Elysia built-ins
-        if (error.name === "ValidationError") {
+        const err = error instanceof Error ? error : null;
+        if (err?.name === "ValidationError") {
           set.status = 422;
           return {
             data: null,
-            error: { message: error.message, code: "VALIDATION_ERROR" },
+            error: { message: err.message, code: "VALIDATION_ERROR" },
             isSuccess: false,
           };
         }
-        if (error.name === "NotFoundError") {
+        if (err?.name === "NotFoundError") {
           set.status = 404;
           return {
             data: null,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: err.message, code: "NOT_FOUND" },
             isSuccess: false,
           };
         }
-        if (error.name === "ParseError") {
+        if (err?.name === "ParseError") {
           set.status = 400;
           return {
             data: null,
-            error: { message: error.message, code: "PARSE_ERROR" },
+            error: { message: err.message, code: "PARSE_ERROR" },
             isSuccess: false,
           };
         }
 
         // Catch-all
-        console.error("[App] Unhandled error:", error, error?.stack);
+        console.error("[App] Unhandled error:", error, err?.stack);
         set.status = 500;
         return {
           data: null,

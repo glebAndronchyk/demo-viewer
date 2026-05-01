@@ -4,19 +4,19 @@ export class EnvConfiguration implements ConfigurationInboundPort {
   private readonly env: typeof Bun.env;
 
   get apiPort(): number {
-    return this.env.API_PORT || 3000;
+    return Number(this.env.API_PORT ?? 3000);
   }
 
   get steamBaseUrl(): string {
-    return this.env.STEAM_BASE_URL;
+    return this.env.STEAM_BASE_URL ?? "";
   }
 
   get steamApiKey(): string {
-    return this.env.STEAM_API_KEY;
+    return this.env.STEAM_API_KEY ?? "";
   }
 
   get steamNextMatchShareUrl(): string {
-    return this.env.STEAM_NEXT_MATCH_SHARE_URL;
+    return this.env.STEAM_NEXT_MATCH_SHARE_URL ?? "";
   }
 
   get cs2AppId(): number {
@@ -24,7 +24,7 @@ export class EnvConfiguration implements ConfigurationInboundPort {
   }
 
   get jwtSecret(): string {
-    return this.env.JWT_SECRET;
+    return this.env.JWT_SECRET ?? "";
   }
 
   get apiBaseUrl(): string {
