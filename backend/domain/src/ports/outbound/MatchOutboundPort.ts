@@ -72,4 +72,11 @@ export interface MatchOutboundPort {
   ): Promise<{ rootCollectionId: string }>;
 
   getMatchesPerStep(offset: number, limit: number): Promise<MatchEntity[]>;
+
+  getMatchPlayerStats(
+    matchId: string,
+    steamId: string,
+  ): Promise<PlayerStatsEntity | null>;
+
+  getTotalPlayerStats(steamId: string): Promise<PlayerStatsEntity | null>;
 }

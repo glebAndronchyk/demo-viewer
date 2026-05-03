@@ -34,7 +34,10 @@ import type { PlayerEconomyEntity } from "@demo-viewer/domain/src/entities/Playe
 import type { PlayerUtilityEntity } from "@demo-viewer/domain/src/entities/PlayerUtilityEntity";
 import type { PlayerWeaponsUsageEntity } from "@demo-viewer/domain/src/entities/PlayerWeaponsUsageEntity";
 import type { PlayerWeaponStatsEntity } from "@demo-viewer/domain/src/entities/PlayerWeaponStatsEntity";
-import { toPlayerStatsModel } from "../mappers/player-stats.mapper";
+import {
+  toPlayerStatsEntity,
+  toPlayerStatsModel,
+} from "../mappers/player-stats.mapper";
 import {
   toPlayerAccuracyModel,
   toPlayerClutchesModel,
@@ -45,11 +48,22 @@ import {
 } from "../mappers/player-analytics.mapper";
 import { detectClutchRounds, type RawClutchRound } from "./detectClutchRounds";
 import { PlayerAccuracyEntity } from "@demo-viewer/domain/src/entities/PlayerAccuracyEntity";
+import {
+  MemoryCache,
+  MemoryCacheAccessor,
+} from "@demo-viewer/backend-shared";
 
 export { detectClutchRounds };
 
 export class MatchRepository implements MatchOutboundPort {
-  constructor(private readonly database: DatabaseService) {}
+  private readonly totalStatsCache: MemoryCacheAccessor<string, PlayerStatsEntity>;
+
+  constructor(
+    private readonly database: DatabaseService,
+    cache: MemoryCache,
+  ) {
+    this.totalStatsCache = new MemoryCacheAccessor(cache, "totalPlayerStats");
+  }
 
   async getMatchesPerStep(
     offset: number,
@@ -149,6 +163,7 @@ export class MatchRepository implements MatchOutboundPort {
       return { rootCollectionId: statsId.toString() };
     });
 
+    this.totalStatsCache.delete(rootCollection.participantSteamId);
     return result;
   }
 
@@ -604,5 +619,132 @@ export class MatchRepository implements MatchOutboundPort {
 
     const roundNumber = frame.gameState.roundNumber;
     return match.rounds.find((r) => r.roundNumber === roundNumber) ?? null;
+  }
+
+  async getMatchPlayerStats(
+    matchId: string,
+    steamId: string,
+  ): Promise<PlayerStatsEntity | null> {
+    const doc = await this.database.PlayerStatsModel.findOne({
+      match_id: matchId,
+      participant_steam_id: steamId,
+    }).lean();
+
+    return doc ? toPlayerStatsEntity(doc) : null;
+  }
+
+  async getTotalPlayerStats(steamId: string): Promise<PlayerStatsEntity | null> {
+    if (this.totalStatsCache.has(steamId)) {
+      return this.totalStatsCache.get(steamId)!;
+    }
+
+    const [result] = await this.database.PlayerStatsModel.aggregate([
+      { $match: { participant_steam_id: steamId } },
+      {
+        $group: {
+          _id: "$participant_steam_id",
+          total_kills: { $sum: "$total_kills" },
+          total_deaths: { $sum: "$total_deaths" },
+          total_assists: { $sum: "$total_assists" },
+          total_mvps: { $sum: "$total_mvps" },
+          total_score: { $sum: "$total_score" },
+          total_rounds_played: { $sum: "$total_rounds_played" },
+          total_utility_damage: {
+            $sum: { $toDouble: "$total_utility_damage" },
+          },
+          weighted_adr: {
+            $sum: {
+              $multiply: [
+                { $toDouble: "$total_adr" },
+                "$total_rounds_played",
+              ],
+            },
+          },
+          weighted_hs: {
+            $sum: {
+              $multiply: [{ $toDouble: "$total_hs" }, "$total_kills"],
+            },
+          },
+          weighted_kpr: {
+            $sum: {
+              $multiply: [
+                { $toDouble: "$total_kpr" },
+                "$total_rounds_played",
+              ],
+            },
+          },
+          weighted_apr: {
+            $sum: {
+              $multiply: [
+                { $toDouble: "$total_apr" },
+                "$total_rounds_played",
+              ],
+            },
+          },
+          total_kills_for_hs: { $sum: "$total_kills" },
+        },
+      },
+      {
+        $project: {
+          participant_steam_id: "$_id",
+          total_kills: 1,
+          total_deaths: 1,
+          total_assists: 1,
+          total_mvps: 1,
+          total_score: 1,
+          total_rounds_played: 1,
+          total_utility_damage: 1,
+          total_adr: {
+            $cond: [
+              { $eq: ["$total_rounds_played", 0] },
+              0,
+              { $divide: ["$weighted_adr", "$total_rounds_played"] },
+            ],
+          },
+          total_hs: {
+            $cond: [
+              { $eq: ["$total_kills_for_hs", 0] },
+              0,
+              { $divide: ["$weighted_hs", "$total_kills_for_hs"] },
+            ],
+          },
+          total_kpr: {
+            $cond: [
+              { $eq: ["$total_rounds_played", 0] },
+              0,
+              { $divide: ["$weighted_kpr", "$total_rounds_played"] },
+            ],
+          },
+          total_apr: {
+            $cond: [
+              { $eq: ["$total_rounds_played", 0] },
+              0,
+              { $divide: ["$weighted_apr", "$total_rounds_played"] },
+            ],
+          },
+        },
+      },
+    ]);
+
+    if (!result) return null;
+
+    const entity: PlayerStatsEntity = {
+      _analyticsType: "stats",
+      participantSteamId: result.participant_steam_id,
+      totalKills: result.total_kills,
+      totalDeaths: result.total_deaths,
+      totalAssists: result.total_assists,
+      totalMvps: result.total_mvps,
+      totalScore: result.total_score,
+      totalRoundsPlayed: result.total_rounds_played,
+      totalUtilityDamage: result.total_utility_damage,
+      totalAdr: result.total_adr,
+      totalHs: result.total_hs,
+      totalKpr: result.total_kpr,
+      totalApr: result.total_apr,
+    };
+
+    this.totalStatsCache.set(steamId, entity);
+    return entity;
   }
 }

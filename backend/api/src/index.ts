@@ -26,6 +26,7 @@ import { ComputeResourcesQueueService } from "./adapters/ComputeResourcesQueueSe
 import { LocalFilesystemStorageAdapter } from "./adapters/LocalFilesystemStorageAdapter";
 import { CollectMatchAnalyticsCron } from "./cron/CollectMatchAnalyticsCron";
 import { LayeredAnalyticsCalculator } from "./repository/LayeredAnalyticsCalculator";
+import { MemoryCache } from "@demo-viewer/backend-shared";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -40,6 +41,7 @@ const di = new DIContainer()
   .addSingleton(TypedApp as any, [EnvConfiguration])
   .addInstance(DatabaseService as never, db as never)
   .addInstance(SteamBotService, steamBot)
+  .addSingleton(MemoryCache)
   .addSingleton(CommandBusService, [
     AuthRepository,
     GameCoordinatorRepository,
@@ -57,7 +59,7 @@ const di = new DIContainer()
   .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
   .addSingleton(ParserRepository, [EnvConfiguration])
   .addSingleton(UserRepository, [DatabaseService as never])
-  .addSingleton(MatchRepository, [DatabaseService as never])
+  .addSingleton(MatchRepository, [DatabaseService as never, MemoryCache])
   .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
   .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
   // controllers
