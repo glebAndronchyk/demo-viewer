@@ -5,6 +5,7 @@ export class DemoCache {
     private readonly l1Source: Map<number, FrameDto>,
     private readonly l2Source: unknown,
     private readonly capacity: number,
+    private readonly tickRate: number,
   ) {}
 
   async store(frames: FrameDto[]) {
@@ -40,6 +41,22 @@ export class DemoCache {
   async getByTick(t: number) {
     return this.l1Source.get(t);
     // return this.l1Source.get(t) ?? (await this.l2Source.get(t));
+  }
+
+  async getByNearbyTick(t: number, d = this.tickRate) {
+    const keys = Array.from(this.l1Source.keys());
+
+    const cacheTick = keys
+      .sort((a, b) => a - b)
+      .find((key) => {
+        const delta = t - key;
+
+        return key === t || (delta >= 0 && delta < d);
+      });
+
+    if (!cacheTick) return;
+
+    return this.getByTick(cacheTick);
   }
 
   l1GetFinalAvailableFrame() {

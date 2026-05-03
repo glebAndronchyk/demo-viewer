@@ -46,7 +46,12 @@ const useDemoViewer = () => {
 
   const [scene, _setScene] = useState<Scene>(null as never);
   const _cache = useRef(
-    new DemoCache(new Map<number, FrameDto>(), {}, bufferingWindow),
+    new DemoCache(
+      new Map<number, FrameDto>(),
+      {},
+      bufferingWindow,
+      matchData.matchManifest.tickRate,
+    ),
   );
   const _listeners = useRef<Set<StateConsumer>>(new Set());
   const staticState = useRef<ViewerState>({
@@ -96,22 +101,14 @@ const useDemoViewer = () => {
   };
 
   const pause = async () => {
-    const { frame } = await _bufferDemo();
-
     staticState.current.state = "pause";
-    _notify("pause", {
-      snapshot: _snapshot(),
-      frame,
-    });
+    _notify("pause", { tick: staticState.current.currentTick });
   };
 
   const jump = async (tick: number) => {
-    const { frame } = await _bufferDemo(tick);
+    staticState.current.currentTick = tick;
 
-    _notify("jump", {
-      snapshot: _snapshot(),
-      frame,
-    });
+    _notify("jump", { prev: tick, new: staticState.current.currentTick });
   };
 
   const speed = (v: number) => {
@@ -241,8 +238,7 @@ const useDemoViewer = () => {
   const _bufferDemo = async (forceStartTick?: number) => {
     // todo deal with _l2Cache
     const startTick = forceStartTick || staticState.current.currentTick;
-    console.log(startTick);
-    const cachedCurrentFrame = await _cache.current.getByTick(
+    const cachedCurrentFrame = await _cache.current.getByNearbyTick(
       startTick + staticState.current.tickRate.oneSecond(),
     );
 
@@ -271,7 +267,7 @@ const useDemoViewer = () => {
       startTick - staticState.current.tickRate.oneSecond(),
     );
     const currentFrame =
-      (await _cache.current.getByTick(frameTick)) ??
+      (await _cache.current.getByNearbyTick(frameTick)) ??
       _cache.current.l1GetFirstAvailableFrame();
 
     if (!currentFrame) {
