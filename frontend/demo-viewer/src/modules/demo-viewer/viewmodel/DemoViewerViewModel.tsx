@@ -48,8 +48,6 @@ const useDemoViewer = () => {
   const _cache = useRef(
     new DemoCache(new Map<number, FrameDto>(), {}, bufferingWindow),
   );
-  const _isLooping = useRef(false);
-  const _tickAccumulator = useRef(0);
   const _listeners = useRef<Set<StateConsumer>>(new Set());
   const staticState = useRef<ViewerState>({
     geometries: new Map(),
@@ -123,6 +121,8 @@ const useDemoViewer = () => {
 
   const subscribe = (consumer: StateConsumer) => {
     _listeners.current.add(consumer);
+
+    return () => unsubscribe(consumer);
   };
 
   const unsubscribe = (consumer: StateConsumer) => {
@@ -140,7 +140,7 @@ const useDemoViewer = () => {
       .forEach((evt) => {
         switch (evt.type) {
           case "player_connect":
-            _addGeometry(
+            addGeometry(
               evt.data.steam_id_64,
               PlayerPawn.join(
                 staticState.current.playground,
@@ -149,7 +149,7 @@ const useDemoViewer = () => {
             );
             break;
           case "player_disconnect":
-            _destroyGeometry(evt.data.steam_id_64);
+            destroyGeometry(evt.data.steam_id_64);
             break;
           case "weapon_fire": {
             // TODO: per-weapon-type tracer styling (color, length, etc.)
@@ -158,18 +158,18 @@ const useDemoViewer = () => {
               MELEE_AND_EQUIPMENT_WEAPON_TYPES.includes(evt.data.weapon)
             )
               break;
-            const shooter = _getGeometry<PlayerPawn>(
+            const shooter = getGeometry<PlayerPawn>(
               evt.data.shooter_steam_id_64,
             );
             const tracer = shooter?.shot(
               evt,
               staticState.current.crossTracerDelay,
             );
-            _addGeometry(crypto.randomUUID(), tracer);
+            addGeometry(crypto.randomUUID(), tracer);
             break;
           }
           case "kill": {
-            const victimGeometry = _getGeometry<PlayerPawn>(
+            const victimGeometry = getGeometry<PlayerPawn>(
               evt.data.victim_steam_id_64,
             );
 
@@ -182,17 +182,20 @@ const useDemoViewer = () => {
             );
             if (!planterState) break;
 
-            _addGeometry(
+            addGeometry(
               "bomb",
-              Bomb.create(staticState.current.playground, planterState.position),
+              Bomb.create(
+                staticState.current.playground,
+                planterState.position,
+              ),
             );
             break;
           }
           case "bomb_defused":
-            _destroyGeometry("bomb");
+            destroyGeometry("bomb");
             break;
           case "bomb_exploded":
-            _destroyGeometry("bomb");
+            destroyGeometry("bomb");
             break;
           case "round_freezetime_end":
             staticState.current.geometries.forEach((g) => {
@@ -200,7 +203,7 @@ const useDemoViewer = () => {
                 g.resurrect();
               }
             });
-            _destroyGeometry("bomb");
+            destroyGeometry("bomb");
             break;
           case "round_start":
             staticState.current.geometries.forEach((g) => {
@@ -208,11 +211,11 @@ const useDemoViewer = () => {
                 g.resurrect();
               }
             });
-            _destroyGeometry("bomb");
+            destroyGeometry("bomb");
             break;
         }
 
-        _notify(evt.type, evt.data);
+        _notify(evt.type, evt);
       });
 
     frame.playerStates.forEach((player) => {
@@ -232,14 +235,13 @@ const useDemoViewer = () => {
 
   const _notify = (...args: Parameters<StateConsumer>) => {
     const [event, data] = args;
-
     _listeners.current.forEach((l) => l(event, data));
   };
 
   const _bufferDemo = async (forceStartTick?: number) => {
     // todo deal with _l2Cache
     const startTick = forceStartTick || staticState.current.currentTick;
-
+    console.log(startTick);
     const cachedCurrentFrame = await _cache.current.getByTick(
       startTick + staticState.current.tickRate.oneSecond(),
     );
@@ -305,7 +307,7 @@ const useDemoViewer = () => {
     return Promise.resolve(framesResult);
   };
 
-  const _addGeometry = <T extends Animatable & (Mesh | Line)>(
+  const addGeometry = <T extends Animatable & (Mesh | Line)>(
     key: string,
     geom: T | null | undefined,
   ) => {
@@ -316,7 +318,7 @@ const useDemoViewer = () => {
     return geom;
   };
 
-  const _getGeometry = <T extends Animatable & Mesh>(
+  const getGeometry = <T extends Animatable & Mesh>(
     key: string | null,
   ): T | null => {
     if (!key) return null;
@@ -324,52 +326,13 @@ const useDemoViewer = () => {
     return staticState.current.geometries.get(key) as T;
   };
 
-  const _destroyGeometry = (key: string) => {
+  const destroyGeometry = (key: string) => {
     const geom = staticState.current.geometries.get(key);
     if (!geom) return;
 
     staticState.current.geometries.delete(key);
     scene.remove(geom);
   };
-
-  // #endregion
-  // #region operation
-
-  /**
-   * Main viewer loop
-   */
-  useFrame((_, delta) => {
-    const tickInterval = 1 / staticState.current.speed; // ticks received in 1s format
-    const singleTickInterval =
-      1 / (staticState.current.tickRate.updateRate * staticState.current.speed); // time of single game tick accoingly to specified speed
-    const currentGameTick =
-      staticState.current.currentTick +
-      Math.floor(_tickAccumulator.current / singleTickInterval);
-
-    // animate geometries
-    staticState.current.geometries.forEach((geom, key) => {
-      if (isAnimatableInterface(geom)) {
-        geom.isAnimatable(currentGameTick)?.animate(delta, tickInterval);
-        geom.timing(currentGameTick);
-        if (geom.shouldDestroy) {
-          _destroyGeometry(key);
-        }
-      }
-    });
-
-    if (staticState.current.state !== "play" || _isLooping.current) return;
-
-    _tickAccumulator.current += delta * staticState.current.speed;
-
-    // start buffering loop
-    if (_tickAccumulator.current >= tickInterval) {
-      _tickAccumulator.current -= tickInterval;
-      _isLooping.current = true;
-      loop().finally(() => {
-        _isLooping.current = false;
-      });
-    }
-  });
 
   // #endregion
 
@@ -384,6 +347,9 @@ const useDemoViewer = () => {
     unsubscribe,
     loop,
     applyScene,
+    addGeometry,
+    getGeometry,
+    destroyGeometry,
   };
 };
 
@@ -396,6 +362,9 @@ export const useDemoViewerViewModel = () => {
   return useContext(DemoViewerViewModelContext);
 };
 
+/**
+ * Loader to get the initial map data
+ */
 useDemoViewerViewModel.matchManifestLoader = async () => {
   const matchManifestPromise = fetch(
     `http://localhost:3000/streaming/player/manifest/69f27c4cb7b6acee7e74bfb7`,
@@ -427,4 +396,51 @@ export const DemoViewerViewModel = (props: PropsWithChildren) => {
       {props.children}
     </DemoViewerViewModelContext.Provider>
   );
+};
+
+/**
+ * Component to start main game loop
+ */
+export const FrameOperator = () => {
+  const { staticState, loop, destroyGeometry } = useDemoViewerViewModel();
+  const _isLooping = useRef(false);
+  const _tickAccumulator = useRef(0);
+
+  /**
+   * Main viewer loop
+   */
+  useFrame((_, delta) => {
+    const tickInterval = 1 / staticState.current.speed; // ticks received in 1s format
+    const singleTickInterval =
+      1 / (staticState.current.tickRate.updateRate * staticState.current.speed); // time of single game tick accoingly to specified speed
+    const currentGameTick =
+      staticState.current.currentTick +
+      Math.floor(_tickAccumulator.current / singleTickInterval);
+
+    // animate geometries
+    staticState.current.geometries.forEach((geom, key) => {
+      if (isAnimatableInterface(geom)) {
+        geom.isAnimatable(currentGameTick)?.animate(delta, tickInterval);
+        geom.timing(currentGameTick);
+        if (geom.shouldDestroy) {
+          destroyGeometry(key);
+        }
+      }
+    });
+
+    if (staticState.current.state !== "play" || _isLooping.current) return;
+
+    _tickAccumulator.current += delta * staticState.current.speed;
+
+    // start buffering loop
+    if (_tickAccumulator.current >= tickInterval) {
+      _tickAccumulator.current -= tickInterval;
+      _isLooping.current = true;
+      loop().finally(() => {
+        _isLooping.current = false;
+      });
+    }
+  });
+
+  return <></>;
 };

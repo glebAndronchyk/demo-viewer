@@ -8,16 +8,34 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: "#4caf50",
-          colorLink: "#388e3c",
-          colorSuccess: "#66bb6a",
-          colorBgLayout: "#1a1f1a",
-          colorBgContainer: "#242a24",
-          colorText: "#e8f5e9",
-          colorTextSecondary: "#a5d6a7",
-          borderRadius: 6,
+          colorPrimary: "#2e2118",
+          colorLink: "#4a7c59",
+          colorSuccess: "#4a7c59",
+          colorWarning: "#a0762a", // --amber: ochre
+          colorError: "#8b3a2a", // --magenta: burnt sienna
+          colorInfo: "#3a5f8a", // --cyan: ink blue
+          colorBgLayout: "#f7f3ed", // --bg-void: off-white page
+          colorBgContainer: "#fcfaf7", // --bg-panel
+          colorBgElevated: "#ede7da", // --bg-panel-hi: masthead
+          colorBgSpotlight: "#ede0cc", // --bg-inset
+          colorText: "#2e2118", // --ink-hi: dark sepia
+          colorTextSecondary: "#5a4535", // --ink-mid
+          colorTextTertiary: "#7a6555", // --ink-lo
+          colorTextQuaternary: "#b8a898", // --ink-ghost
+          colorBorder: "rgba(140,100,70,0.5)",
+          colorBorderSecondary: "rgba(185,155,110,0.4)",
+          borderRadius: 2,
+          fontFamily: "'Caveat', cursive",
+          fontSize: 14,
+        },
+        components: {
+          Layout: {
+            headerBg: "#ede7da", // --bg-panel-hi
+            headerColor: "#2e2118", // --ink-hi
+            siderBg: "#fcfaf7", // --bg-panel (colorBgContainer)
+          },
         },
       }}
     >

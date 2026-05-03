@@ -216,6 +216,8 @@ export interface BombPlantedEventDto {
     player_name: string | null;
     site: BombSite;
   };
+  gameTick: number;
+  demoTick: number;
 }
 
 export interface BombDefusedEventDto {
@@ -224,11 +226,15 @@ export interface BombDefusedEventDto {
     player_steam_id_64: string | null;
     player_name: string | null;
   };
+  gameTick: number;
+  demoTick: number;
 }
 
 export interface BombExplodedEventDto {
   type: "bomb_exploded";
   data: { site: BombSite };
+  gameTick: number;
+  demoTick: number;
 }
 
 export interface BombDefuseStartEventDto {

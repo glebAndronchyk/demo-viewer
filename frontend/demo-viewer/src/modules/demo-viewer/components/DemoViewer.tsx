@@ -16,7 +16,7 @@ import {
 } from "@react-three/drei";
 import { Button, Segmented, Typography } from "antd";
 import {
-  DemoViewerViewModel,
+  FrameOperator,
   useDemoViewerViewModel,
 } from "../viewmodel/DemoViewerViewModel";
 import { useViewerState } from "../hooks/useViewerState";
@@ -101,12 +101,11 @@ const DebugThree = (props: DebugThreeProps) => {
 export default function DemoViewer() {
   return (
     <Canvas className="[&_canvas]:!w-[500px] [&_canvas]:!h-[500px]">
-      <DemoViewerViewModel>
-        <Suspense fallback={null}>
-          <Scene />
-        </Suspense>
-        <DebugThree axes camera orbit controls />
-      </DemoViewerViewModel>
+      <FrameOperator />
+      <Suspense fallback={null}>
+        <Scene />
+      </Suspense>
+      <DebugThree axes camera orbit controls />
     </Canvas>
   );
 }

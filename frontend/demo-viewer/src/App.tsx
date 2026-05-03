@@ -1,10 +1,10 @@
 import "./App.css";
-import DemoViewer from "./modules/demo-viewer/components/DemoViewer.tsx";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
 import { useDemoViewerViewModel } from "./modules/demo-viewer/viewmodel/DemoViewerViewModel.tsx";
 import { Layout } from "antd";
 import { AuthProvider } from "./modules/auth";
 import { AppHeader } from "./components/AppHeader";
+import { lazy } from "react";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -17,18 +17,20 @@ const RootLayout = () => (
   </AuthProvider>
 );
 
+const DemoPlayerPage = lazy(() => import("./pages/demo-player"));
+
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
       {
         path: "/",
+        element: <div className="w-screen h-screen">Main</div>,
+      },
+      {
+        path: "/player/:matchId",
         loader: useDemoViewerViewModel.matchManifestLoader,
-        element: (
-          <div className="w-screen h-screen">
-            <DemoViewer />
-          </div>
-        ),
+        element: <DemoPlayerPage />,
       },
     ],
   },
