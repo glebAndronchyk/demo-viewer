@@ -110,15 +110,29 @@ EventLog.KillLog = function (evt: KillEventDto & LogComponentProps) {
   );
 } as LogComponent;
 EventLog.KillLog.onAction = (vm, e: KillEventDto) => {
-  vm.jump(e.gameTick - vm.staticState.current.tickRate.ticksInSeconds(1));
+  vm.jump(e.gameTick - vm.staticState.current.tickRate.ticksInSeconds(2));
+};
+
+EventLog.JumpLog = function (
+  evt: { prev: number; new: number } & LogComponentProps,
+) {
+  return (
+    <Typography className="font-bold" onClick={evt.onAction}>
+      --- Jump to {evt.new} from {evt.prev} ---
+    </Typography>
+  );
+} as LogComponent;
+EventLog.JumpLog.onAction = (vm, e: { prev: number; new: number }) => {
+  vm.jump(e.prev);
 };
 
 const eventMap = new Map<
-  "kill" | "bomb_planted" | "bomb_exploded" | "bomb_defused",
+  "kill" | "bomb_planted" | "bomb_exploded" | "bomb_defused" | "jump",
   LogComponent
 >([
   ["kill", EventLog.KillLog],
   ["bomb_exploded", EventLog.BombExplodedLog],
   ["bomb_planted", EventLog.BombPlantedLog],
   ["bomb_defused", EventLog.BombDefusedLog],
+  ["jump", EventLog.JumpLog],
 ]);

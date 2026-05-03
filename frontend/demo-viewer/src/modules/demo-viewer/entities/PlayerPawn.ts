@@ -3,6 +3,7 @@ import type { Vector3 } from "../types/Vector3.ts";
 import type { PlaygroundConfiguration } from "./PlaygroundConfiguration.ts";
 import { tlerp } from "../../../lib/tlerp.ts";
 import type {
+  FrameDto,
   KillEventDto,
   PlayerStateDto,
   WeaponFireEventDto,
@@ -18,14 +19,17 @@ export class PlayerPawn extends Mesh implements Animatable {
   private _pg: PlaygroundConfiguration | null = null;
   private _textureAtlas: PlayerTextureAtlas | null = null;
 
+  private _key: string | null = null;
   private _team: "CT" | "T" | null = null;
   private _moveTarget: Vector3 | null = null;
   private _moveFrom: Vector3 | null = null;
   private _dieTick: number | null = null;
   private _dead: boolean = false;
+  private _shouldDestroy: boolean = false;
   private _moveTimeElapsed = 0;
 
   static join(
+    key: string,
     playground: PlaygroundConfiguration,
     textureAtlas: PlayerTextureAtlas,
   ) {
@@ -33,6 +37,7 @@ export class PlayerPawn extends Mesh implements Animatable {
       this.createGeom(playground),
       new MeshBasicMaterial({ color: this.neutralColor }),
     );
+    mesh._key = key;
     mesh.withPlayground(playground);
     mesh.setTextureAtlas(textureAtlas);
 
@@ -41,6 +46,7 @@ export class PlayerPawn extends Mesh implements Animatable {
   }
 
   static t(
+    key: string,
     playground: PlaygroundConfiguration,
     textureAtlas: PlayerTextureAtlas,
   ) {
@@ -51,12 +57,14 @@ export class PlayerPawn extends Mesh implements Animatable {
         transparent: true,
       }),
     );
+    mesh._key = key;
     mesh.withPlayground(playground);
     mesh.position.y = 1;
     return mesh;
   }
 
   static ct(
+    key: string,
     playground: PlaygroundConfiguration,
     textureAtlas: PlayerTextureAtlas,
   ) {
@@ -67,9 +75,16 @@ export class PlayerPawn extends Mesh implements Animatable {
         transparent: true,
       }),
     );
+    mesh._key = key;
     mesh.withPlayground(playground);
     mesh.position.y = 1;
     return mesh;
+  }
+
+  get key(): string {
+    if (!this._key) throw new Error("Player key not specified");
+
+    return this._key;
   }
 
   get textureAtlas(): PlayerTextureAtlas {
@@ -85,7 +100,34 @@ export class PlayerPawn extends Mesh implements Animatable {
   }
 
   get shouldDestroy() {
-    return false;
+    return this._shouldDestroy;
+  }
+
+  reconstructFromFrame(frame: FrameDto) {
+    const framePlayer = frame.playerStates.find(
+      (p) => p.steamId64 === this._key,
+    );
+
+    if (!framePlayer) {
+      this._shouldDestroy = true;
+      return;
+    }
+
+    if (framePlayer.isAlive) {
+      this.resurrect();
+    } else {
+      this.die({ gameTick: frame.gameTick } as KillEventDto); // die on current tick
+    }
+
+    const framePlayerPos = this.pg.gamePointToWorldPoint(framePlayer.position);
+
+    this._moveTimeElapsed = 0;
+    this._moveTarget = null;
+    this._moveFrom = null;
+    this._team = framePlayer.team as typeof this._team;
+
+    this.position.x = framePlayerPos.x;
+    this.position.z = framePlayerPos.z;
   }
 
   timing(tick: number) {

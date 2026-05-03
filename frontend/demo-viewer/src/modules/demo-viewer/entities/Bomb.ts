@@ -2,13 +2,16 @@ import { Euler, Matrix4, Mesh, MeshBasicMaterial, PlaneGeometry } from "three";
 import type { Vector3 } from "../types/Vector3.ts";
 import type { PlaygroundConfiguration } from "./PlaygroundConfiguration.ts";
 import type { Animatable } from "../types/Animatable.ts";
+import type { FrameDto } from "@demo-viewer/shared-types";
 
 export class Bomb extends Mesh implements Animatable {
   static readonly size = 20;
   static readonly color = 0xff0000;
 
+  private _shouldDestroy = false;
+
   get shouldDestroy() {
-    return false;
+    return this._shouldDestroy;
   }
 
   timing(_tick: number): void {
@@ -25,6 +28,15 @@ export class Bomb extends Mesh implements Animatable {
   animate(_delta: number, _tickInterval: number): void {
     void _delta;
     void _tickInterval;
+  }
+
+  reconstructFromFrame(frame: FrameDto) {
+    if (!frame.gameState.bombPlanted || !frame.gameState.bombSite) {
+      this._shouldDestroy = true;
+      return;
+    }
+
+    // todo: reconstruct actual bomb position
   }
 
   static create(playground: PlaygroundConfiguration, position: Vector3): Bomb {

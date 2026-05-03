@@ -56,6 +56,10 @@ export class WeaponTracer extends Line2 implements Animatable {
     return obj;
   }
 
+  reconstructFromFrame() {
+    this._shouldDestroy = true; // always clear tracers
+  }
+
   timing(tick: number) {
     try {
       if (tick >= this.lifeEndsAtTick) {

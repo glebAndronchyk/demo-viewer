@@ -2,6 +2,7 @@ import {
   createContext,
   type PropsWithChildren,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -106,9 +107,13 @@ const useDemoViewer = () => {
   };
 
   const jump = async (tick: number) => {
+    const prevTick = staticState.current.currentTick;
     staticState.current.currentTick = tick;
+    const { frame } = await _bufferDemo();
 
-    _notify("jump", { prev: tick, new: staticState.current.currentTick });
+    _reconstructGeometriesFromFrame(frame);
+
+    _notify("jump", { prev: prevTick, new: tick });
   };
 
   const speed = (v: number) => {
@@ -140,6 +145,7 @@ const useDemoViewer = () => {
             addGeometry(
               evt.data.steam_id_64,
               PlayerPawn.join(
+                evt.data.steam_id_64,
                 staticState.current.playground,
                 matchData.playerTextureAtlas,
               ),
@@ -235,9 +241,9 @@ const useDemoViewer = () => {
     _listeners.current.forEach((l) => l(event, data));
   };
 
-  const _bufferDemo = async (forceStartTick?: number) => {
+  const _bufferDemo = async () => {
     // todo deal with _l2Cache
-    const startTick = forceStartTick || staticState.current.currentTick;
+    const startTick = staticState.current.currentTick;
     const cachedCurrentFrame = await _cache.current.getByNearbyTick(
       startTick + staticState.current.tickRate.oneSecond(),
     );
@@ -330,6 +336,16 @@ const useDemoViewer = () => {
     scene.remove(geom);
   };
 
+  const _reconstructGeometriesFromFrame = (frame: FrameDto) => {
+    staticState.current.geometries.forEach((g) => {
+      if (isAnimatableInterface(g)) {
+        g.reconstructFromFrame(frame);
+      }
+    });
+
+    // deal with transient state (eg started on previous tick, but havent finished yet)
+  };
+
   // #endregion
 
   return {
@@ -398,9 +414,19 @@ export const DemoViewerViewModel = (props: PropsWithChildren) => {
  * Component to start main game loop
  */
 export const FrameOperator = () => {
-  const { staticState, loop, destroyGeometry } = useDemoViewerViewModel();
+  const { staticState, subscribe, loop, destroyGeometry } =
+    useDemoViewerViewModel();
   const _isLooping = useRef(false);
   const _tickAccumulator = useRef(0);
+
+  useEffect(() => {
+    subscribe((event) => {
+      if (event === "jump") {
+        _tickAccumulator.current = 0;
+        _isLooping.current = false;
+      }
+    });
+  }, []);
 
   /**
    * Main viewer loop
