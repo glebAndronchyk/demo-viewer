@@ -56,6 +56,10 @@ export interface ConfigurationInboundPort {
    */
   debug: boolean;
   /**
+   * How many ticks to look back when querying transient events at a given tick
+   */
+  transientEventsLookbackTicks: number;
+  /**
    * Storage provider type. Determines which StorageOutboundPort adapter is used.
    * 'local' uses the local filesystem; future values: 's3', 'azure', 'gcs'.
    */

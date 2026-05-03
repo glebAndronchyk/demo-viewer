@@ -65,6 +65,10 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.DEBUG === "true";
   }
 
+  get transientEventsLookbackTicks(): number {
+    return Number(this.env.TRANSIENT_EVENTS_LOOKBACK_TICKS ?? 3000);
+  }
+
   get storageType(): string {
     return this.env.STORAGE_TYPE ?? "local";
   }

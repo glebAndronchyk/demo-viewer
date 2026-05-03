@@ -1,6 +1,7 @@
 import type { MatchEntity, RoundInfo } from "../../entities/MatchEntity.ts";
 import type {
   DemoChunkEntity,
+  DemoEvent,
   Frame,
   PlayerState,
 } from "../../entities/DemoChunkEntity.ts";
@@ -79,4 +80,10 @@ export interface MatchOutboundPort {
   ): Promise<PlayerStatsEntity | null>;
 
   getTotalPlayerStats(steamId: string): Promise<PlayerStatsEntity | null>;
+
+  getTransientEventsAtTick(
+    demoId: string,
+    gameTick: number,
+    lookbackTicks: number,
+  ): Promise<DemoEvent[]>;
 }

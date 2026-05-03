@@ -41,6 +41,9 @@ type Parser struct {
 	rounds               []RoundInfo
 	currentRoundStart    roundStart
 	currentRoundNumber   int
+	tracker              *transientTracker
+	// openEventDataMaps maps transient tracker key → in-memory data map for unflushed events
+	openEventDataMaps map[string]map[string]interface{}
 }
 
 func (p *Parser) IsLocalParse() bool {
@@ -53,11 +56,12 @@ func (p *Parser) IsRemoteParse() bool {
 
 // NewParser creates a new demo parser
 func NewParser(demoFile string, demoUrl string, chunkSize int, shareCode string, repo *Repository) *Parser {
+	demoID := uuid.New().String()
 	return &Parser{
 		demoFile:             demoFile,
 		demoUrl:              demoUrl,
 		framesAmountPerChunk: chunkSize,
-		demoID:               uuid.New().String(),
+		demoID:               demoID,
 		shareCode:            shareCode,
 		framesBuffer:         make([]Frame, 0, chunkSize),
 		playerConnections:    make(map[uint64]bool),
@@ -66,6 +70,38 @@ func NewParser(demoFile string, demoUrl string, chunkSize int, shareCode string,
 		repo:                 repo,
 		rounds:               make([]RoundInfo, 0),
 		currentRoundNumber:   0,
+		tracker:              newTransientTracker(demoID),
+		openEventDataMaps:    make(map[string]map[string]interface{}),
+	}
+}
+
+func (p *Parser) currentGameTick() int {
+	if len(p.framesBuffer) == 0 {
+		return 0
+	}
+	return p.framesBuffer[len(p.framesBuffer)-1].GameTick
+}
+
+// startTransientEvent registers a start event with the tracker and records its in-memory data map.
+func (p *Parser) startTransientEvent(key, eventType string, data map[string]interface{}) {
+	frameIdx := len(p.framesBuffer) - 1
+	eventIdx := len(p.framesBuffer[frameIdx].Events) - 1
+	p.tracker.onStartEvent(key, &openTransientEvent{
+		eventType:  eventType,
+		startedAt:  p.currentGameTick(),
+		chunkIndex: -1,
+		frameIndex: frameIdx,
+		eventIndex: eventIdx,
+		flushed:    false,
+	})
+	p.openEventDataMaps[key] = data
+}
+
+// endTransientEvent closes an open transient event by key.
+func (p *Parser) endTransientEvent(terminatorType, key string) {
+	dm := p.openEventDataMaps[key]
+	if p.tracker.onEndEvent(terminatorType, key, p.currentGameTick(), dm) {
+		delete(p.openEventDataMaps, key)
 	}
 }
 
@@ -130,6 +166,9 @@ func (p *Parser) Parse() error {
 		p.captureFrame(parser)
 
 		if len(p.framesBuffer) == p.framesAmountPerChunk {
+			// Build frame+event index for open events before flushing
+			frameEventIndex := p.buildFrameEventIndex()
+
 			chunk := DemoChunk{
 				MessageType:   "chunk",
 				DemoID:        demoHeader.DemoID,
@@ -141,6 +180,7 @@ func (p *Parser) Parse() error {
 				Frames:        append([]Frame(nil), p.framesBuffer...),
 			}
 			chunksBatch = append(chunksBatch, chunk)
+			p.tracker.markFlushed(p.totalChunksProcessed, frameEventIndex)
 			p.flushBuffer()
 			p.totalChunksProcessed++
 
@@ -192,6 +232,8 @@ func (p *Parser) Parse() error {
 
 	// Flush remaining partial chunk
 	if len(p.framesBuffer) > 0 {
+		frameEventIndex := p.buildFrameEventIndex()
+
 		chunk := DemoChunk{
 			MessageType:   "chunk",
 			DemoID:        demoHeader.DemoID,
@@ -203,12 +245,17 @@ func (p *Parser) Parse() error {
 			Frames:        append([]Frame(nil), p.framesBuffer...),
 		}
 		chunksBatch = append(chunksBatch, chunk)
+		p.tracker.markFlushed(p.totalChunksProcessed, frameEventIndex)
 		p.totalChunksProcessed++
 		p.flushBuffer()
 	}
 
 	if err := flushBatch(); err != nil {
 		return err
+	}
+
+	if err := p.repo.PatchTransientEventEndedAt(p.demoID, p.tracker.pendingPatches); err != nil {
+		return fmt.Errorf("failed to patch transient events: %w", err)
 	}
 
 	matchParticipants := make([]MatchParticipant, 0, len(p.participantsSeen))
@@ -542,6 +589,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("bomb_planted", data)
+		p.startTransientEvent(roundKey("bomb_planted", p.currentRoundNumber), "bomb_planted", data)
 	})
 
 	parser.RegisterEventHandler(func(e events.BombDefused) {
@@ -553,6 +601,8 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("bomb_defused", data)
+		p.endTransientEvent("bomb_defused", roundKey("bomb_planted", p.currentRoundNumber))
+		p.endTransientEvent("bomb_defused", roundKey("bomb_defuse_start", p.currentRoundNumber))
 	})
 
 	parser.RegisterEventHandler(func(e events.BombExplode) {
@@ -569,6 +619,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("bomb_exploded", data)
+		p.endTransientEvent("bomb_exploded", roundKey("bomb_planted", p.currentRoundNumber))
 	})
 
 	parser.RegisterEventHandler(func(e events.BombDefuseStart) {
@@ -581,6 +632,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("bomb_defuse_start", data)
+		p.startTransientEvent(roundKey("bomb_defuse_start", p.currentRoundNumber), "bomb_defuse_start", data)
 	})
 
 	parser.RegisterEventHandler(func(e events.BombDefuseAborted) {
@@ -592,6 +644,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("bomb_defuse_aborted", data)
+		p.endTransientEvent("bomb_defuse_aborted", roundKey("bomb_defuse_start", p.currentRoundNumber))
 	})
 
 	// Round events
@@ -638,6 +691,15 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			StartGameTick: p.currentRoundStart.gameTick,
 			EndGameTick:   endGameTick,
 		})
+
+		// Close all open transient events before adding the round_end frame event
+		p.tracker.onRoundEnd(endGameTick, p.openEventDataMaps)
+		// Remove closed keys from openEventDataMaps
+		for key := range p.openEventDataMaps {
+			if _, stillOpen := p.tracker.openEvents[key]; !stillOpen {
+				delete(p.openEventDataMaps, key)
+			}
+		}
 
 		reason := fmt.Sprintf("%d", e.Reason)
 
@@ -743,7 +805,8 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 
 		pos := e.Projectile.Position()
 
-		data["grenade_entity_id"] = e.Projectile.Entity.ID()
+		entityID := e.Projectile.Entity.ID()
+		data["grenade_entity_id"] = entityID
 		data["grenade_position"] = Vector3{
 			X: float64(pos.X),
 			Y: float64(pos.Y),
@@ -756,6 +819,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_throw", data)
+		p.startTransientEvent(grenadeKey(entityID), "grenade_throw", data)
 	})
 
 	parser.RegisterEventHandler(func(e events.GrenadeProjectileDestroy) {
@@ -765,7 +829,8 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 
 		pos := e.Projectile.Position()
 
-		data["grenade_entity_id"] = e.Projectile.Entity.ID()
+		entityID := e.Projectile.Entity.ID()
+		data["grenade_entity_id"] = entityID
 		data["grenade_position"] = Vector3{
 			X: float64(pos.X),
 			Y: float64(pos.Y),
@@ -778,6 +843,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_destroy", data)
+		p.endTransientEvent("grenade_destroy", grenadeKey(entityID))
 	})
 
 	parser.RegisterEventHandler(func(e events.FireGrenadeStart) {
@@ -798,6 +864,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_fire_start", data)
+		p.startTransientEvent(grenadeKey(e.GrenadeEntityID), "grenade_fire_start", data)
 	})
 
 	parser.RegisterEventHandler(func(e events.FireGrenadeExpired) {
@@ -818,6 +885,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_fire_end", data)
+		p.endTransientEvent("grenade_fire_end", grenadeKey(e.GrenadeEntityID))
 	})
 
 	parser.RegisterEventHandler(func(e events.HeExplode) {
@@ -838,6 +906,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_he_explode", data)
+		p.endTransientEvent("grenade_he_explode", grenadeKey(e.GrenadeEntityID))
 	})
 
 	parser.RegisterEventHandler(func(e events.FlashExplode) {
@@ -858,6 +927,7 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 		}
 
 		p.addEventToCurrentFrame("grenade_flash_explode", data)
+		p.endTransientEvent("grenade_flash_explode", grenadeKey(e.GrenadeEntityID))
 	})
 
 	// Hostage events (if applicable)
@@ -930,4 +1000,16 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 func (p *Parser) flushBuffer() {
 	clear(p.framesBuffer)
 	p.framesBuffer = p.framesBuffer[:0]
+}
+
+// buildFrameEventIndex scans open events that are still in the buffer and returns their
+// frame+event coordinates so markFlushed can record them before the buffer is cleared.
+func (p *Parser) buildFrameEventIndex() map[string][2]int {
+	index := make(map[string][2]int)
+	for key, open := range p.tracker.openEvents {
+		if !open.flushed {
+			index[key] = [2]int{open.frameIndex, open.eventIndex}
+		}
+	}
+	return index
 }

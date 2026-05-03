@@ -5,7 +5,10 @@ import {
   GetMatchManifestCommandResult,
 } from "@demo-viewer/domain/src/commands/GetMatchManifestCommand";
 import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse";
-import { DemoChunkEntity } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
+import {
+  DemoChunkEntity,
+  DemoEvent,
+} from "@demo-viewer/domain/src/entities/DemoChunkEntity";
 import { GetTickSeekReadableStreamCommand } from "@demo-viewer/domain/src/commands/GetTickSeekReadableStreamCommand";
 
 export class StreamingController {
@@ -38,8 +41,8 @@ export class StreamingController {
           "/seek/:matchId",
           async ({
             params: { matchId },
-            query: { startGameTick, endGameTick, step },
-          }): Promise<BaseResponse<DemoChunkEntity["frames"]>> => {
+            query: { startGameTick, endGameTick, step, includeTransientEvents },
+          }): Promise<BaseResponse<{ frames: DemoChunkEntity["frames"]; transientEvents?: DemoEvent[] }>> => {
             const result =
               await commandBus.dispatch<GetTickSeekReadableStreamCommand>({
                 type: "get_tick_seek_readable_stream",
@@ -47,12 +50,13 @@ export class StreamingController {
                 step: Number(step),
                 startGameTick: Number(startGameTick),
                 matchId,
+                includeTransientEvents: includeTransientEvents === "true",
               });
 
             return {
-              data: result.frames,
+              data: { frames: result.frames, transientEvents: result.transientEvents },
               isSuccess: true,
-            } satisfies BaseResponse<DemoChunkEntity["frames"]>;
+            };
           },
           {
             params: t.Object({
@@ -67,6 +71,7 @@ export class StreamingController {
                 t.Literal("64"),
                 t.Literal("128"),
               ]),
+              includeTransientEvents: t.Optional(t.String()),
             }),
           },
         ),

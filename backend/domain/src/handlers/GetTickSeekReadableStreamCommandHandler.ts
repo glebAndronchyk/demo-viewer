@@ -35,7 +35,15 @@ export const getTickSeekReadableStreamCommandHandler = (
       );
     }
 
-    return { frames: ticksInRange };
+    const transientEvents = command.includeTransientEvents
+      ? await outbound.matchRepository.getTransientEventsAtTick(
+          match.demoId,
+          command.startGameTick,
+          outbound.configuration.transientEventsLookbackTicks,
+        )
+      : undefined;
+
+    return { frames: ticksInRange, transientEvents };
   };
 
   handler.match = (c: object): c is GetTickSeekReadableStreamCommand => {

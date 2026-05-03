@@ -159,3 +159,21 @@ type Reconnection struct {
 	Name          string `bson:"name" json:"name"`
 	ReconnectType string `bson:"reconnect_type" json:"reconnect_type"` // "connect" or "disconnect"
 }
+
+// openTransientEvent tracks an in-flight lifecycle event during parsing (ephemeral, never persisted)
+type openTransientEvent struct {
+	eventType  string
+	startedAt  int
+	chunkIndex int // chunk this event was written into (-1 = still in buffer)
+	frameIndex int // index within that chunk's Frames slice
+	eventIndex int // index within frame.Events
+	flushed    bool
+}
+
+// TransientEventPatch carries the coordinates needed to patch ended_at into a flushed chunk
+type TransientEventPatch struct {
+	ChunkIndex int
+	FrameIndex int
+	EventIndex int
+	EndedAt    int
+}

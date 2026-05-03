@@ -11,6 +11,7 @@ import { DatabaseService } from "../adapters/DatabaseService";
 import { toMatchEntity } from "../mappers/match.mapper";
 import {
   DemoChunkEntity,
+  DemoEvent,
   Frame,
   PlayerState,
 } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
@@ -746,5 +747,62 @@ export class MatchRepository implements MatchOutboundPort {
 
     this.totalStatsCache.set(steamId, entity);
     return entity;
+  }
+
+  async getTransientEventsAtTick(
+    demoId: string,
+    gameTick: number,
+    lookbackTicks: number,
+  ): Promise<DemoEvent[]> {
+    const windowStart = gameTick - lookbackTicks;
+    const startEventTypes = [
+      "grenade_throw",
+      "grenade_fire_start",
+      "bomb_planted",
+      "bomb_defuse_start",
+    ];
+
+    const result = await this.database.DemoChunkModel.aggregate([
+      {
+        $match: {
+          demo_id: demoId,
+          end_game_tick: { $gte: windowStart },
+          start_game_tick: { $lte: gameTick },
+        },
+      },
+      { $unwind: "$frames" },
+      {
+        $match: {
+          "frames.game_tick": { $gte: windowStart, $lte: gameTick },
+        },
+      },
+      { $unwind: "$frames.events" },
+      {
+        $match: {
+          "frames.events.type": { $in: startEventTypes },
+          "frames.events.data.ended_at": { $gt: gameTick },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              "$frames.events",
+              {
+                demo_tick: "$frames.demo_tick",
+                game_tick: "$frames.game_tick",
+              },
+            ],
+          },
+        },
+      },
+    ]);
+
+    return result.map((e) => ({
+      type: e.type as string,
+      data: e.data as Record<string, unknown>,
+      demoTick: (e.demo_tick ?? 0) as number,
+      gameTick: (e.game_tick ?? 0) as number,
+    }));
   }
 }

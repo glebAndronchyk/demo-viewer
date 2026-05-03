@@ -2,6 +2,7 @@ package parser
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -135,6 +136,31 @@ func (r *Repository) FinalizeMatch(demoID string, totalChunks int, participants 
 		}},
 	)
 	return err
+}
+
+func (r *Repository) PatchTransientEventEndedAt(demoID string, patches []TransientEventPatch) error {
+	if len(patches) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, p := range patches {
+		filter := bson.M{
+			"demo_id":     demoID,
+			"chunk_index": p.ChunkIndex,
+		}
+		update := bson.M{
+			"$set": bson.M{
+				fmt.Sprintf("frames.%d.events.%d.data.ended_at", p.FrameIndex, p.EventIndex): p.EndedAt,
+			},
+		}
+		if _, err := r.chunksCol.UpdateOne(ctx, filter, update); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *Repository) Disconnect() error {
