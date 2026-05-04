@@ -3,6 +3,7 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 import { userPlugin } from "../lib/elysia/plugins/userPlugin";
 import { CommandBusService } from "../adapters/CommandBusService";
 import { SetUserSharingDataCommand } from "@demo-viewer/domain/src/commands/SetUserSharingDataCommand";
+import { UpdateUserSharingDataCommand } from "@demo-viewer/domain/src/commands/UpdateUserSharingDataCommand";
 
 export class UserController {
   constructor(
@@ -26,6 +27,25 @@ export class UserController {
           async ({ params: { id }, body }) => {
             await commandBus.dispatch<SetUserSharingDataCommand>({
               type: "set_user_sharing_data",
+              userId: id,
+              knownShareCode: body.knownShareCode,
+              steamIdKey: body.steamIdKey,
+            });
+
+            return { data: null, error: null, isSuccess: true };
+          },
+          {
+            body: t.Object({
+              steamIdKey: t.String(),
+              knownShareCode: t.String(),
+            }),
+          },
+        )
+        .put(
+          "/update-user-sharing-data",
+          async ({ params: { id }, body }) => {
+            await commandBus.dispatch<UpdateUserSharingDataCommand>({
+              type: "update_user_sharing_data",
               userId: id,
               knownShareCode: body.knownShareCode,
               steamIdKey: body.steamIdKey,

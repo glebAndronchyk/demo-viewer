@@ -5,12 +5,14 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 import { RegisterOrLoginWithSteamCommand } from "@demo-viewer/domain/src/commands";
 import { jwtPlugin } from "../lib/elysia/plugins/jwtPlugin";
 import { UnauthorizedError } from "../lib/errors/AppErrors";
+import { UserRepository } from "../repository/UserRepository";
 
 export class AuthorizationController {
   constructor(
     app: Elysia,
     config: ConfigurationInboundPort,
     commandBus: CommandBusService,
+    userRepository: UserRepository,
   ) {
     app.use(
       new Elysia({ prefix: "/auth", tags: ["auth"] })
@@ -64,7 +66,10 @@ export class AuthorizationController {
             throw new UnauthorizedError();
           }
 
-          return { data, error: null, isSuccess: true };
+          const user = await userRepository.getUserById(data.sub as string);
+          const hasSharingData = !!(user?.steamIdKey && user?.initialKnownShareCode);
+
+          return { data: { ...data, hasSharingData }, error: null, isSuccess: true };
         }),
     );
   }

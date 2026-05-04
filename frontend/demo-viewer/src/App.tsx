@@ -18,6 +18,7 @@ const RootLayout = () => (
 );
 
 const DemoPlayerPage = lazy(() => import("./pages/demo-player"));
+const SettingsPage = lazy(() => import("./pages/settings"));
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
         path: "/player/:matchId",
         loader: useDemoViewerViewModel.matchManifestLoader,
         element: <DemoPlayerPage />,
+      },
+      {
+        path: "/settings",
+        element: <SettingsPage />,
       },
     ],
   },

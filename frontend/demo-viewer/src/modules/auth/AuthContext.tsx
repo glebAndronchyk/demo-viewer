@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 export interface AuthUser {
   userId: string;
   steamId: string;
+  hasSharingData: boolean;
 }
 
 export interface AuthContextValue {

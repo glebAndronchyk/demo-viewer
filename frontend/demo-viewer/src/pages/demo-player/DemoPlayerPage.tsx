@@ -4,6 +4,7 @@ import { DemoViewerViewModel } from "../../modules/demo-viewer/viewmodel/DemoVie
 import { EventLog } from "./components/EventLog.tsx";
 import { DemoPlayerTimeLine } from "./components/DemoPlayerTimeLine.tsx";
 import { ScoreOutput } from "./components/ScoreOutput.tsx";
+import { PlayersList } from "./components/PlayersList.tsx";
 
 const DemoPlayerPage = () => {
   return (
@@ -20,6 +21,7 @@ const DemoPlayerPage = () => {
         </Layout.Sider>
       </Layout>
       <Layout.Footer>
+        <PlayersList />
         <DemoPlayerTimeLine />
       </Layout.Footer>
     </Layout>

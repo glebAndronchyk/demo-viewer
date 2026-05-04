@@ -73,6 +73,7 @@ const di = new DIContainer()
     TypedApp,
     EnvConfiguration,
     CommandBusService,
+    UserRepository,
   ])
   .addSingleton(BackgroundController, [TypedApp, CommandBusService])
   .addSingleton(ParsingController, [TypedApp, CommandBusService])

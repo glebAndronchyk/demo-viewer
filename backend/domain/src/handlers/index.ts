@@ -16,3 +16,4 @@ export { default as getTeamMembersRegistration } from "./GetTeamMembersHandler.t
 export { default as seekNextAvailableMatchForAnalyticsAggregationRegistration } from "./SeekNextAvailableMatchForAnalyticsAggregation.ts";
 export { default as getMatchPlayerStatsRegistration } from "./GetMatchPlayerStatsCommandHandler.ts";
 export { default as getTotalPlayerStatsRegistration } from "./GetTotalPlayerStatsCommandHandler.ts";
+export { default as updateUserSharingDataCommandRegistration } from "./UpdateUserSharingDataCommandHandler.ts";

@@ -97,6 +97,7 @@ const useDemoViewer = () => {
         (r) => r.roundNumber === frame.gameState.roundNumber,
       ),
       gameState: frame.gameState,
+      playerStates: frame.playerStates,
     });
   };
 
