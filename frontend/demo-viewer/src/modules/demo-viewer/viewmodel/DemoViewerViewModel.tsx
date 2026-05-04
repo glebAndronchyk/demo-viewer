@@ -91,7 +91,13 @@ const useDemoViewer = () => {
 
     _drawFrame(frame);
     staticState.current.isBuffering = false;
-    _notify("tick", { gameTick: frame.gameTick });
+    _notify("tick", {
+      gameTick: frame.gameTick,
+      round: matchData.matchManifest.rounds.find(
+        (r) => r.roundNumber === frame.gameState.roundNumber,
+      ),
+      gameState: frame.gameState,
+    });
   };
 
   const play = async () => {
@@ -107,7 +113,6 @@ const useDemoViewer = () => {
   };
 
   const jump = async (tick: number) => {
-    debugger;
     staticState.current.isBuffering = true;
     const prevTick = staticState.current.currentTick;
     staticState.current.currentTick = tick;
