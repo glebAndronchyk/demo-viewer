@@ -2,6 +2,7 @@ import { Layout } from "antd";
 import DemoViewer from "../../modules/demo-viewer/components/DemoViewer.tsx";
 import { DemoViewerViewModel } from "../../modules/demo-viewer/viewmodel/DemoViewerViewModel.tsx";
 import { EventLog } from "./components/EventLog.tsx";
+import { DemoPlayerTimeLine } from "./components/DemoPlayerTimeLine.tsx";
 
 const DemoPlayerPage = () => {
   return (
@@ -15,7 +16,9 @@ const DemoPlayerPage = () => {
           <EventLog />
         </Layout.Sider>
       </Layout>
-      <Layout.Footer>Test</Layout.Footer>
+      <Layout.Footer>
+        <DemoPlayerTimeLine />
+      </Layout.Footer>
     </Layout>
   );
 };

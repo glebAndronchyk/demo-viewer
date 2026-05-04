@@ -60,6 +60,7 @@ const useDemoViewer = () => {
     currentTick: 0,
     finalBufferedTick: 0,
     speed: 1,
+    isBuffering: false,
     tickRate: Tick.rate(matchData.matchManifest.tickRate),
     bufferingWindow,
     state: "pause",
@@ -85,13 +86,12 @@ const useDemoViewer = () => {
   // #region public
 
   const loop = async () => {
+    staticState.current.isBuffering = true;
     const { frame } = await _bufferDemo();
 
     _drawFrame(frame);
-    _notify("tick", {
-      snapshot: _snapshot(),
-      frame,
-    });
+    staticState.current.isBuffering = false;
+    _notify("tick", { gameTick: frame.gameTick });
   };
 
   const play = async () => {
@@ -107,12 +107,15 @@ const useDemoViewer = () => {
   };
 
   const jump = async (tick: number) => {
+    debugger;
+    staticState.current.isBuffering = true;
     const prevTick = staticState.current.currentTick;
     staticState.current.currentTick = tick;
     const { frame } = await _bufferDemo();
 
     _reconstructGeometriesFromFrame(frame);
 
+    staticState.current.isBuffering = false;
     _notify("jump", { prev: prevTick, new: tick });
   };
 
@@ -254,7 +257,11 @@ const useDemoViewer = () => {
         staticState.current.finalBufferedTick * (1 / 4) // 25% of staticState.current.finalBufferedTick
       ) {
         // delegate to service worker
-        _pollFrames()
+        _pollFrames({
+          startGameTick: staticState.current.finalBufferedTick,
+          endGameTick: staticState.current.finalBufferedTick + bufferingWindow,
+          step: matchData.matchManifest.tickRate,
+        })
           .then((r) => _cache.current.store(r))
           .then((cache) => {
             staticState.current.finalBufferedTick =
@@ -267,11 +274,14 @@ const useDemoViewer = () => {
       return { frame: cachedCurrentFrame };
     }
 
-    await _cache.current.store(await _pollFrames());
-    const frameTick = Math.max(
-      0,
-      startTick - staticState.current.tickRate.oneSecond(),
+    await _cache.current.store(
+      await _pollFrames({
+        startGameTick: startTick,
+        endGameTick: startTick + bufferingWindow,
+        step: matchData.matchManifest.tickRate,
+      }),
     );
+    const frameTick = Math.max(0, startTick);
     const currentFrame =
       (await _cache.current.getByNearbyTick(frameTick)) ??
       _cache.current.l1GetFirstAvailableFrame();
@@ -289,21 +299,22 @@ const useDemoViewer = () => {
     };
   };
 
-  const _pollFrames = async () => {
+  const _pollFrames = async (args: {
+    startGameTick: number;
+    endGameTick: number;
+    step: number;
+  }) => {
     const params = new URLSearchParams();
-    params.set("startGameTick", String(staticState.current.finalBufferedTick));
-    params.set(
-      "endGameTick",
-      String(staticState.current.finalBufferedTick + bufferingWindow),
-    );
-    params.set("step", String(matchData.matchManifest.tickRate)); // todo: based on demo tickrate
+    params.set("startGameTick", String(args.startGameTick));
+    params.set("endGameTick", String(args.endGameTick));
+    params.set("step", String(args.step));
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
       `http://localhost:3000/streaming/player/seek/69f27c4cb7b6acee7e74bfb7?${params.toString()}`,
     )
       .then((r) => r.json())
-      .then((r) => (r as SeekResponseDto).data)
+      .then((r) => (r as SeekResponseDto).data.frames)
       .catch(() => [] as FrameDto[]);
 
     return Promise.resolve(framesResult);
@@ -416,14 +427,12 @@ export const DemoViewerViewModel = (props: PropsWithChildren) => {
 export const FrameOperator = () => {
   const { staticState, subscribe, loop, destroyGeometry } =
     useDemoViewerViewModel();
-  const _isLooping = useRef(false);
   const _tickAccumulator = useRef(0);
 
   useEffect(() => {
     subscribe((event) => {
       if (event === "jump") {
         _tickAccumulator.current = 0;
-        _isLooping.current = false;
       }
     });
   }, []);
@@ -450,17 +459,15 @@ export const FrameOperator = () => {
       }
     });
 
-    if (staticState.current.state !== "play" || _isLooping.current) return;
+    if (staticState.current.state !== "play" || staticState.current.isBuffering)
+      return;
 
     _tickAccumulator.current += delta * staticState.current.speed;
 
     // start buffering loop
     if (_tickAccumulator.current >= tickInterval) {
       _tickAccumulator.current -= tickInterval;
-      _isLooping.current = true;
-      loop().finally(() => {
-        _isLooping.current = false;
-      });
+      loop();
     }
   });
 

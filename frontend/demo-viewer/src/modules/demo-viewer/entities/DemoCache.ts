@@ -8,6 +8,10 @@ export class DemoCache {
     private readonly tickRate: number,
   ) {}
 
+  get lookupCap() {
+    return this.tickRate;
+  }
+
   async store(frames: FrameDto[]) {
     if (this.l1Source.size + frames.length <= this.capacity) {
       frames.forEach((frame: FrameDto) => {

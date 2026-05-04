@@ -7,6 +7,7 @@ export interface ViewerState {
   currentTick: number;
   speed: number;
   bufferingWindow: number;
+  isBuffering: boolean;
   tickRate: Tick;
   state: "pause" | "play";
   geometries: Map<string, Mesh | Line>;

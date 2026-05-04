@@ -425,4 +425,9 @@ export interface SeekRequestParams {
   step: SeekStep;
 }
 
-export type SeekResponseDto = ApiSuccessResponse<FrameDto[]>;
+export interface SeekResponseBodyDto {
+  frames: FrameDto[];
+  transientEvents?: DemoEventDto[];
+}
+
+export type SeekResponseDto = ApiSuccessResponse<SeekResponseBodyDto>;
