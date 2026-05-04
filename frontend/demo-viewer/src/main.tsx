@@ -29,12 +29,30 @@ createRoot(document.getElementById("root")!).render(
           borderRadius: 2,
           fontFamily: "'Caveat', cursive",
           fontSize: 14,
+          lineWidth: 2,
+          controlHeight: 36,
         },
         components: {
           Layout: {
             headerBg: "#ede7da", // --bg-panel-hi
             headerColor: "#2e2118", // --ink-hi
             siderBg: "#fcfaf7", // --bg-panel (colorBgContainer)
+          },
+          Button: {
+            defaultBg: "#fcfaf7",
+            defaultColor: "#2e2118",
+            defaultBorderColor: "#2e2118",
+            defaultHoverBg: "#f5ede0",
+            defaultHoverColor: "#2e2118",
+            defaultHoverBorderColor: "#2e2118",
+            defaultActiveBg: "#ede0cc",
+            defaultActiveColor: "#2e2118",
+            defaultActiveBorderColor: "#2e2118",
+            primaryColor: "#fcfaf7",
+            fontWeight: 600,
+            contentFontSize: 15,
+            defaultShadow: "none",
+            primaryShadow: "none",
           },
         },
       }}

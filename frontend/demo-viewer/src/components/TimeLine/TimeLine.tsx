@@ -29,6 +29,11 @@ interface TimeLineProps {
   moveDebounce?: number;
   isAnchor?: (index: number) => boolean;
   markers?: { gameTick: number; node: ReactNode }[];
+  children?: (args: {
+    containerWidth: number | null | undefined;
+    pxToTick: (px: number) => number;
+    tickToPx: (tick: number) => number;
+  }) => ReactNode;
 
   ref?: Ref<TimeLineRef>;
 }
@@ -125,29 +130,35 @@ export const TimeLine = (props: TimeLineProps) => {
   }));
 
   return (
-    <div ref={containerRef} className="w-full h-9 border relative select-none">
-      {Array.from({ length: totalNotches }).map((_, i) => {
-        const isAnchor = isAnchorCallback(i);
-        return (
-          <TimeLine.Notch
-            key={i}
-            tick={isAnchor ? pxToTick(indexToPx(i)) : null}
-            style={{
-              position: "absolute",
-              left: indexToPx(i),
-              width: notchWidthPx,
-              background: "red",
-              height: isAnchor ? "20px" : "10px",
-            }}
-          />
-        );
-      })}
-      <TimeLine.Slider
-        ref={sliderRef}
-        onMouseDown={() => (isDragging.current = true)}
-        className="absolute left-0"
-      />
-    </div>
+    <>
+      <div
+        ref={containerRef}
+        className="w-full h-9 border relative select-none"
+      >
+        {Array.from({ length: totalNotches }).map((_, i) => {
+          const isAnchor = isAnchorCallback(i);
+          return (
+            <TimeLine.Notch
+              key={i}
+              tick={isAnchor ? pxToTick(indexToPx(i)) : null}
+              style={{
+                position: "absolute",
+                left: indexToPx(i),
+                width: notchWidthPx,
+                background: "red",
+                height: isAnchor ? "20px" : "10px",
+              }}
+            />
+          );
+        })}
+        <TimeLine.Slider
+          ref={sliderRef}
+          onMouseDown={() => (isDragging.current = true)}
+          className="absolute left-0"
+        />
+      </div>
+      {props.children?.({ containerWidth: cw, tickToPx, pxToTick })}
+    </>
   );
 };
 

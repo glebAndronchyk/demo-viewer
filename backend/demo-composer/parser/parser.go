@@ -650,12 +650,9 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 	// Round events
 	parser.RegisterEventHandler(func(e events.RoundStart) {
 		p.currentRoundNumber++
-		if len(p.framesBuffer) > 0 {
-			last := p.framesBuffer[len(p.framesBuffer)-1]
-			p.currentRoundStart = roundStart{
-				demoTick: last.DemoTick,
-				gameTick: last.GameTick,
-			}
+		p.currentRoundStart = roundStart{
+			demoTick: parser.CurrentFrame(),
+			gameTick: parser.GameState().IngameTick(),
 		}
 		p.addEventToCurrentFrame("round_start", map[string]interface{}{
 			"time_limit": e.TimeLimit,
@@ -675,13 +672,8 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			winner = "Spectators"
 		}
 
-		endDemoTick := 0
-		endGameTick := 0
-		if len(p.framesBuffer) > 0 {
-			last := p.framesBuffer[len(p.framesBuffer)-1]
-			endDemoTick = last.DemoTick
-			endGameTick = last.GameTick
-		}
+		endDemoTick := parser.CurrentFrame()
+		endGameTick := parser.GameState().IngameTick()
 
 		p.rounds = append(p.rounds, RoundInfo{
 			RoundNumber:   p.currentRoundNumber,
