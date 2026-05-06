@@ -17,10 +17,6 @@ export const ProfileImage = (props: ProfileImageProps) => {
           label: <Link to="/account">{props.user.steamId}</Link>,
         },
         {
-          key: "settings",
-          label: <Link to="/settings">Options</Link>,
-        },
-        {
           key: "groups",
           label: <Link to="/groups">Groups</Link>,
         },

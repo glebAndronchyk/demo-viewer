@@ -1,10 +1,16 @@
 import "./App.css";
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router";
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+} from "react-router";
 import { useDemoViewerViewModel } from "./modules/demo-viewer/viewmodel/DemoViewerViewModel.tsx";
 import { Layout } from "antd";
 import { AuthProvider } from "./modules/auth";
 import { AppHeader } from "./components/AppHeader";
 import { lazy } from "react";
+import { AccountPage } from "./pages/account/AccountPage.tsx";
 
 const RootLayout = () => (
   <AuthProvider>
@@ -18,7 +24,6 @@ const RootLayout = () => (
 );
 
 const DemoPlayerPage = lazy(() => import("./pages/demo-player"));
-const SettingsPage = lazy(() => import("./pages/settings"));
 
 const router = createBrowserRouter([
   {
@@ -34,8 +39,19 @@ const router = createBrowserRouter([
         element: <DemoPlayerPage />,
       },
       {
-        path: "/settings",
-        element: <SettingsPage />,
+        path: "account",
+        element: <AccountPage />,
+        children: [
+          { index: true, element: <Navigate to="statistics" replace /> },
+          {
+            path: "statistics",
+            element: <AccountPage.StatisticsPage />,
+          },
+          {
+            path: "sharing-settings",
+            element: <AccountPage.SettingsPage />,
+          },
+        ],
       },
     ],
   },

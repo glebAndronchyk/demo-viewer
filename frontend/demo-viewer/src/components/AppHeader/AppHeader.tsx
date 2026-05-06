@@ -1,6 +1,7 @@
 import { Button, Layout, Spin, Typography, theme } from "antd";
 import { useAuth } from "../../modules/auth";
 import { ProfileImage } from "../../modules/auth/components/ProfileImage.tsx";
+import { Link } from "react-router";
 
 export function AppHeader() {
   const { user, isLoading } = useAuth();
@@ -19,7 +20,7 @@ export function AppHeader() {
         level={4}
         style={{ margin: 0, color: token.colorPrimary }}
       >
-        Demo Viewer
+        <Link to="/">Demo Viewer</Link>
       </Typography.Title>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {isLoading ? (

@@ -13,7 +13,11 @@ export const ProfileImage = (props: ProfileProps) => {
       {props.children}
       <Dropdown placement="bottomRight" menu={{ items: props.options }}>
         <Badge count={props.notifications}>
-          <Avatar size={32} icon={<UserOutlined />} />
+          <Avatar
+            className="cursor-pointer"
+            size={32}
+            icon={<UserOutlined />}
+          />
         </Badge>
       </Dropdown>
     </Flex>

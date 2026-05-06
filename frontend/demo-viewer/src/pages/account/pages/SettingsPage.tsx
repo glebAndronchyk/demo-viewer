@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button, Form, Input, Typography, message } from "antd";
-import { useAuth } from "../../modules/auth";
+import { useAuth } from "../../../modules/auth";
 
 interface SettingsFormValues {
   steamIdKey: string;
   knownShareCode: string;
 }
 
-export default function SettingsPage() {
+const SettingsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -40,10 +40,14 @@ export default function SettingsPage() {
   return (
     <div style={{ maxWidth: 480, margin: "64px auto", padding: "0 24px" }}>
       {contextHolder}
-      <Typography.Title level={3}>Settings</Typography.Title>
+      <Typography.Title level={3}>Sharing settings</Typography.Title>
       {user?.hasSharingData && (
-        <Typography.Text type="secondary" style={{ display: "block", marginBottom: 24 }}>
-          Your Steam credentials are already configured. Submitting this form will overwrite them.
+        <Typography.Text
+          type="secondary"
+          style={{ display: "block", marginBottom: 24 }}
+        >
+          Your Steam credentials are already configured. Submitting this form
+          will overwrite them.
         </Typography.Text>
       )}
       <Form layout="vertical" onFinish={onFinish} disabled={submitting}>
@@ -69,4 +73,6 @@ export default function SettingsPage() {
       </Form>
     </div>
   );
-}
+};
+
+export default SettingsPage;
