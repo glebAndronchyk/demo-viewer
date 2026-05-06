@@ -7,6 +7,8 @@ import type { ConfigurationInboundPort } from "../ports/inbound/ConfigurationInb
 import type { QueueOutboundPort } from "../ports/outbound/QueueOutboundPort.ts";
 import type { MatchOutboundPort } from "../ports/outbound/MatchOutboundPort.ts";
 import type { StorageOutboundPort } from "../ports/outbound/StorageOutboundPort.ts";
+import type { NotificationOutboundPort } from "../ports/outbound/NotificationOutboundPort.ts";
+import type { SteamFriendsOutboundPort } from "../ports/outbound/SteamFriendsOutboundPort.ts";
 
 export interface DomainOutbound {
   teamRepository: TeamOutboundPort;
@@ -18,4 +20,6 @@ export interface DomainOutbound {
   configuration: ConfigurationInboundPort;
   queue: QueueOutboundPort;
   fileStorage: StorageOutboundPort;
+  notificationRepository: NotificationOutboundPort;
+  steamFriendsRepository: SteamFriendsOutboundPort;
 }

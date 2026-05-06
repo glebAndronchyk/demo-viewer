@@ -8,6 +8,8 @@ import { AuthRepository } from "../repository/AuthRepository";
 import { TeamRepository } from "../repository/TeamRepository";
 import { UserRepository } from "../repository/UserRepository";
 import { MatchRepository } from "../repository/MatchRepository";
+import { NotificationRepository } from "../repository/NotificationRepository";
+import { SteamFriendsRepository } from "../repository/SteamFriendsRepository";
 import { EnvConfiguration } from "../configuration/EnvConfiguration";
 import { ComputeResourcesQueueService } from "./ComputeResourcesQueueService";
 import { LocalFilesystemStorageAdapter } from "./LocalFilesystemStorageAdapter";
@@ -23,6 +25,8 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
     configuration: EnvConfiguration,
     queue: ComputeResourcesQueueService,
     fileStorage: LocalFilesystemStorageAdapter,
+    notificationRepository: NotificationRepository,
+    steamFriendsRepository: SteamFriendsRepository,
   ) {
     super(
       domainOperations({
@@ -35,6 +39,8 @@ export class CommandBusService extends CommandBus<DomainCommandsMap> {
         configuration,
         queue,
         fileStorage,
+        notificationRepository,
+        steamFriendsRepository,
       }),
     );
   }

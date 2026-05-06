@@ -11,6 +11,7 @@ export * from "./src/types/round_outcome.types";
 export * from "./src/types/weapon.types";
 export * from "./src/types/utility_positions.types";
 export * from "./src/types/demo_chunk.types";
+export * from "./src/types/notification.types";
 
 // Schemas
 export * from "./src/schemas/user.schema";
@@ -22,6 +23,7 @@ export * from "./src/schemas/round_outcome.schema";
 export * from "./src/schemas/weapon.schema";
 export * from "./src/schemas/utility_positions.schema";
 export * from "./src/schemas/demo_chunk.schema";
+export * from "./src/schemas/notification.schema";
 
 // Models
 export * from "./src/models/user.model";
@@ -33,3 +35,4 @@ export * from "./src/models/round_outcome.model";
 export * from "./src/models/weapon.model";
 export * from "./src/models/utility_positions.model";
 export * from "./src/models/demo_chunk.model";
+export * from "./src/models/notification.model";

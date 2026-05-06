@@ -4,6 +4,8 @@ import { EnvConfiguration } from "./configuration/EnvConfiguration";
 import { GameCoordinatorRepository } from "./repository/GameCoordinatorRepository";
 import { ParserRepository } from "./repository/ParserRepository";
 import { MatchRepository } from "./repository/MatchRepository";
+import { NotificationRepository } from "./repository/NotificationRepository";
+import { SteamFriendsRepository } from "./repository/SteamFriendsRepository";
 import { DIContainer } from "@demo-viewer/backend-shared/src/lib/di/DIContainer";
 import { CommandBusService } from "./adapters/CommandBusService";
 import { App } from "./app/App";
@@ -17,7 +19,10 @@ import {
   TeamController,
   StorageController,
 } from "./controllers";
-import { CollectMatchesFromUserCron } from "./cron";
+import {
+  CollectMatchesFromUserCron,
+  ProcessPendingNotificationsCron,
+} from "./cron";
 import { DatabaseService } from "./adapters/DatabaseService";
 import { UserController } from "./controllers/UserController";
 import { UserRepository } from "./repository/UserRepository";
@@ -52,6 +57,8 @@ const di = new DIContainer()
     EnvConfiguration,
     ComputeResourcesQueueService,
     LocalFilesystemStorageAdapter,
+    NotificationRepository,
+    SteamFriendsRepository,
   ])
   // repositories/services/commands
   .addSingleton(TeamRepository)
@@ -62,6 +69,8 @@ const di = new DIContainer()
   .addSingleton(MatchRepository, [DatabaseService as never, MemoryCache])
   .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
   .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
+  .addSingleton(NotificationRepository, [DatabaseService])
+  .addSingleton(SteamFriendsRepository, [EnvConfiguration])
   // controllers
   .addSingleton(MaintenanceController, [
     TypedApp,
@@ -102,7 +111,8 @@ const di = new DIContainer()
     CommandBusService,
     EnvConfiguration,
     LayeredAnalyticsCalculator,
-  ]);
+  ])
+  .addSingleton(ProcessPendingNotificationsCron, [TypedApp, CommandBusService]);
 
 di.activate();
 const cfg = di.getInstance(EnvConfiguration);

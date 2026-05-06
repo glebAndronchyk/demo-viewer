@@ -1,6 +1,6 @@
-import { Button, Layout, Spin, Tag, Typography, theme } from "antd";
-import { Link } from "react-router";
+import { Button, Layout, Spin, Typography, theme } from "antd";
 import { useAuth } from "../../modules/auth";
+import { ProfileImage } from "../../modules/auth/components/ProfileImage.tsx";
 
 export function AppHeader() {
   const { user, isLoading } = useAuth();
@@ -15,19 +15,17 @@ export function AppHeader() {
         padding: "0 24px",
       }}
     >
-      <Typography.Title level={4} style={{ margin: 0, color: token.colorPrimary }}>
+      <Typography.Title
+        level={4}
+        style={{ margin: 0, color: token.colorPrimary }}
+      >
         Demo Viewer
       </Typography.Title>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {isLoading ? (
           <Spin size="small" />
         ) : user ? (
-          <>
-            <Tag color="success">Steam: {user.steamId.slice(0, 10)}…</Tag>
-            <Link to="/settings">
-              <Button size="small">Options</Button>
-            </Link>
-          </>
+          <ProfileImage user={user} />
         ) : (
           <Button type="primary" href="http://localhost:3000/auth/steam">
             Login with Steam

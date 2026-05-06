@@ -17,3 +17,6 @@ export { default as seekNextAvailableMatchForAnalyticsAggregationRegistration } 
 export { default as getMatchPlayerStatsRegistration } from "./GetMatchPlayerStatsCommandHandler.ts";
 export { default as getTotalPlayerStatsRegistration } from "./GetTotalPlayerStatsCommandHandler.ts";
 export { default as updateUserSharingDataCommandRegistration } from "./UpdateUserSharingDataCommandHandler.ts";
+export { default as sendGroupInvitationRegistration } from "./SendGroupInvitationCommandHandler.ts";
+export { default as processPendingNotificationsRegistration } from "./ProcessPendingNotificationsCommandHandler.ts";
+export { default as getSteamFriendsRegistration } from "./GetSteamFriendsCommandHandler.ts";

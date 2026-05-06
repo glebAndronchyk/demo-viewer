@@ -3,6 +3,7 @@ import {
   DatabaseConnection,
   DemoChunkModel,
   MatchModel,
+  NotificationModel,
   PlayerAccuracyModel,
   PlayerClutchesModel,
   PlayerEconomyModel,
@@ -18,6 +19,10 @@ import * as mongoose from "mongoose";
 export class DatabaseService {
   get UserModel() {
     return UserModel;
+  }
+
+  get NotificationModel() {
+    return NotificationModel;
   }
 
   get MatchModel() {
