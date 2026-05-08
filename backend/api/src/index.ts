@@ -69,7 +69,7 @@ const di = new DIContainer()
   .addSingleton(MatchRepository, [DatabaseService as never, MemoryCache])
   .addSingleton(ComputeResourcesQueueService, [EnvConfiguration])
   .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
-  .addSingleton(NotificationRepository, [DatabaseService])
+  .addSingleton(NotificationRepository, [DatabaseService as never])
   .addSingleton(SteamFriendsRepository, [EnvConfiguration])
   // controllers
   .addSingleton(MaintenanceController, [
@@ -86,7 +86,7 @@ const di = new DIContainer()
   ])
   .addSingleton(BackgroundController, [TypedApp, CommandBusService])
   .addSingleton(ParsingController, [TypedApp, CommandBusService])
-  .addSingleton(StreamingController, [TypedApp, CommandBusService])
+  .addSingleton(StreamingController, [TypedApp, CommandBusService, MemoryCache])
   .addSingleton(TeamController, [
     TypedApp,
     EnvConfiguration,

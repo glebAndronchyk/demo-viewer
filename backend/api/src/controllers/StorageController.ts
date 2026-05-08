@@ -1,9 +1,6 @@
 import { Elysia, t } from "elysia";
 import { CommandBusService } from "../adapters/CommandBusService";
-import type {
-  GetMapRadarAssetsCommand,
-  GetMapRadarAssetsCommandResult,
-} from "@demo-viewer/domain/src/commands/GetMapRadarAssetsCommand";
+import type { GetMapRadarAssetsCommand } from "@demo-viewer/domain/src/commands/GetMapRadarAssetsCommand";
 import type { StreamAssetResponse } from "@demo-viewer/domain/src/ports/outbound/StorageOutboundPort";
 
 export class StorageController {

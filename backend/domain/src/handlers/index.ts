@@ -20,3 +20,4 @@ export { default as updateUserSharingDataCommandRegistration } from "./UpdateUse
 export { default as sendGroupInvitationRegistration } from "./SendGroupInvitationCommandHandler.ts";
 export { default as processPendingNotificationsRegistration } from "./ProcessPendingNotificationsCommandHandler.ts";
 export { default as getSteamFriendsRegistration } from "./GetSteamFriendsCommandHandler.ts";
+export { default as getPaginatedMatchesRegistration } from "./GetPaginatedMatchesHandler.ts";

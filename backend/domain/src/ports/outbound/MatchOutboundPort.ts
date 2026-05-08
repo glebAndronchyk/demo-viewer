@@ -86,4 +86,8 @@ export interface MatchOutboundPort {
     gameTick: number,
     lookbackTicks: number,
   ): Promise<DemoEvent[]>;
+
+  getMatches(skip: number, take: number): Promise<MatchEntity[]>;
+
+  getTotalMatches(): Promise<number>;
 }

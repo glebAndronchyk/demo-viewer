@@ -3,6 +3,10 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 export class EnvConfiguration implements ConfigurationInboundPort {
   private readonly env: typeof Bun.env;
 
+  get matchesPageSize(): number {
+    return Number(this.env.MATCHES_PAGE_SIZE ?? 10);
+  }
+
   get apiPort(): number {
     return Number(this.env.API_PORT ?? 3000);
   }

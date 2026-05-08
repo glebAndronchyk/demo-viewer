@@ -40,7 +40,12 @@ export function toMatchEntity(doc: MatchInput): MatchEntity {
       endGameTick: r.end_game_tick,
     })),
     outcome: doc.outcome
-      ? ({ winner: doc.outcome.winner, tScore: doc.outcome.t_score, ctScore: doc.outcome.ct_score } satisfies MatchOutcome)
-      : { winner: '', tScore: 0, ctScore: 0 },
+      ? ({
+          winner: doc.outcome.winner,
+          tScore: doc.outcome.t_score,
+          ctScore: doc.outcome.ct_score,
+          totalRounds: (doc.rounds ?? []).length,
+        } satisfies MatchOutcome)
+      : { winner: '', tScore: 0, ctScore: 0, totalRounds: 0 },
   };
 }

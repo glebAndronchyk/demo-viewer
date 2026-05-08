@@ -9,6 +9,7 @@ declare module "bun" {
     STORAGE_LOCAL_BASE_PATH: string;
     SHARE_CODE_SEEK_STEP: string;
     MATCHER_PER_ANALYTICS_SEEK_STEP: string;
+    MATCHES_PAGE_SIZE: string;
 
     STEAM_BASE_URL: string;
     STEAM_API_KEY: string;

@@ -10,9 +10,58 @@ import {
   DemoEvent,
 } from "@demo-viewer/domain/src/entities/DemoChunkEntity";
 import { GetTickSeekReadableStreamCommand } from "@demo-viewer/domain/src/commands/GetTickSeekReadableStreamCommand";
+import { MemoryCache, MemoryCacheAccessor } from "@demo-viewer/backend-shared";
+import {
+  GetPaginatedMatchesCommand,
+  GetPaginatedMatchesCommandResult,
+} from "@demo-viewer/domain/src/commands/GetPaginatedMatchesCommand.ts";
 
 export class StreamingController {
-  constructor(app: Elysia, commandBus: CommandBusService) {
+  constructor(
+    app: Elysia,
+    commandBus: CommandBusService,
+    memoryCache: MemoryCache,
+  ) {
+    const matchListCacheAccessor = new MemoryCacheAccessor<
+      number,
+      GetPaginatedMatchesCommandResult
+    >(memoryCache, "matchList");
+
+    app.use(
+      new Elysia({ prefix: "/streaming/matches", tags: ["streaming"] }).get(
+        "/list",
+        async ({
+          query: { page },
+        }): Promise<
+          BaseResponse<{
+            pagination: GetPaginatedMatchesCommandResult;
+          }>
+        > => {
+          if (matchListCacheAccessor.has(page)) {
+            return {
+              data: { pagination: matchListCacheAccessor.get(page)! },
+              isSuccess: true,
+            };
+          }
+
+          const paginatedResult =
+            await commandBus.dispatch<GetPaginatedMatchesCommand>({
+              type: "get_paginated_matchers",
+              page,
+            });
+
+          return {
+            data: { pagination: paginatedResult },
+            isSuccess: true,
+          };
+        },
+        {
+          query: t.Object({
+            page: t.Number(),
+          }),
+        },
+      ),
+    );
     app.use(
       new Elysia({ prefix: "/streaming/player", tags: ["streaming"] })
         .get(
@@ -42,7 +91,12 @@ export class StreamingController {
           async ({
             params: { matchId },
             query: { startGameTick, endGameTick, step, includeTransientEvents },
-          }): Promise<BaseResponse<{ frames: DemoChunkEntity["frames"]; transientEvents?: DemoEvent[] }>> => {
+          }): Promise<
+            BaseResponse<{
+              frames: DemoChunkEntity["frames"];
+              transientEvents?: DemoEvent[];
+            }>
+          > => {
             const result =
               await commandBus.dispatch<GetTickSeekReadableStreamCommand>({
                 type: "get_tick_seek_readable_stream",
@@ -54,7 +108,10 @@ export class StreamingController {
               });
 
             return {
-              data: { frames: result.frames, transientEvents: result.transientEvents },
+              data: {
+                frames: result.frames,
+                transientEvents: result.transientEvents,
+              },
               isSuccess: true,
             };
           },

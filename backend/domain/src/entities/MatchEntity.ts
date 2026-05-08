@@ -8,6 +8,7 @@ export interface RoundInfo {
 }
 
 export interface MatchOutcome {
+  totalRounds: number;
   winner: string;
   tScore: number;
   ctScore: number;
@@ -47,3 +48,11 @@ export interface MatchEntity {
   rounds: RoundInfo[];
   outcome: MatchOutcome;
 }
+
+export const isValidMatchEntity = (m: MatchEntity) => {
+  return (
+    m.rounds.length > 0 &&
+    m.outcome.totalRounds > 0 &&
+    m.participants.length > 0
+  );
+};

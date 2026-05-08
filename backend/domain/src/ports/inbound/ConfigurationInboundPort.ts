@@ -79,4 +79,9 @@ export interface ConfigurationInboundPort {
    * Gets the api url to the assets of map
    */
   getMapRadarApiPath(mapId: string, layer: string): string;
+
+  /**
+   * Page size of the matches list for ui
+   */
+  matchesPageSize: number;
 }

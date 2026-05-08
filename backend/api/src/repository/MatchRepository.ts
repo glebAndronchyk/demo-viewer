@@ -49,15 +49,15 @@ import {
 } from "../mappers/player-analytics.mapper";
 import { detectClutchRounds, type RawClutchRound } from "./detectClutchRounds";
 import { PlayerAccuracyEntity } from "@demo-viewer/domain/src/entities/PlayerAccuracyEntity";
-import {
-  MemoryCache,
-  MemoryCacheAccessor,
-} from "@demo-viewer/backend-shared";
+import { MemoryCache, MemoryCacheAccessor } from "@demo-viewer/backend-shared";
 
 export { detectClutchRounds };
 
 export class MatchRepository implements MatchOutboundPort {
-  private readonly totalStatsCache: MemoryCacheAccessor<string, PlayerStatsEntity>;
+  private readonly totalStatsCache: MemoryCacheAccessor<
+    string,
+    PlayerStatsEntity
+  >;
 
   constructor(
     private readonly database: DatabaseService,
@@ -348,134 +348,137 @@ export class MatchRepository implements MatchOutboundPort {
       (_, i) => payload.startGameTick + i * payload.step,
     );
 
-    const result = await this.database.DemoChunkModel.aggregate([
-      {
-        $match: {
-          demo_id: payload.demoId,
-          $or: [
-            {
-              start_game_tick: {
-                $gte: payload.startGameTick,
-                $lte: payload.endGameTick,
+    const result = await this.database.DemoChunkModel.aggregate(
+      [
+        {
+          $match: {
+            demo_id: payload.demoId,
+            $or: [
+              {
+                start_game_tick: {
+                  $gte: payload.startGameTick,
+                  $lte: payload.endGameTick,
+                },
               },
-            },
-            {
-              end_game_tick: {
-                $gte: payload.startGameTick,
-                $lte: payload.endGameTick,
+              {
+                end_game_tick: {
+                  $gte: payload.startGameTick,
+                  $lte: payload.endGameTick,
+                },
               },
-            },
-            // include chunks that overlap the range start (e.g. tick-0 chunk with connect events)
-            {
-              start_game_tick: { $lte: payload.startGameTick },
-              end_game_tick: { $gte: payload.startGameTick },
-            },
-          ],
+              // include chunks that overlap the range start (e.g. tick-0 chunk with connect events)
+              {
+                start_game_tick: { $lte: payload.startGameTick },
+                end_game_tick: { $gte: payload.startGameTick },
+              },
+            ],
+          },
         },
-      },
-      {
-        $unwind: "$frames",
-      },
-      {
-        $group: {
-          _id: "$demo_id",
-          frames: { $push: "$frames" },
+        {
+          $unwind: "$frames",
         },
-      },
-      {
-        $project: {
-          frames: {
-            $map: {
-              input: tickSet,
-              as: "tick",
-              in: {
-                $let: {
-                  vars: {
-                    // pick the last frame at this tick for player state (most up-to-date snapshot)
-                    targetFrame: {
-                      $arrayElemAt: [
-                        {
-                          $filter: {
-                            input: "$frames",
-                            as: "frame",
-                            cond: { $eq: ["$$frame.game_tick", "$$tick"] },
+        {
+          $group: {
+            _id: "$demo_id",
+            frames: { $push: "$frames" },
+          },
+        },
+        {
+          $project: {
+            frames: {
+              $map: {
+                input: tickSet,
+                as: "tick",
+                in: {
+                  $let: {
+                    vars: {
+                      // pick the last frame at this tick for player state (most up-to-date snapshot)
+                      targetFrame: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$frames",
+                              as: "frame",
+                              cond: { $eq: ["$$frame.game_tick", "$$tick"] },
+                            },
                           },
-                        },
-                        -1,
-                      ],
-                    },
-                    // collect events from all frames in range (prev tick, current tick]
-                    accumulatedEvents: {
-                      $reduce: {
-                        input: {
-                          $filter: {
-                            input: "$frames",
-                            as: "frame",
-                            cond: {
-                              $and: [
-                                {
-                                  $gt: [
-                                    "$$frame.game_tick",
-                                    {
-                                      $cond: {
-                                        if: {
-                                          $eq: [
-                                            "$$tick",
-                                            payload.startGameTick,
-                                          ],
-                                        },
-                                        then: -1,
-                                        else: {
-                                          $subtract: ["$$tick", payload.step],
+                          -1,
+                        ],
+                      },
+                      // collect events from all frames in range (prev tick, current tick]
+                      accumulatedEvents: {
+                        $reduce: {
+                          input: {
+                            $filter: {
+                              input: "$frames",
+                              as: "frame",
+                              cond: {
+                                $and: [
+                                  {
+                                    $gt: [
+                                      "$$frame.game_tick",
+                                      {
+                                        $cond: {
+                                          if: {
+                                            $eq: [
+                                              "$$tick",
+                                              payload.startGameTick,
+                                            ],
+                                          },
+                                          then: -1,
+                                          else: {
+                                            $subtract: ["$$tick", payload.step],
+                                          },
                                         },
                                       },
-                                    },
-                                  ],
-                                },
-                                { $lte: ["$$frame.game_tick", "$$tick"] }, // inclusive upper bound to capture all frames at this tick
-                              ],
-                            },
-                          },
-                        },
-                        initialValue: [],
-                        in: {
-                          $concatArrays: [
-                            "$$value",
-                            {
-                              $map: {
-                                input: "$$this.events",
-                                as: "evt",
-                                in: {
-                                  $mergeObjects: [
-                                    "$$evt",
-                                    {
-                                      demo_tick: "$$this.demo_tick",
-                                      game_tick: "$$this.game_tick",
-                                    },
-                                  ],
-                                },
+                                    ],
+                                  },
+                                  { $lte: ["$$frame.game_tick", "$$tick"] }, // inclusive upper bound to capture all frames at this tick
+                                ],
                               },
                             },
-                          ],
+                          },
+                          initialValue: [],
+                          in: {
+                            $concatArrays: [
+                              "$$value",
+                              {
+                                $map: {
+                                  input: "$$this.events",
+                                  as: "evt",
+                                  in: {
+                                    $mergeObjects: [
+                                      "$$evt",
+                                      {
+                                        demo_tick: "$$this.demo_tick",
+                                        game_tick: "$$this.game_tick",
+                                      },
+                                    ],
+                                  },
+                                },
+                              },
+                            ],
+                          },
                         },
                       },
                     },
-                  },
-                  in: {
-                    $mergeObjects: [
-                      "$$targetFrame",
-                      {
-                        events: "$$accumulatedEvents",
-                      },
-                    ],
+                    in: {
+                      $mergeObjects: [
+                        "$$targetFrame",
+                        {
+                          events: "$$accumulatedEvents",
+                        },
+                      ],
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    ], { allowDiskUse: true });
+      ],
+      { allowDiskUse: true },
+    );
 
     if (!result || result.length === 0) return null;
 
@@ -634,7 +637,9 @@ export class MatchRepository implements MatchOutboundPort {
     return doc ? toPlayerStatsEntity(doc) : null;
   }
 
-  async getTotalPlayerStats(steamId: string): Promise<PlayerStatsEntity | null> {
+  async getTotalPlayerStats(
+    steamId: string,
+  ): Promise<PlayerStatsEntity | null> {
     if (this.totalStatsCache.has(steamId)) {
       return this.totalStatsCache.get(steamId)!;
     }
@@ -655,10 +660,7 @@ export class MatchRepository implements MatchOutboundPort {
           },
           weighted_adr: {
             $sum: {
-              $multiply: [
-                { $toDouble: "$total_adr" },
-                "$total_rounds_played",
-              ],
+              $multiply: [{ $toDouble: "$total_adr" }, "$total_rounds_played"],
             },
           },
           weighted_hs: {
@@ -668,18 +670,12 @@ export class MatchRepository implements MatchOutboundPort {
           },
           weighted_kpr: {
             $sum: {
-              $multiply: [
-                { $toDouble: "$total_kpr" },
-                "$total_rounds_played",
-              ],
+              $multiply: [{ $toDouble: "$total_kpr" }, "$total_rounds_played"],
             },
           },
           weighted_apr: {
             $sum: {
-              $multiply: [
-                { $toDouble: "$total_apr" },
-                "$total_rounds_played",
-              ],
+              $multiply: [{ $toDouble: "$total_apr" }, "$total_rounds_played"],
             },
           },
           total_kills_for_hs: { $sum: "$total_kills" },
@@ -804,5 +800,27 @@ export class MatchRepository implements MatchOutboundPort {
       demoTick: (e.demo_tick ?? 0) as number,
       gameTick: (e.game_tick ?? 0) as number,
     }));
+  }
+
+  private static readonly validMatchFilter = {
+    $expr: {
+      $and: [
+        { $gt: [{ $size: { $ifNull: ['$rounds', []] } }, 0] },
+        { $gt: [{ $size: { $ifNull: ['$participants', []] } }, 0] },
+      ],
+    },
+  };
+
+  async getMatches(skip: number, take: number): Promise<MatchEntity[]> {
+    const matches = await this.database.MatchModel.find(MatchRepository.validMatchFilter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(take);
+
+    return matches.map(toMatchEntity);
+  }
+
+  async getTotalMatches(): Promise<number> {
+    return this.database.MatchModel.countDocuments(MatchRepository.validMatchFilter);
   }
 }
