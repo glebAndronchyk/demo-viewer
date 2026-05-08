@@ -6,6 +6,8 @@ export interface GetPaginatedMatchesCommand extends GenericCommand<"get_paginate
 
 export interface GetPaginatedMatchesCommandResult {
   totalPages: number;
+  pageSize: number;
+  totalItems: number;
   page: {
     demoId: string;
     map: string;

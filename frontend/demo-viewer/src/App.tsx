@@ -11,12 +11,14 @@ import { AuthProvider } from "./modules/auth";
 import { AppHeader } from "./components/AppHeader";
 import { lazy } from "react";
 import { AccountPage } from "./pages/account/AccountPage.tsx";
+import RootPage from "./pages/root/RootPage.tsx";
+import { useRootPageViewModel } from "./pages/root/viewmodel/RootPageViewModel.tsx";
 
 const RootLayout = () => (
   <AuthProvider>
     <Layout style={{ minHeight: "100vh" }}>
       <AppHeader />
-      <Layout.Content>
+      <Layout.Content className="pt-16 !min-h-screen !h-screen">
         <Outlet />
       </Layout.Content>
     </Layout>
@@ -31,7 +33,8 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <div className="w-screen h-screen">Main</div>,
+        loader: useRootPageViewModel.loader,
+        element: <RootPage />,
       },
       {
         path: "/player/:matchId",

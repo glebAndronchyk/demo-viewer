@@ -19,6 +19,8 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
     const matches = await outbound.matchRepository.getMatches(skip, take);
 
     return {
+      totalItems: totalMatches,
+      pageSize: outbound.configuration.matchesPageSize,
       totalPages: Math.ceil(totalMatches / take),
       page: matches.map(
         (m) =>

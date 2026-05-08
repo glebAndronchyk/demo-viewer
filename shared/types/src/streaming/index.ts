@@ -5,6 +5,14 @@ export type {
   ManifestResponseData,
   ManifestResponseDto,
 } from "./ManifestDto.ts";
+export type {
+  MatchListPlayerDto,
+  MatchListOutcomeDto,
+  MatchListItemDto,
+  MatchListPaginationDto,
+  MatchListResponseData,
+  MatchListResponseDto,
+} from "./MatchListDto.ts";
 export {
   GRENADE_WEAPON_TYPES,
   MELEE_AND_EQUIPMENT_WEAPON_TYPES,

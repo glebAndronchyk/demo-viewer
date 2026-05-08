@@ -10,6 +10,9 @@ export function AppHeader() {
   return (
     <Layout.Header
       style={{
+        position: "fixed",
+        width: "100%",
+        top: 0,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
