@@ -7,6 +7,7 @@ declare module "bun" {
     DB_CONNECTION_STRING: string;
     STORAGE_TYPE: "local";
     STORAGE_LOCAL_BASE_PATH: string;
+    STATISTICS_QUERY_CAP_MONTH: string;
     SHARE_CODE_SEEK_STEP: string;
     MATCHER_PER_ANALYTICS_SEEK_STEP: string;
     MATCHES_PAGE_SIZE: string;

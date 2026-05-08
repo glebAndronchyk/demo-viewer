@@ -44,12 +44,19 @@ import {
   toPlayerClutchesModel,
   toPlayerEconomyModel,
   toPlayerUtilityModel,
+  toPlayerWeaponStatsEntity,
+  toPlayerWeaponsUsageEntity,
   toPlayerWeaponsUsageModel,
   toWeaponStatsModels,
 } from "../mappers/player-analytics.mapper";
 import { detectClutchRounds, type RawClutchRound } from "./detectClutchRounds";
 import { PlayerAccuracyEntity } from "@demo-viewer/domain/src/entities/PlayerAccuracyEntity";
 import { MemoryCache, MemoryCacheAccessor } from "@demo-viewer/backend-shared";
+import {
+  IPlayerWeaponsUsage,
+  IWeaponStats,
+} from "@demo-viewer/database/dist/types/weapon.types.ts";
+import { PipelineStage } from "mongoose";
 
 export { detectClutchRounds };
 
@@ -58,12 +65,17 @@ export class MatchRepository implements MatchOutboundPort {
     string,
     PlayerStatsEntity
   >;
+  private readonly weaponsCache: MemoryCacheAccessor<
+    string,
+    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity
+  >;
 
   constructor(
     private readonly database: DatabaseService,
     cache: MemoryCache,
   ) {
     this.totalStatsCache = new MemoryCacheAccessor(cache, "totalPlayerStats");
+    this.weaponsCache = new MemoryCacheAccessor(cache, "weapons");
   }
 
   async getMatchesPerStep(
@@ -155,7 +167,7 @@ export class MatchRepository implements MatchOutboundPort {
                 ...weaponStatsEntity,
                 statsId: statsId.toString(),
               },
-              usageId.toString(),
+              usageId,
             ).map((doc) => this.database.WeaponStatsModel.create(doc)),
           );
         }
@@ -802,17 +814,128 @@ export class MatchRepository implements MatchOutboundPort {
     }));
   }
 
+  private static matchesInRangeAggregation(steamId: string, date: Date, statsIdField = "stats_id") {
+    return [
+      {
+        $lookup: {
+          from: "player_stats",
+          localField: statsIdField,
+          foreignField: "_id",
+          as: "stats",
+        },
+      },
+      { $unwind: "$stats" },
+      { $match: { "stats.participant_steam_id": steamId } },
+      {
+        $lookup: {
+          from: "matches",
+          let: { matchId: "$stats.match_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $toString: "$_id" }, "$$matchId"] },
+                    { $gte: ["$date_played", date] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "match",
+        },
+      },
+      { $unwind: "$match" },
+    ] as PipelineStage[];
+  }
+
+  async aggregateWeaponUsagePct(steamId: string, startDate: Date) {
+    const cacheKey = `usage:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(cacheKey)) {
+      return this.weaponsCache.get(cacheKey) as PlayerWeaponsUsageEntity;
+    }
+
+    const aggregatedResult =
+      await this.database.PlayerWeaponsUsageModel.aggregate<IPlayerWeaponsUsage>(
+        [
+          ...MatchRepository.matchesInRangeAggregation(steamId, startDate),
+          {
+            $group: {
+              _id: null,
+              pistols_pct: { $avg: { $toDouble: "$pistols_pct" } },
+              utility_pct: { $avg: { $toDouble: "$utility_pct" } },
+              melee_pct: { $avg: { $toDouble: "$melee_pct" } },
+              shotguns_pct: { $avg: { $toDouble: "$shotguns_pct" } },
+              smg_pct: { $avg: { $toDouble: "$smg_pct" } },
+              assault_rifle_pct: { $avg: { $toDouble: "$assault_rifle_pct" } },
+              sniper_rifles_pct: { $avg: { $toDouble: "$sniper_rifles_pct" } },
+              machine_guns_pct: { $avg: { $toDouble: "$machine_guns_pct" } },
+            },
+          },
+        ],
+      );
+
+    if (!aggregatedResult[0]) {
+      return toPlayerWeaponsUsageEntity({} as IPlayerWeaponsUsage);
+    }
+
+    const entity = toPlayerWeaponsUsageEntity(aggregatedResult[0]);
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+
+  async aggregateWeaponStats(steamId: string, startDate: Date) {
+    const cacheKey = `stats:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(steamId)) {
+      return this.weaponsCache.get(cacheKey) as PlayerWeaponStatsEntity;
+    }
+
+    const aggregatedResult =
+      await this.database.WeaponStatsModel.aggregate<IWeaponStats>([
+        {
+          $lookup: {
+            from: "player_weapons_usage",
+            localField: "player_weapon_usage_id",
+            foreignField: "_id",
+            as: "usage",
+          },
+        },
+        { $unwind: "$usage" },
+        ...MatchRepository.matchesInRangeAggregation(steamId, startDate, "usage.stats_id"),
+        {
+          $group: {
+            _id: "$weapon_name",
+            weapon_name: { $first: "$weapon_name" },
+            kills: { $sum: { $toInt: "$kills" } },
+            deaths: { $sum: { $toInt: "$deaths" } },
+            hits: { $sum: { $toInt: "$hits" } },
+            shots: { $sum: { $toInt: "$shots" } },
+            damage: { $sum: { $toInt: "$damage" } },
+            headshots: { $sum: { $toInt: "$headshots" } },
+          },
+        },
+      ]);
+
+    const entity = toPlayerWeaponStatsEntity({} as never, aggregatedResult);
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+
   private static readonly validMatchFilter = {
     $expr: {
       $and: [
-        { $gt: [{ $size: { $ifNull: ['$rounds', []] } }, 0] },
-        { $gt: [{ $size: { $ifNull: ['$participants', []] } }, 0] },
+        { $gt: [{ $size: { $ifNull: ["$rounds", []] } }, 0] },
+        { $gt: [{ $size: { $ifNull: ["$participants", []] } }, 0] },
       ],
     },
   };
 
   async getMatches(skip: number, take: number): Promise<MatchEntity[]> {
-    const matches = await this.database.MatchModel.find(MatchRepository.validMatchFilter)
+    const matches = await this.database.MatchModel.find(
+      MatchRepository.validMatchFilter,
+    )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(take);
@@ -821,6 +944,8 @@ export class MatchRepository implements MatchOutboundPort {
   }
 
   async getTotalMatches(): Promise<number> {
-    return this.database.MatchModel.countDocuments(MatchRepository.validMatchFilter);
+    return this.database.MatchModel.countDocuments(
+      MatchRepository.validMatchFilter,
+    );
   }
 }

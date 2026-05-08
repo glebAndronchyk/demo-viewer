@@ -61,7 +61,7 @@ export function toPlayerUtilityModel(entity: PlayerUtilityEntity): IPlayerUtilit
 
 export function toPlayerWeaponsUsageModel(entity: PlayerWeaponsUsageEntity): IPlayerWeaponsUsage {
   return {
-    stats_id: entity.statsId,
+    stats_id: new Types.ObjectId(entity.statsId),
     pistols_pct: numberToDecimal128(entity.pistolsPct),
     utility_pct: numberToDecimal128(entity.utilityPct),
     melee_pct: numberToDecimal128(entity.meleePct),
@@ -85,7 +85,41 @@ export function toPlayerAccuracyModel(entity: PlayerAccuracyEntity): IPlayerAccu
   };
 }
 
-export function toWeaponStatsModels(entity: PlayerWeaponStatsEntity, usageId: string): IWeaponStats[] {
+export function toPlayerWeaponsUsageEntity(doc: IPlayerWeaponsUsage): PlayerWeaponsUsageEntity {
+  return {
+    _analyticsType: "weaponsUsage",
+    statsId: doc.stats_id?.toString(),
+    pistolsPct: doc.pistols_pct ? parseFloat(doc.pistols_pct.toString()) : undefined,
+    utilityPct: doc.utility_pct ? parseFloat(doc.utility_pct.toString()) : undefined,
+    meleePct: doc.melee_pct ? parseFloat(doc.melee_pct.toString()) : undefined,
+    shotgunsPct: doc.shotguns_pct ? parseFloat(doc.shotguns_pct.toString()) : undefined,
+    smgPct: doc.smg_pct ? parseFloat(doc.smg_pct.toString()) : undefined,
+    assaultRiflePct: doc.assault_rifle_pct ? parseFloat(doc.assault_rifle_pct.toString()) : undefined,
+    sniperRiflePct: doc.sniper_rifles_pct ? parseFloat(doc.sniper_rifles_pct.toString()) : undefined,
+    machineGunPct: doc.machine_guns_pct ? parseFloat(doc.machine_guns_pct.toString()) : undefined,
+  };
+}
+
+export function toPlayerWeaponStatsEntity(
+  usageDoc: IPlayerWeaponsUsage & { _id: unknown },
+  statsDocs: IWeaponStats[],
+): PlayerWeaponStatsEntity {
+  return {
+    _analyticsType: "weaponStats",
+    statsId: usageDoc.stats_id?.toString(),
+    weapons: statsDocs.map((w) => ({
+      weaponName: w.weapon_name,
+      kills: w.kills ?? 0,
+      deaths: w.deaths ?? 0,
+      hits: w.hits ?? 0,
+      shots: w.shots ?? 0,
+      damage: w.damage ?? 0,
+      headshots: w.headshots ?? 0,
+    })),
+  };
+}
+
+export function toWeaponStatsModels(entity: PlayerWeaponStatsEntity, usageId: Types.ObjectId): IWeaponStats[] {
   return entity.weapons.map((w) => ({
     player_weapon_usage_id: usageId,
     weapon_name: w.weaponName,

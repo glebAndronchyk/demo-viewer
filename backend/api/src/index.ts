@@ -11,7 +11,7 @@ import { DIContainer } from "@demo-viewer/backend-shared/src/lib/di/DIContainer"
 import { CommandBusService } from "./adapters/CommandBusService";
 import { App } from "./app/App";
 import {
-  AnalyticsController,
+  StatisticsController,
   AuthorizationController,
   BackgroundController,
   MaintenanceController,
@@ -80,7 +80,7 @@ const di = new DIContainer()
     CommandBusService,
     UserRepository,
   ])
-  .addSingleton(AnalyticsController, [TypedApp, CommandBusService])
+  .addSingleton(StatisticsController, [TypedApp, CommandBusService])
   .addSingleton(AuthorizationController, [
     TypedApp,
     EnvConfiguration,

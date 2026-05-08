@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.2",
+    "@ant-design/plots": "^2.6.8",
     "@demo-viewer/shared-entities": "workspace:*",
     "@demo-viewer/shared-types": "workspace:*",
     "@react-three/drei": "^10.7.7",

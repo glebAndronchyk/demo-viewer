@@ -1,12 +1,17 @@
 import { Elysia, t } from "elysia";
 import { CommandBusService } from "../adapters/CommandBusService";
+import {
+  GetPlayerWeaponAnalyticsCommand,
+  GetPlayerWeaponAnalyticsCommandResult,
+} from "@demo-viewer/domain/src/commands/GetPlayerWeaponAnalyticsCommand.ts";
+import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse.ts";
 
-export class AnalyticsController {
+export class StatisticsController {
   constructor(app: Elysia, commandBus: CommandBusService) {
     app.use(
-      new Elysia({ prefix: "/analytics", tags: ["analytics"] })
+      new Elysia({ prefix: "/statistics", tags: ["statistics"] })
         .get(
-          "/match/generic",
+          "/match/player-stats",
           async ({ query }) => {
             const result = await commandBus.dispatch({
               type: "get_match_player_stats",
@@ -23,7 +28,26 @@ export class AnalyticsController {
           },
         )
         .get(
-          "/total/generic",
+          "/total/weapons",
+          async ({ query: { steamId, startDate } }) => {
+            return {
+              data: await commandBus.dispatch<GetPlayerWeaponAnalyticsCommand>({
+                type: "get_player_weapon_analytics",
+                steamId,
+                startDate,
+              }),
+              isSuccess: true,
+            } satisfies BaseResponse<GetPlayerWeaponAnalyticsCommandResult>;
+          },
+          {
+            query: t.Object({
+              steamId: t.String(),
+              startDate: t.Date(),
+            }),
+          },
+        )
+        .get(
+          "/total/player-stats",
           async ({ query }) => {
             const result = await commandBus.dispatch({
               type: "get_total_player_stats",

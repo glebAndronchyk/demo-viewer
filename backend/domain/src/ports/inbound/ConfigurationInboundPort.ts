@@ -84,4 +84,9 @@ export interface ConfigurationInboundPort {
    * Page size of the matches list for ui
    */
   matchesPageSize: number;
+
+  /**
+   * a cap for statistics range. adjust to aggregate stats from broader period
+   */
+  statisticsQueryCapMonth: number;
 }

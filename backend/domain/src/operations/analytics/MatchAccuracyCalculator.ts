@@ -7,8 +7,6 @@ import {
 } from "../../entities/events";
 import type { HitGroup } from "../../entities/HitGroup.ts";
 
-// todo: link to matchPlayerStats on db level
-
 export class MatchAccuracyCalculator extends AnalyticsCalculator<
   Omit<PlayerAccuracyEntity, "statsId">
 > {
@@ -91,7 +89,10 @@ export class MatchAccuracyCalculator extends AnalyticsCalculator<
     });
 
     return Object.fromEntries(
-      Object.entries(hitGroups).map(([key, value]) => [key, value?.length ?? 0]),
+      Object.entries(hitGroups).map(([key, value]) => [
+        key,
+        value?.length ?? 0,
+      ]),
     ) as Record<HitGroup, number>;
   }
 }

@@ -1,4 +1,4 @@
-export * from "./AnalyticsController";
+export * from "./StatisticsController.ts";
 export * from "./AuthorizationController";
 export * from "./BackgroundController";
 export * from "./ParsingController";

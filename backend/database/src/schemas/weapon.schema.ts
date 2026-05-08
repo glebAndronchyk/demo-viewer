@@ -7,9 +7,9 @@ import {
 export const PlayerWeaponsUsageSchema = new Schema<IPlayerWeaponsUsageDocument>(
   {
     stats_id: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
       required: false,
-      trim: true,
     },
     pistols_pct: {
       type: Schema.Types.Decimal128,
@@ -48,9 +48,9 @@ PlayerWeaponsUsageSchema.index({ stats_id: 1 });
 export const WeaponStatsSchema = new Schema<IWeaponStatsDocument>(
   {
     player_weapon_usage_id: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerWeaponsUsage",
       required: false,
-      trim: true,
     },
     weapon_name: {
       type: String,

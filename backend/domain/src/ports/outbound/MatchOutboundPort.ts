@@ -12,6 +12,8 @@ import type {
 } from "../../entities/events/MatchEvent.ts";
 import type { PlayerStatsEntity } from "../../entities/PlayerStatsEntity.ts";
 import type { PlayerAnalyticalEntity } from "../../entities/PlayerAnalyticalEntity.ts";
+import type { PlayerWeaponsUsageEntity } from "../../entities/PlayerWeaponsUsageEntity.ts";
+import type { PlayerWeaponStatsEntity } from "../../entities/PlayerWeaponStatsEntity.ts";
 
 export interface AggregatedEventsFilter {
   matchId?: string;
@@ -90,4 +92,14 @@ export interface MatchOutboundPort {
   getMatches(skip: number, take: number): Promise<MatchEntity[]>;
 
   getTotalMatches(): Promise<number>;
+
+  aggregateWeaponUsagePct(
+    steamId: string,
+    startDate: Date,
+  ): Promise<PlayerWeaponsUsageEntity>;
+
+  aggregateWeaponStats(
+    steamId: string,
+    startDate: Date,
+  ): Promise<PlayerWeaponStatsEntity>;
 }

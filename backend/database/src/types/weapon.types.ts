@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 
 export interface IPlayerWeaponsUsage {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   pistols_pct?: Types.Decimal128;
   utility_pct?: Types.Decimal128;
   melee_pct?: Types.Decimal128;
@@ -15,7 +15,7 @@ export interface IPlayerWeaponsUsage {
 export interface IPlayerWeaponsUsageDocument extends IPlayerWeaponsUsage, Document {}
 
 export interface IWeaponStats {
-  player_weapon_usage_id: string;
+  player_weapon_usage_id: Types.ObjectId;
   weapon_name: string;
   kills?: number;
   deaths?: number;

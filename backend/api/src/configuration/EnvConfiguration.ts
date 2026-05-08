@@ -3,6 +3,10 @@ import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/
 export class EnvConfiguration implements ConfigurationInboundPort {
   private readonly env: typeof Bun.env;
 
+  get statisticsQueryCapMonth(): number {
+    return Number(this.env.STATISTICS_QUERY_CAP_MONTH ?? 6);
+  }
+
   get matchesPageSize(): number {
     return Number(this.env.MATCHES_PAGE_SIZE ?? 10);
   }
