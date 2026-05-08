@@ -11,7 +11,7 @@ export const getPlayerWeaponAnalyticsHandler = (outbound: DomainOutbound) => {
     GetPlayerWeaponAnalyticsCommand,
     GetPlayerWeaponAnalyticsCommandResult
   > = async (command) => {
-    const [weaponUsagePct, weaponStats] = await Promise.all([
+    const [weaponUsagePct, weaponStats, utilityUsage] = await Promise.all([
       outbound.matchRepository.aggregateWeaponUsagePct(
         command.steamId,
         command.startDate,
@@ -20,11 +20,13 @@ export const getPlayerWeaponAnalyticsHandler = (outbound: DomainOutbound) => {
         command.steamId,
         command.startDate,
       ),
+      outbound.matchRepository.aggregateUtilityUsage(
+        command.steamId,
+        command.startDate,
+      ),
     ]);
 
-    // todo: add analytics
-
-    return { weaponUsagePct, weaponStats };
+    return { weaponUsagePct, weaponStats, utilityUsage };
   };
 
   handler.match = (c: object): c is GetPlayerWeaponAnalyticsCommand =>

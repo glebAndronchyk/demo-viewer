@@ -129,8 +129,8 @@ PlayerBehaviorSchema.index({ stats_id: 1 });
 export const PlayerUtilitySchema = new Schema<IPlayerUtilityDocument>(
   {
     stats_id: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     grenades_thrown: {
       type: Number,

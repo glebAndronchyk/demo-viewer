@@ -43,7 +43,7 @@ export function toPlayerEconomyModel(entity: PlayerEconomyEntity): IPlayerEconom
 
 export function toPlayerUtilityModel(entity: PlayerUtilityEntity): IPlayerUtility {
   return {
-    stats_id: entity.statsId,
+    stats_id: new Types.ObjectId(entity.statsId),
     grenades_thrown: entity.grenadesThrown,
     he_thrown: entity.heThrown,
     smokes_thrown: entity.smokesThrown,
@@ -82,6 +82,24 @@ export function toPlayerAccuracyModel(entity: PlayerAccuracyEntity): IPlayerAccu
     top_level_accuracy: numberToDecimal128(entity.topLevelAccuracy),
     hit_breakdown: entity.hitBreakdown as IPlayerAccuracy["hit_breakdown"],
     date_recorded: entity.dateRecorded,
+  };
+}
+
+export function toPlayerUtilityEntity(doc: IPlayerUtility): Omit<PlayerUtilityEntity, "statsId"> {
+  return {
+    _analyticsType: "utility",
+    grenadesThrown: doc.grenades_thrown,
+    heThrown: doc.he_thrown,
+    smokesThrown: doc.smokes_thrown,
+    molotovsThrown: doc.molotovs_thrown,
+    flashesThrown: doc.flashes_thrown,
+    incendiariesThrown: doc.incendiaries_thrown,
+    teammatesFlashed: doc.teammates_flashed,
+    enemiesFlashed: doc.enemies_flashed,
+    flashDuration: doc.flash_duration ? parseFloat(doc.flash_duration.toString()) : undefined,
+    molotovsDamage: doc.molotovs_damage,
+    heDamage: doc.he_damage,
+    dateRecorded: doc.date_recorded,
   };
 }
 

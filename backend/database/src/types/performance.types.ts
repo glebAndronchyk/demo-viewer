@@ -47,7 +47,7 @@ export interface IPlayerBehavior {
 export interface IPlayerBehaviorDocument extends IPlayerBehavior, Document {}
 
 export interface IPlayerUtility {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   grenades_thrown?: number;
   he_thrown?: number;
   smokes_thrown?: number;

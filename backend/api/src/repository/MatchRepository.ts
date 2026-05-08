@@ -43,6 +43,7 @@ import {
   toPlayerAccuracyModel,
   toPlayerClutchesModel,
   toPlayerEconomyModel,
+  toPlayerUtilityEntity,
   toPlayerUtilityModel,
   toPlayerWeaponStatsEntity,
   toPlayerWeaponsUsageEntity,
@@ -56,6 +57,7 @@ import {
   IPlayerWeaponsUsage,
   IWeaponStats,
 } from "@demo-viewer/database/dist/types/weapon.types.ts";
+import { IPlayerUtility } from "@demo-viewer/database/src/types/performance.types.ts";
 import { PipelineStage } from "mongoose";
 
 export { detectClutchRounds };
@@ -67,7 +69,7 @@ export class MatchRepository implements MatchOutboundPort {
   >;
   private readonly weaponsCache: MemoryCacheAccessor<
     string,
-    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity
+    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity | Omit<PlayerUtilityEntity, "statsId">
   >;
 
   constructor(
@@ -919,6 +921,39 @@ export class MatchRepository implements MatchOutboundPort {
       ]);
 
     const entity = toPlayerWeaponStatsEntity({} as never, aggregatedResult);
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+
+  async aggregateUtilityUsage(steamId: string, startDate: Date) {
+    const cacheKey = `utility:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(cacheKey)) {
+      return this.weaponsCache.get(cacheKey) as Omit<PlayerUtilityEntity, "statsId">;
+    }
+
+    const aggregatedResult =
+      await this.database.PlayerUtilityModel.aggregate<IPlayerUtility>([
+        ...MatchRepository.matchesInRangeAggregation(steamId, startDate),
+        {
+          $group: {
+            _id: null,
+            grenades_thrown: { $sum: { $toInt: "$grenades_thrown" } },
+            he_thrown: { $sum: { $toInt: "$he_thrown" } },
+            smokes_thrown: { $sum: { $toInt: "$smokes_thrown" } },
+            molotovs_thrown: { $sum: { $toInt: "$molotovs_thrown" } },
+            flashes_thrown: { $sum: { $toInt: "$flashes_thrown" } },
+            incendiaries_thrown: { $sum: { $toInt: "$incendiaries_thrown" } },
+            teammates_flashed: { $sum: { $toInt: "$teammates_flashed" } },
+            enemies_flashed: { $sum: { $toInt: "$enemies_flashed" } },
+            flash_duration: { $sum: { $toDouble: "$flash_duration" } },
+            molotovs_damage: { $sum: { $toInt: "$molotovs_damage" } },
+            he_damage: { $sum: { $toInt: "$he_damage" } },
+          },
+        },
+      ]);
+
+    const entity = toPlayerUtilityEntity(aggregatedResult[0] ?? ({} as IPlayerUtility));
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }
