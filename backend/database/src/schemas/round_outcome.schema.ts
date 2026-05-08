@@ -34,9 +34,8 @@ PlayerTradesSchema.index({ stats_id: 1 });
 export const PlayerEconomySchema = new Schema<IPlayerEconomyDocument>(
   {
     stats_id: {
-      type: String,
-      required: false,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     rounds_eco: {
       type: Number,

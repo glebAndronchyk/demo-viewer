@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface IPlayerTrades {
   stats_id: string;
@@ -10,7 +10,7 @@ export interface IPlayerTrades {
 export interface IPlayerTradesDocument extends IPlayerTrades, Document {}
 
 export interface IPlayerEconomy {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   rounds_eco?: number;
   rounds_force_buy?: number;
   rounds_full_buy?: number;

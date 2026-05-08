@@ -4,6 +4,10 @@ import {
   GetPlayerWeaponAnalyticsCommand,
   GetPlayerWeaponAnalyticsCommandResult,
 } from "@demo-viewer/domain/src/commands/GetPlayerWeaponAnalyticsCommand.ts";
+import {
+  GetPlayerEconomyAnalyticsCommand,
+  GetPlayerEconomyAnalyticsCommandResult,
+} from "@demo-viewer/domain/src/commands/GetPlayerEconomyAnalyticsCommand.ts";
 import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse.ts";
 
 export class StatisticsController {
@@ -38,6 +42,25 @@ export class StatisticsController {
               }),
               isSuccess: true,
             } satisfies BaseResponse<GetPlayerWeaponAnalyticsCommandResult>;
+          },
+          {
+            query: t.Object({
+              steamId: t.String(),
+              startDate: t.Date(),
+            }),
+          },
+        )
+        .get(
+          "/total/economy",
+          async ({ query: { steamId, startDate } }) => {
+            return {
+              data: await commandBus.dispatch<GetPlayerEconomyAnalyticsCommand>({
+                type: "get_player_economy_analytics",
+                steamId,
+                startDate,
+              }),
+              isSuccess: true,
+            } satisfies BaseResponse<GetPlayerEconomyAnalyticsCommandResult>;
           },
           {
             query: t.Object({

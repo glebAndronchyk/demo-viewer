@@ -31,7 +31,7 @@ export function toPlayerClutchesModel(entity: PlayerClutchesEntity): IPlayerClut
 
 export function toPlayerEconomyModel(entity: PlayerEconomyEntity): IPlayerEconomy {
   return {
-    stats_id: entity.statsId,
+    stats_id: new Types.ObjectId(entity.statsId),
     rounds_eco: entity.roundsEco,
     rounds_force_buy: entity.roundsForceBuy,
     rounds_full_buy: entity.roundsFullBuy,
@@ -82,6 +82,18 @@ export function toPlayerAccuracyModel(entity: PlayerAccuracyEntity): IPlayerAccu
     top_level_accuracy: numberToDecimal128(entity.topLevelAccuracy),
     hit_breakdown: entity.hitBreakdown as IPlayerAccuracy["hit_breakdown"],
     date_recorded: entity.dateRecorded,
+  };
+}
+
+export function toPlayerEconomyEntity(doc: IPlayerEconomy): Omit<PlayerEconomyEntity, "statsId"> {
+  return {
+    _analyticsType: "economy",
+    roundsEco: doc.rounds_eco,
+    roundsForceBuy: doc.rounds_force_buy,
+    roundsFullBuy: doc.rounds_full_buy,
+    roundsPistol: doc.rounds_pistol,
+    roundsEcoWon: doc.rounds_eco_won,
+    dateRecorded: doc.date_recorded,
   };
 }
 

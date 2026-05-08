@@ -42,6 +42,7 @@ import {
 import {
   toPlayerAccuracyModel,
   toPlayerClutchesModel,
+  toPlayerEconomyEntity,
   toPlayerEconomyModel,
   toPlayerUtilityEntity,
   toPlayerUtilityModel,
@@ -58,6 +59,7 @@ import {
   IWeaponStats,
 } from "@demo-viewer/database/dist/types/weapon.types.ts";
 import { IPlayerUtility } from "@demo-viewer/database/src/types/performance.types.ts";
+import { IPlayerEconomy } from "@demo-viewer/database/src/types/round_outcome.types.ts";
 import { PipelineStage } from "mongoose";
 
 export { detectClutchRounds };
@@ -69,7 +71,7 @@ export class MatchRepository implements MatchOutboundPort {
   >;
   private readonly weaponsCache: MemoryCacheAccessor<
     string,
-    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity | Omit<PlayerUtilityEntity, "statsId">
+    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity | Omit<PlayerUtilityEntity, "statsId"> | Omit<PlayerEconomyEntity, "statsId">
   >;
 
   constructor(
@@ -954,6 +956,33 @@ export class MatchRepository implements MatchOutboundPort {
       ]);
 
     const entity = toPlayerUtilityEntity(aggregatedResult[0] ?? ({} as IPlayerUtility));
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+
+  async aggregateEconomyUsage(steamId: string, startDate: Date) {
+    const cacheKey = `economy:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(cacheKey)) {
+      return this.weaponsCache.get(cacheKey) as Omit<PlayerEconomyEntity, "statsId">;
+    }
+
+    const aggregatedResult =
+      await this.database.PlayerEconomyModel.aggregate<IPlayerEconomy>([
+        ...MatchRepository.matchesInRangeAggregation(steamId, startDate),
+        {
+          $group: {
+            _id: null,
+            rounds_eco: { $sum: { $toInt: "$rounds_eco" } },
+            rounds_force_buy: { $sum: { $toInt: "$rounds_force_buy" } },
+            rounds_full_buy: { $sum: { $toInt: "$rounds_full_buy" } },
+            rounds_pistol: { $sum: { $toInt: "$rounds_pistol" } },
+            rounds_eco_won: { $sum: { $toInt: "$rounds_eco_won" } },
+          },
+        },
+      ]);
+
+    const entity = toPlayerEconomyEntity(aggregatedResult[0] ?? ({} as IPlayerEconomy));
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }

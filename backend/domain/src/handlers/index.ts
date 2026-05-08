@@ -22,3 +22,4 @@ export { default as processPendingNotificationsRegistration } from "./ProcessPen
 export { default as getSteamFriendsRegistration } from "./GetSteamFriendsCommandHandler.ts";
 export { default as getPaginatedMatchesRegistration } from "./GetPaginatedMatchesHandler.ts";
 export { default as getPlayerWeaponAnalyticsRegistration } from "./GetPlayerWeaponAnalyticsCommandHandler.ts";
+export { default as getPlayerEconomyAnalyticsRegistration } from "./GetPlayerEconomyAnalyticsCommandHandler.ts";

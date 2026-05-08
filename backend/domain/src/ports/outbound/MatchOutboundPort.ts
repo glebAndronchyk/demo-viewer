@@ -15,6 +15,7 @@ import type { PlayerAnalyticalEntity } from "../../entities/PlayerAnalyticalEnti
 import type { PlayerWeaponsUsageEntity } from "../../entities/PlayerWeaponsUsageEntity.ts";
 import type { PlayerWeaponStatsEntity } from "../../entities/PlayerWeaponStatsEntity.ts";
 import type { PlayerUtilityEntity } from "../../entities/PlayerUtilityEntity.ts";
+import type { PlayerEconomyEntity } from "../../entities/PlayerEconomyEntity.ts";
 
 export interface AggregatedEventsFilter {
   matchId?: string;
@@ -108,4 +109,9 @@ export interface MatchOutboundPort {
     steamId: string,
     startDate: Date,
   ): Promise<Omit<PlayerUtilityEntity, "statsId">>;
+
+  aggregateEconomyUsage(
+    steamId: string,
+    startDate: Date,
+  ): Promise<Omit<PlayerEconomyEntity, "statsId">>;
 }
