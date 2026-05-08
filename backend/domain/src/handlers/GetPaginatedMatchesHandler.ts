@@ -18,6 +18,16 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
     const totalMatches = await outbound.matchRepository.getTotalMatches();
     const matches = await outbound.matchRepository.getMatches(skip, take);
 
+    const steamIds = [
+      ...new Set(
+        matches
+          .flatMap((m) => m.participants.map((p) => p.steamId))
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const summaries = await outbound.steamUserRepository.getPlayerSummaries(steamIds);
+    const avatarMap = new Map(summaries.map((s) => [s.steamId, s.avatarUrl]));
+
     return {
       totalItems: totalMatches,
       pageSize: outbound.configuration.matchesPageSize,
@@ -32,7 +42,7 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
                 ({
                   name: p.playerName,
                   steamId: p.steamId || "",
-                  avatar: "",
+                  avatar: avatarMap.get(p.steamId ?? "") ?? "",
                 }) satisfies GetPaginatedMatchesCommandResult["page"][number]["players"][number],
             ),
             outcome: {

@@ -6,6 +6,7 @@ import { ParserRepository } from "./repository/ParserRepository";
 import { MatchRepository } from "./repository/MatchRepository";
 import { NotificationRepository } from "./repository/NotificationRepository";
 import { SteamFriendsRepository } from "./repository/SteamFriendsRepository";
+import { SteamUserRepository } from "./repository/SteamUserRepository";
 import { DIContainer } from "@demo-viewer/backend-shared/src/lib/di/DIContainer";
 import { CommandBusService } from "./adapters/CommandBusService";
 import { App } from "./app/App";
@@ -59,6 +60,7 @@ const di = new DIContainer()
     LocalFilesystemStorageAdapter,
     NotificationRepository,
     SteamFriendsRepository,
+    SteamUserRepository,
   ])
   // repositories/services/commands
   .addSingleton(TeamRepository)
@@ -71,6 +73,7 @@ const di = new DIContainer()
   .addSingleton(LocalFilesystemStorageAdapter, [EnvConfiguration])
   .addSingleton(NotificationRepository, [DatabaseService as never])
   .addSingleton(SteamFriendsRepository, [EnvConfiguration])
+  .addSingleton(SteamUserRepository, [EnvConfiguration, MemoryCache])
   // controllers
   .addSingleton(MaintenanceController, [
     TypedApp,

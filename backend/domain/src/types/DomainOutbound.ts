@@ -9,6 +9,7 @@ import type { MatchOutboundPort } from "../ports/outbound/MatchOutboundPort.ts";
 import type { StorageOutboundPort } from "../ports/outbound/StorageOutboundPort.ts";
 import type { NotificationOutboundPort } from "../ports/outbound/NotificationOutboundPort.ts";
 import type { SteamFriendsOutboundPort } from "../ports/outbound/SteamFriendsOutboundPort.ts";
+import type { SteamUserOutboundPort } from "../ports/outbound/SteamUserOutboundPort.ts";
 
 export interface DomainOutbound {
   teamRepository: TeamOutboundPort;
@@ -22,4 +23,5 @@ export interface DomainOutbound {
   fileStorage: StorageOutboundPort;
   notificationRepository: NotificationOutboundPort;
   steamFriendsRepository: SteamFriendsOutboundPort;
+  steamUserRepository: SteamUserOutboundPort;
 }
