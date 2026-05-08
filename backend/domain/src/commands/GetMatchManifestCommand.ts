@@ -4,6 +4,13 @@ export interface GetMatchManifestCommand extends GenericCommand<"get_match_manif
   matchId: string;
 }
 
+export interface MapManifestFile {
+  resolution: number;
+  offset: { x: number; y: number };
+  zRange: { min: number; max: number };
+  survivableDistance: number[];
+}
+
 export interface ManifestRound {
   roundNumber: number;
   winner: string;
@@ -22,6 +29,7 @@ export interface ManifestOutcome {
 export interface GetMatchManifestCommandResult {
   mapName: string;
   mapRadarLayers: Record<string, string>; // todo proper assets map
+  mapManifest: MapManifestFile;
   mapServer: string;
   participants: {
     userId?: string | null;

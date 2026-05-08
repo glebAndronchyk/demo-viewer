@@ -10,6 +10,7 @@ export interface GetPaginatedMatchesCommandResult {
   totalItems: number;
   page: {
     demoId: string;
+    matchId: string;
     map: string;
     outcome: {
       winner: "T" | "CT" | "Draw";

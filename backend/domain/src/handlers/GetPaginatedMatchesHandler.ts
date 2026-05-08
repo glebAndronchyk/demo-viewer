@@ -25,7 +25,8 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
           .filter((id): id is string => Boolean(id)),
       ),
     ];
-    const summaries = await outbound.steamUserRepository.getPlayerSummaries(steamIds);
+    const summaries =
+      await outbound.steamUserRepository.getPlayerSummaries(steamIds);
     const avatarMap = new Map(summaries.map((s) => [s.steamId, s.avatarUrl]));
 
     return {
@@ -37,6 +38,7 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
           ({
             map: m.mapName,
             demoId: m.demoId,
+            matchId: m.id,
             players: m.participants.map(
               (p) =>
                 ({

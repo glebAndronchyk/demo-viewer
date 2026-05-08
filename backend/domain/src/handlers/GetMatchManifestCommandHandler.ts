@@ -6,6 +6,7 @@ import type { DomainOutbound } from "../types/DomainOutbound.ts";
 import type {
   GetMatchManifestCommand,
   GetMatchManifestCommandResult,
+  MapManifestFile,
   ManifestRound,
 } from "../commands/GetMatchManifestCommand.ts";
 import { DomainNotFoundError } from "../lib/errors/DomainErrors.ts";
@@ -39,8 +40,16 @@ export const getMatchManifestCommandHandler = (outbound: DomainOutbound) => {
         );
       });
 
+    const manifestPath = `${outbound.configuration.getMapRadarFileAssetsPath(matchResult.mapId)}/manifest.json`;
+    const manifestAsset = await outbound.fileStorage.streamAsset(manifestPath);
+    if (!manifestAsset) {
+      throw new DomainNotFoundError(`Manifest file not found for map: ${matchResult.mapId}`);
+    }
+    const mapManifest = await new Response(manifestAsset.stream()).json() as MapManifestFile;
+
     return {
       mapRadarLayers: radarLayers,
+      mapManifest,
       mapName: matchResult.mapName,
       mapServer: matchResult.serverName,
       participants: matchResult.participants.map((p) => ({

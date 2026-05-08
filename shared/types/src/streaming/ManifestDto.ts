@@ -22,9 +22,17 @@ export interface ManifestParticipantDto {
   name: string;
 }
 
+export interface MapManifestFileDto {
+  resolution: number;
+  offset: { x: number; y: number };
+  zRange: { min: number; max: number };
+  survivableDistance: number[];
+}
+
 export interface ManifestResponseData {
   mapName: string;
   mapRadarLayers: Record<string, string>;
+  mapManifest: MapManifestFileDto;
   mapServer: string;
   participants: ManifestParticipantDto[];
   rounds: ManifestRoundDto[];

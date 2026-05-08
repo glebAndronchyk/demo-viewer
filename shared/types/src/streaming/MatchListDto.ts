@@ -15,6 +15,7 @@ export interface MatchListOutcomeDto {
 
 export interface MatchListItemDto {
   demoId: string;
+  matchId: string;
   map: string;
   outcome: MatchListOutcomeDto;
   players: MatchListPlayerDto[];

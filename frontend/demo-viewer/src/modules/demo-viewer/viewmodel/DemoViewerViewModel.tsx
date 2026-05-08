@@ -21,7 +21,7 @@ import type {
 import { useFrame } from "@react-three/fiber";
 import { DemoCache } from "../entities/DemoCache.ts";
 import { Tick } from "@demo-viewer/shared-entities";
-import { useLoaderData } from "react-router";
+import { type LoaderFunction, useLoaderData } from "react-router";
 import { PlaygroundConfiguration } from "../entities/PlaygroundConfiguration.ts";
 import type { ViewerState } from "../types/ViewerState.ts";
 import { type Animatable, isAnimatableInterface } from "../types/Animatable.ts";
@@ -74,11 +74,8 @@ const useDemoViewer = () => {
       orthographicCameraPosition: [0, 10, 0], // view from above on the plane
       cameraZoom: 30,
       frustumHeight: 10,
-      mapResolution: 5.02,
-      mapOriginOffset: {
-        x: 3240,
-        y: 3410,
-      },
+      mapResolution: matchData.matchManifest.mapManifest.resolution,
+      mapOriginOffset: matchData.matchManifest.mapManifest.offset,
     }),
   });
 
@@ -267,6 +264,7 @@ const useDemoViewer = () => {
           startGameTick: staticState.current.finalBufferedTick,
           endGameTick: staticState.current.finalBufferedTick + bufferingWindow,
           step: matchData.matchManifest.tickRate,
+          matchId: matchData.matchId!,
         })
           .then((r) => _cache.current.store(r))
           .then((cache) => {
@@ -285,6 +283,7 @@ const useDemoViewer = () => {
         startGameTick: startTick,
         endGameTick: startTick + bufferingWindow,
         step: matchData.matchManifest.tickRate,
+        matchId: matchData.matchId!,
       }),
     );
     const frameTick = Math.max(0, startTick);
@@ -309,6 +308,7 @@ const useDemoViewer = () => {
     startGameTick: number;
     endGameTick: number;
     step: number;
+    matchId: string;
   }) => {
     const params = new URLSearchParams();
     params.set("startGameTick", String(args.startGameTick));
@@ -317,7 +317,7 @@ const useDemoViewer = () => {
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
-      `http://localhost:3000/streaming/player/seek/69f27c4cb7b6acee7e74bfb7?${params.toString()}`,
+      `http://localhost:3000/streaming/player/seek/${args.matchId}?${params.toString()}`,
     )
       .then((r) => r.json())
       .then((r) => (r as SeekResponseDto).data.frames)
@@ -387,35 +387,43 @@ const DemoViewerViewModelContext = createContext<
 >(null as never);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useDemoViewerViewModel = () => {
-  return useContext(DemoViewerViewModelContext);
-};
+export const useDemoViewerViewModel = Object.assign(
+  () => {
+    return useContext(DemoViewerViewModelContext);
+  },
+  {
+    /**
+     * Loader to get the initial map data
+     */
+    matchManifestLoader: (async (args) => {
+      const {
+        params: { matchId },
+      } = args;
 
-/**
- * Loader to get the initial map data
- */
-useDemoViewerViewModel.matchManifestLoader = async () => {
-  const matchManifestPromise = fetch(
-    `http://localhost:3000/streaming/player/manifest/69f27c4cb7b6acee7e74bfb7`,
-  )
-    .then((r) => r.json())
-    .then((r) => (r as ManifestResponseDto).data)
-    .catch(() => null);
+      const matchManifestPromise = fetch(
+        `http://localhost:3000/streaming/player/manifest/${matchId}`,
+      )
+        .then((r) => r.json())
+        .then((r) => (r as ManifestResponseDto).data)
+        .catch(() => null);
 
-  const playerTextureAtlasPromise = PlayerTextureAtlas.create();
+      const playerTextureAtlasPromise = PlayerTextureAtlas.create();
 
-  const [matchManifest, playerTextureAtlas] = await Promise.all([
-    matchManifestPromise,
-    playerTextureAtlasPromise,
-  ]);
-  if (!matchManifest || !playerTextureAtlas)
-    throw new Error("Failed to load match manifest"); // todo
+      const [matchManifest, playerTextureAtlas] = await Promise.all([
+        matchManifestPromise,
+        playerTextureAtlasPromise,
+      ]);
+      if (!matchManifest || !playerTextureAtlas)
+        throw new Error("Failed to load match manifest"); // todo
 
-  return {
-    matchManifest,
-    playerTextureAtlas,
-  };
-};
+      return {
+        matchId,
+        matchManifest,
+        playerTextureAtlas,
+      };
+    }) satisfies LoaderFunction,
+  },
+);
 
 export const DemoViewerViewModel = (props: PropsWithChildren) => {
   const vm = useDemoViewer();

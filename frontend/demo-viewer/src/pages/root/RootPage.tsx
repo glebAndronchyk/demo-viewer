@@ -38,7 +38,7 @@ const RootPage = () => {
               <Row
                 key={m.demoId}
                 className="cursor-pointer p-2 border items-center justify-between"
-                onClick={() => handleMatchNavigate(m.demoId)}
+                onClick={() => handleMatchNavigate(m.matchId)}
               >
                 <Col span={4}>{m.map}</Col>
                 <Col span={8}>
