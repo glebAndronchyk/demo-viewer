@@ -17,6 +17,7 @@ import type {
 import { WeaponUsageRadar } from "../components/WeaponUsageRadar.tsx";
 import { Section } from "../components/Section.tsx";
 import { GrenadesUsage } from "../components/GrenadesUsage.tsx";
+import { PerWeaponUsage } from "../components/PerWeaponUsage.tsx";
 
 const tabItems = [
   {
@@ -86,9 +87,11 @@ StatisticsPage.Weapons = Object.assign(
         <Section title="Weapon Usage" first>
           <WeaponUsageRadar weaponUsage={data.weaponUsagePct} />
         </Section>
-        <Section title="Per Weapon stats">
-          <WeaponUsageRadar weaponUsage={data.weaponUsagePct} />
-        </Section>
+        {Boolean(data.weaponStats.weapons.length) && (
+          <Section title="Per Weapon stats">
+            <PerWeaponUsage perWeaponUsage={data.weaponStats} />
+          </Section>
+        )}
         <Section title="Grenades Usage">
           <GrenadesUsage grenadesUsage={data.utilityUsage} />
         </Section>
