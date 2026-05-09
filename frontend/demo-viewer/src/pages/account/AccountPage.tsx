@@ -6,8 +6,8 @@ import StatisticsPage from "./pages/StatisticsPage.tsx";
 
 export const AccountPage = () => {
   return (
-    <Layout className="h-screen">
-      <Layout.Sider>
+    <Layout className="h-full p-5">
+      <Layout.Sider className="mr-3">
         <AccountMenu />
       </Layout.Sider>
       <Layout.Content>

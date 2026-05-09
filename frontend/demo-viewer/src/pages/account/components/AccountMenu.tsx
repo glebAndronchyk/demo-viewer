@@ -1,5 +1,5 @@
 import { Menu } from "antd";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { RadarChartOutlined, SettingFilled } from "@ant-design/icons";
 
 const menuItems = [
@@ -16,5 +16,11 @@ const menuItems = [
 ];
 
 export const AccountMenu = () => {
-  return <Menu selectedKeys={[]} items={menuItems} mode="inline" />;
+  const location = useLocation();
+
+  const activeTab = menuItems.find((t) => location.pathname.includes(t.key))!;
+
+  return (
+    <Menu selectedKeys={[activeTab?.key]} items={menuItems} mode="inline" />
+  );
 };
