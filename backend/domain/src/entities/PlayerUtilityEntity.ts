@@ -14,5 +14,8 @@ export interface PlayerUtilityEntity extends PlayerAnalyticalEntity {
   heDamage?: number;
   enemiesFlashed?: number;
   flashDuration?: number;
+  flashSuccessRate?: number;
+  heSuccessRate?: number;
+  fireSuccessRate?: number;
   dateRecorded?: Date;
 }

@@ -119,14 +119,14 @@ export function toPlayerWeaponsUsageEntity(doc: IPlayerWeaponsUsage): PlayerWeap
   return {
     _analyticsType: "weaponsUsage",
     statsId: doc.stats_id?.toString(),
-    pistolsPct: doc.pistols_pct ? parseFloat(doc.pistols_pct.toString()) : undefined,
-    utilityPct: doc.utility_pct ? parseFloat(doc.utility_pct.toString()) : undefined,
-    meleePct: doc.melee_pct ? parseFloat(doc.melee_pct.toString()) : undefined,
-    shotgunsPct: doc.shotguns_pct ? parseFloat(doc.shotguns_pct.toString()) : undefined,
-    smgPct: doc.smg_pct ? parseFloat(doc.smg_pct.toString()) : undefined,
-    assaultRiflePct: doc.assault_rifle_pct ? parseFloat(doc.assault_rifle_pct.toString()) : undefined,
-    sniperRiflePct: doc.sniper_rifles_pct ? parseFloat(doc.sniper_rifles_pct.toString()) : undefined,
-    machineGunPct: doc.machine_guns_pct ? parseFloat(doc.machine_guns_pct.toString()) : undefined,
+    pistolsPct: parseFloat((doc.pistols_pct ?? 0).toString()),
+    utilityPct: parseFloat((doc.utility_pct ?? 0).toString()),
+    meleePct: parseFloat((doc.melee_pct ?? 0).toString()),
+    shotgunsPct: parseFloat((doc.shotguns_pct ?? 0).toString()),
+    smgPct: parseFloat((doc.smg_pct ?? 0).toString()),
+    assaultRiflePct: parseFloat((doc.assault_rifle_pct ?? 0).toString()),
+    sniperRiflePct: parseFloat((doc.sniper_rifles_pct ?? 0).toString()),
+    machineGunPct: parseFloat((doc.machine_guns_pct ?? 0).toString()),
   };
 }
 

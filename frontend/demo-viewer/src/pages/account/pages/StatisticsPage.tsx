@@ -1,16 +1,22 @@
-import { Tabs } from "antd";
+import { Flex, Layout, Tabs } from "antd";
+
 import {
   Outlet,
   useLocation,
   type LoaderFunction,
   useNavigate,
+  useLoaderData,
 } from "react-router";
 import type { AuthUser } from "../../../modules/auth";
 import { basicStatsLoader } from "../lib/basicStatsLoader.ts";
 import type {
   EconomyAnalyticsResponseDto,
+  WeaponAnalyticsResponseData,
   WeaponAnalyticsResponseDto,
 } from "@demo-viewer/shared-types";
+import { WeaponUsageRadar } from "../components/WeaponUsageRadar.tsx";
+import { Section } from "../components/Section.tsx";
+import { GrenadesUsage } from "../components/GrenadesUsage.tsx";
 
 const tabItems = [
   {
@@ -38,14 +44,14 @@ const StatisticsPage = () => {
   const activeTab = tabItems.find((t) => location.pathname.includes(t.key))!;
 
   return (
-    <div>
+    <Layout className="max-h-full overflow-y-auto">
       <Tabs
         activeKey={activeTab?.key}
         onChange={onTabChange}
         items={tabItems}
       />
       <Outlet />
-    </div>
+    </Layout>
   );
 };
 
@@ -73,7 +79,21 @@ StatisticsPage.Economics = Object.assign(
 
 StatisticsPage.Weapons = Object.assign(
   () => {
-    return <p>Weapons</p>;
+    const data = useLoaderData<WeaponAnalyticsResponseData>();
+
+    return (
+      <Flex orientation="vertical">
+        <Section title="Weapon Usage" first>
+          <WeaponUsageRadar weaponUsage={data.weaponUsagePct} />
+        </Section>
+        <Section title="Per Weapon stats">
+          <WeaponUsageRadar weaponUsage={data.weaponUsagePct} />
+        </Section>
+        <Section title="Grenades Usage">
+          <GrenadesUsage grenadesUsage={data.utilityUsage} />
+        </Section>
+      </Flex>
+    );
   },
   {
     loader: (user: AuthUser | null) =>

@@ -37,15 +37,16 @@ export interface PlayerWeaponStatsDto {
 
 export interface PlayerWeaponsUsageDto {
   statsId: string;
-  pistolsPct?: number;
-  utilityPct?: number;
-  meleePct?: number;
-  shotgunsPct?: number;
-  smgPct?: number;
-  assaultRiflePct?: number;
-  sniperRiflePct?: number;
-  machineGunPct?: number;
+  pistolsPct: number;
+  utilityPct: number;
+  meleePct: number;
+  shotgunsPct: number;
+  smgPct: number;
+  assaultRiflePct: number;
+  sniperRiflePct: number;
+  machineGunPct: number;
   dateRecorded?: string;
+  _analyticsType: string;
 }
 
 export interface PlayerUtilityDto {
@@ -60,6 +61,9 @@ export interface PlayerUtilityDto {
   heDamage?: number;
   enemiesFlashed?: number;
   flashDuration?: number;
+  flashSuccessRate?: number;
+  heSuccessRate?: number;
+  fireSuccessRate?: number;
   dateRecorded?: string;
 }
 
@@ -84,5 +88,7 @@ export interface EconomyAnalyticsResponseData {
 
 export type MatchPlayerStatsResponseDto = ApiSuccessResponse<PlayerStatsDto>;
 export type TotalPlayerStatsResponseDto = ApiSuccessResponse<PlayerStatsDto>;
-export type WeaponAnalyticsResponseDto = ApiSuccessResponse<WeaponAnalyticsResponseData>;
-export type EconomyAnalyticsResponseDto = ApiSuccessResponse<EconomyAnalyticsResponseData>;
+export type WeaponAnalyticsResponseDto =
+  ApiSuccessResponse<WeaponAnalyticsResponseData>;
+export type EconomyAnalyticsResponseDto =
+  ApiSuccessResponse<EconomyAnalyticsResponseData>;

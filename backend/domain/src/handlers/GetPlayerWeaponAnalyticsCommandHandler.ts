@@ -6,6 +6,15 @@ import type {
   GetPlayerWeaponAnalyticsCommandResult,
 } from "../commands/GetPlayerWeaponAnalyticsCommand.ts";
 
+function grenadeSuccessRate(damage: number, thrown: number): number {
+  if (!thrown) return 0;
+  const avg = damage / thrown;
+  if (avg >= 30) return 1;
+  if (avg >= 15) return 0.66;
+  if (avg >= 5) return 0.33;
+  return 0;
+}
+
 export const getPlayerWeaponAnalyticsHandler = (outbound: DomainOutbound) => {
   const handler: GenericCommandHandler<
     GetPlayerWeaponAnalyticsCommand,
@@ -26,7 +35,28 @@ export const getPlayerWeaponAnalyticsHandler = (outbound: DomainOutbound) => {
       ),
     ]);
 
-    return { weaponUsagePct, weaponStats, utilityUsage };
+    const flashSuccessRate = utilityUsage.flashesThrown
+      ? (utilityUsage.enemiesFlashed ?? 0) / utilityUsage.flashesThrown
+      : 0;
+
+    const heSuccessRate = grenadeSuccessRate(
+      utilityUsage.heDamage ?? 0,
+      utilityUsage.heThrown ?? 0,
+    );
+
+    const fireThrown =
+      (utilityUsage.molotovsThrown ?? 0) +
+      (utilityUsage.incendiariesThrown ?? 0);
+    const fireSuccessRate = grenadeSuccessRate(
+      utilityUsage.molotovsDamage ?? 0,
+      fireThrown,
+    );
+
+    return {
+      weaponUsagePct,
+      weaponStats,
+      utilityUsage: { ...utilityUsage, flashSuccessRate, heSuccessRate, fireSuccessRate },
+    };
   };
 
   handler.match = (c: object): c is GetPlayerWeaponAnalyticsCommand =>
