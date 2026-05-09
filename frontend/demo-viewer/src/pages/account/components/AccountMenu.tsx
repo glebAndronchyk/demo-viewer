@@ -5,7 +5,7 @@ import { RadarChartOutlined, SettingFilled } from "@ant-design/icons";
 const menuItems = [
   {
     key: "statistics",
-    label: <Link to="/account/statistics">Statistics</Link>,
+    label: <Link to="/account/statistics/weapons">Statistics</Link>,
     icon: <RadarChartOutlined />,
   },
   {

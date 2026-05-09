@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { AuthContext, type AuthUser } from "./AuthContext";
 
 interface AuthMeResponse {
@@ -14,7 +13,6 @@ interface AuthMeResponse {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://localhost:3000/auth/me", { credentials: "include" })
@@ -31,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           setUser(authUser);
           if (!data.data.hasSharingData) {
-            navigate("/settings");
+            window.location.href = `${window.location.origin}/account/settings`;
           }
         } else {
           setUser(null);
