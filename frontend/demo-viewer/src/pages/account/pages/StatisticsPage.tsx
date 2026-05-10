@@ -1,4 +1,4 @@
-import { Flex, Layout, Tabs } from "antd";
+import { Flex, Form, Layout, Tabs } from "antd";
 
 import {
   Outlet,
@@ -6,6 +6,7 @@ import {
   type LoaderFunction,
   useNavigate,
   useLoaderData,
+  useSearchParams,
 } from "react-router";
 import type { AuthUser } from "../../../modules/auth";
 import { basicStatsLoader } from "../lib/basicStatsLoader.ts";
@@ -18,6 +19,8 @@ import { WeaponUsageRadar } from "../components/WeaponUsageRadar.tsx";
 import { Section } from "../components/Section.tsx";
 import { GrenadesUsage } from "../components/GrenadesUsage.tsx";
 import { PerWeaponUsage } from "../components/PerWeaponUsage.tsx";
+import { format, isValid, parse } from "date-fns";
+import DatePicker from "../../../components/DatePicker/DatePicker.tsx";
 
 const tabItems = [
   {
@@ -37,15 +40,42 @@ const tabItems = [
 const StatisticsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const onTabChange = (key: string) => {
     navigate(key);
   };
 
+  const dateParam = searchParams.get("startDate");
+  const pickerValue = (() => {
+    if (!dateParam) return null;
+    const d = parse(dateParam, "yyyy-MM-dd", new Date());
+    return isValid(d) ? d : null;
+  })();
+
+  const onDateChange = (date: Date | null) => {
+    setSearchParams((prev) => {
+      if (!date) {
+        prev.delete("startDate");
+      } else {
+        prev.set("startDate", format(date, "yyyy-MM-dd"));
+      }
+      return prev;
+    });
+  };
+
   const activeTab = tabItems.find((t) => location.pathname.includes(t.key))!;
 
   return (
-    <Layout className="max-h-full overflow-y-auto">
+    <Layout className="max-h-full overflow-y-auto relative">
+      <Form.Item label="Start date" className="mb-0!">
+        <DatePicker
+          value={pickerValue}
+          placeholder="Select start date"
+          onChange={onDateChange}
+          picker="month"
+        />
+      </Form.Item>
       <Tabs
         activeKey={activeTab?.key}
         onChange={onTabChange}

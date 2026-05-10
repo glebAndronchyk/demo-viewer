@@ -14,6 +14,7 @@
     "@ant-design/plots": "^2.6.8",
     "@demo-viewer/shared-entities": "workspace:*",
     "@demo-viewer/shared-types": "workspace:*",
+    "@rc-component/picker": "^1.10.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@tailwindcss/vite": "^4.1.18",
