@@ -11,6 +11,7 @@ import {
 import type { AuthUser } from "../../../modules/auth";
 import { basicStatsLoader } from "../lib/basicStatsLoader.ts";
 import type {
+  EconomyAnalyticsResponseData,
   EconomyAnalyticsResponseDto,
   WeaponAnalyticsResponseData,
   WeaponAnalyticsResponseDto,
@@ -21,6 +22,7 @@ import { GrenadesUsage } from "../components/GrenadesUsage.tsx";
 import { PerWeaponUsage } from "../components/PerWeaponUsage.tsx";
 import { format, isValid, parse } from "date-fns";
 import DatePicker from "../../../components/DatePicker/DatePicker.tsx";
+import { RoundEconomyPie } from "../components/RoundEconomyPie.tsx";
 
 const tabItems = [
   {
@@ -88,7 +90,15 @@ const StatisticsPage = () => {
 
 StatisticsPage.Economics = Object.assign(
   () => {
-    return <p>Eco</p>;
+    const data = useLoaderData<EconomyAnalyticsResponseData>();
+
+    return (
+      <Flex orientation="vertical">
+        <Section first title="Economy behavior chart">
+          <RoundEconomyPie roundEconomyStats={data.economyUsage} />
+        </Section>
+      </Flex>
+    );
   },
   {
     loader: (user: AuthUser | null) =>

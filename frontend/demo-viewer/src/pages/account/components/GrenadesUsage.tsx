@@ -88,6 +88,7 @@ export const GrenadesUsage = (props: GrenadesUsageProps) => {
         yField="value"
         colorField="direction"
         stack={true}
+        tooltip={false}
         scale={{
           y: { domainMin: -1, domainMax: 1 },
           color: { range: ["#52c41a", "#ff4d4f"] },
