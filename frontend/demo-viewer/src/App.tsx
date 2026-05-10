@@ -65,7 +65,8 @@ const router = (user: AuthUser | null) =>
                 },
                 {
                   path: "performance",
-                  element: <AccountPage.StatisticsPage.Weapons />,
+                  loader: StatisticsPage.Performance.loader(user),
+                  element: <AccountPage.StatisticsPage.Performance />,
                 },
               ],
             },

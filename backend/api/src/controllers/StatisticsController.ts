@@ -9,6 +9,10 @@ import {
   GetPlayerEconomyAnalyticsCommandResult,
 } from "@demo-viewer/domain/src/commands/GetPlayerEconomyAnalyticsCommand.ts";
 import { BaseResponse } from "@demo-viewer/domain/src/types/BaseResponse.ts";
+import {
+  GetPlayerPerformanceAnalyticsCommand,
+  GetPlayerPerformanceAnalyticsCommandResult,
+} from "@demo-viewer/domain/src/commands/GetPlayerPerformanceAnalyticsCommand.ts";
 
 export class StatisticsController {
   constructor(app: Elysia, commandBus: CommandBusService) {
@@ -54,13 +58,36 @@ export class StatisticsController {
           "/total/economy",
           async ({ query: { steamId, startDate } }) => {
             return {
-              data: await commandBus.dispatch<GetPlayerEconomyAnalyticsCommand>({
-                type: "get_player_economy_analytics",
-                steamId,
-                startDate,
-              }),
+              data: await commandBus.dispatch<GetPlayerEconomyAnalyticsCommand>(
+                {
+                  type: "get_player_economy_analytics",
+                  steamId,
+                  startDate,
+                },
+              ),
               isSuccess: true,
             } satisfies BaseResponse<GetPlayerEconomyAnalyticsCommandResult>;
+          },
+          {
+            query: t.Object({
+              steamId: t.String(),
+              startDate: t.Date(),
+            }),
+          },
+        )
+        .get(
+          "/total/performance",
+          async ({ query: { steamId, startDate } }) => {
+            return {
+              data: await commandBus.dispatch<GetPlayerPerformanceAnalyticsCommand>(
+                {
+                  type: "get_player_performance_analytics",
+                  steamId,
+                  startDate,
+                },
+              ),
+              isSuccess: true,
+            } satisfies BaseResponse<GetPlayerPerformanceAnalyticsCommandResult>;
           },
           {
             query: t.Object({

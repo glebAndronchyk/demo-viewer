@@ -4,8 +4,14 @@ export interface IHitBreakdown {
   head: number;
   chest: number;
   stomach: number;
-  arms: number;
-  legs: number;
+  left_arm: number;
+  right_arm: number;
+  left_leg: number;
+  right_leg: number;
+  neck: number;
+  generic: number;
+  gear: number;
+  unknown: number;
 }
 
 export interface IPlayerAccuracy {

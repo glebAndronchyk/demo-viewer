@@ -74,13 +74,28 @@ export function toPlayerWeaponsUsageModel(entity: PlayerWeaponsUsageEntity): IPl
 }
 
 export function toPlayerAccuracyModel(entity: PlayerAccuracyEntity): IPlayerAccuracy {
+  const b = entity.hitBreakdown;
   return {
     stats_id: entity.statsId,
     total_shots: entity.totalShots,
     total_hits: entity.totalHits,
     headshots: entity.headshots,
     top_level_accuracy: numberToDecimal128(entity.topLevelAccuracy),
-    hit_breakdown: entity.hitBreakdown as IPlayerAccuracy["hit_breakdown"],
+    hit_breakdown: b
+      ? {
+          generic: b.Generic,
+          head: b.Head,
+          chest: b.Chest,
+          stomach: b.Stomach,
+          left_arm: b.LeftArm,
+          right_arm: b.RightArm,
+          left_leg: b.LeftLeg,
+          right_leg: b.RightLeg,
+          neck: b.Neck,
+          gear: b.Gear,
+          unknown: b.Unknown,
+        }
+      : undefined,
     date_recorded: entity.dateRecorded,
   };
 }

@@ -88,6 +88,36 @@ const StatisticsPage = () => {
   );
 };
 
+StatisticsPage.Performance = Object.assign(
+  () => {
+    const data = useLoaderData<EconomyAnalyticsResponseData>();
+
+    return (
+      <Flex orientation="vertical">
+        <Section first title="Economy behavior chart">
+          <RoundEconomyPie roundEconomyStats={data.economyUsage} />
+        </Section>
+      </Flex>
+    );
+  },
+  {
+    loader: (user: AuthUser | null) =>
+      (async (args) => {
+        const { steamId, startDate } = basicStatsLoader(args, user);
+
+        // todo: proper http client
+        const result = await fetch(
+          `http://localhost:3000/statistics/total/performance?steamId=${steamId}&startDate="${startDate}"`,
+        )
+          .then((r) => r.json())
+          .then((r) => r as EconomyAnalyticsResponseDto)
+          .then((r) => r.data);
+
+        return result;
+      }) satisfies LoaderFunction,
+  },
+);
+
 StatisticsPage.Economics = Object.assign(
   () => {
     const data = useLoaderData<EconomyAnalyticsResponseData>();

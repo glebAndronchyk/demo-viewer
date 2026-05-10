@@ -39,6 +39,7 @@ import {
   toPlayerStatsEntity,
   toPlayerStatsModel,
 } from "../mappers/player-stats.mapper";
+import { toPlayerAccuracyEntity } from "../mappers/player-accuracy.mapper";
 import {
   toPlayerAccuracyModel,
   toPlayerClutchesModel,
@@ -58,9 +59,16 @@ import {
   IPlayerWeaponsUsage,
   IWeaponStats,
 } from "@demo-viewer/database/dist/types/weapon.types.ts";
-import { IPlayerUtility } from "@demo-viewer/database/src/types/performance.types.ts";
-import { IPlayerEconomy } from "@demo-viewer/database/src/types/round_outcome.types.ts";
+import {
+  IPlayerAccuracy,
+  IPlayerUtility,
+} from "@demo-viewer/database/src/types/performance.types.ts";
+import {
+  IPlayerClutches,
+  IPlayerEconomy,
+} from "@demo-viewer/database/src/types/round_outcome.types.ts";
 import { PipelineStage } from "mongoose";
+import { toPlayerClutchesEntity } from "../mappers/player-clutches.mapper.ts";
 
 export { detectClutchRounds };
 
@@ -71,7 +79,12 @@ export class MatchRepository implements MatchOutboundPort {
   >;
   private readonly weaponsCache: MemoryCacheAccessor<
     string,
-    PlayerWeaponsUsageEntity | PlayerWeaponStatsEntity | Omit<PlayerUtilityEntity, "statsId"> | Omit<PlayerEconomyEntity, "statsId">
+    | PlayerWeaponsUsageEntity
+    | PlayerWeaponStatsEntity
+    | Omit<PlayerUtilityEntity, "statsId">
+    | Omit<PlayerEconomyEntity, "statsId">
+    | Omit<PlayerAccuracyEntity, "statsId">
+    | Omit<PlayerClutchesEntity, "statsId">
   >;
 
   constructor(
@@ -818,7 +831,11 @@ export class MatchRepository implements MatchOutboundPort {
     }));
   }
 
-  private static matchesInRangeAggregation(steamId: string, date: Date, statsIdField = "stats_id") {
+  private static matchesInRangeAggregation(
+    steamId: string,
+    date: Date,
+    statsIdField = "stats_id",
+  ) {
     return [
       {
         $lookup: {
@@ -907,7 +924,11 @@ export class MatchRepository implements MatchOutboundPort {
           },
         },
         { $unwind: "$usage" },
-        ...MatchRepository.matchesInRangeAggregation(steamId, startDate, "usage.stats_id"),
+        ...MatchRepository.matchesInRangeAggregation(
+          steamId,
+          startDate,
+          "usage.stats_id",
+        ),
         {
           $group: {
             _id: "$weapon_name",
@@ -931,7 +952,10 @@ export class MatchRepository implements MatchOutboundPort {
     const cacheKey = `utility:${steamId}:${startDate.getTime()}`;
 
     if (this.weaponsCache.has(cacheKey)) {
-      return this.weaponsCache.get(cacheKey) as Omit<PlayerUtilityEntity, "statsId">;
+      return this.weaponsCache.get(cacheKey) as Omit<
+        PlayerUtilityEntity,
+        "statsId"
+      >;
     }
 
     const aggregatedResult =
@@ -955,7 +979,9 @@ export class MatchRepository implements MatchOutboundPort {
         },
       ]);
 
-    const entity = toPlayerUtilityEntity(aggregatedResult[0] ?? ({} as IPlayerUtility));
+    const entity = toPlayerUtilityEntity(
+      aggregatedResult[0] ?? ({} as IPlayerUtility),
+    );
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }
@@ -964,7 +990,10 @@ export class MatchRepository implements MatchOutboundPort {
     const cacheKey = `economy:${steamId}:${startDate.getTime()}`;
 
     if (this.weaponsCache.has(cacheKey)) {
-      return this.weaponsCache.get(cacheKey) as Omit<PlayerEconomyEntity, "statsId">;
+      return this.weaponsCache.get(cacheKey) as Omit<
+        PlayerEconomyEntity,
+        "statsId"
+      >;
     }
 
     const aggregatedResult =
@@ -982,7 +1011,161 @@ export class MatchRepository implements MatchOutboundPort {
         },
       ]);
 
-    const entity = toPlayerEconomyEntity(aggregatedResult[0] ?? ({} as IPlayerEconomy));
+    const entity = toPlayerEconomyEntity(
+      aggregatedResult[0] ?? ({} as IPlayerEconomy),
+    );
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+
+  async aggregateAccuracy(
+    steamId: string,
+    startDate: Date,
+  ): Promise<Omit<PlayerAccuracyEntity, "statsId">> {
+    const cacheKey = `accuracy:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(cacheKey)) {
+      return this.weaponsCache.get(cacheKey) as Omit<
+        PlayerAccuracyEntity,
+        "statsId"
+      >;
+    }
+
+    const aggregatedResult =
+      await this.database.PlayerAccuracyModel.aggregate<IPlayerAccuracy>([
+        ...MatchRepository.matchesInRangeAggregation(steamId, startDate),
+        {
+          $group: {
+            _id: null,
+            total_shots: { $sum: { $toInt: "$total_shots" } },
+            total_hits: { $sum: { $toInt: "$total_hits" } },
+            headshots: { $sum: { $toInt: "$headshots" } },
+            hit_breakdown_generic: {
+              $sum: { $toInt: "$hit_breakdown.generic" },
+            },
+            hit_breakdown_head: { $sum: { $toInt: "$hit_breakdown.head" } },
+            hit_breakdown_chest: { $sum: { $toInt: "$hit_breakdown.chest" } },
+            hit_breakdown_stomach: {
+              $sum: { $toInt: "$hit_breakdown.stomach" },
+            },
+            hit_breakdown_left_arm: {
+              $sum: { $toInt: "$hit_breakdown.left_arm" },
+            },
+            hit_breakdown_right_arm: {
+              $sum: { $toInt: "$hit_breakdown.right_arm" },
+            },
+            hit_breakdown_left_leg: {
+              $sum: { $toInt: "$hit_breakdown.left_leg" },
+            },
+            hit_breakdown_right_leg: {
+              $sum: { $toInt: "$hit_breakdown.right_leg" },
+            },
+            hit_breakdown_neck: { $sum: { $toInt: "$hit_breakdown.neck" } },
+            hit_breakdown_gear: { $sum: { $toInt: "$hit_breakdown.gear" } },
+            hit_breakdown_unknown: {
+              $sum: { $toInt: "$hit_breakdown.unknown" },
+            },
+          },
+        },
+        {
+          $addFields: {
+            top_level_accuracy: {
+              $cond: [
+                { $eq: ["$total_shots", 0] },
+                0,
+                { $divide: ["$total_hits", "$total_shots"] },
+              ],
+            },
+            hit_breakdown: {
+              generic: "$hit_breakdown_generic",
+              head: "$hit_breakdown_head",
+              chest: "$hit_breakdown_chest",
+              stomach: "$hit_breakdown_stomach",
+              left_arm: "$hit_breakdown_left_arm",
+              right_arm: "$hit_breakdown_right_arm",
+              left_leg: "$hit_breakdown_left_leg",
+              right_leg: "$hit_breakdown_right_leg",
+              neck: "$hit_breakdown_neck",
+              gear: "$hit_breakdown_gear",
+              unknown: "$hit_breakdown_unknown",
+            },
+          },
+        },
+      ]);
+
+    const entity = toPlayerAccuracyEntity(aggregatedResult[0]);
+    this.weaponsCache.set(cacheKey, entity);
+    return entity;
+  }
+  async aggregateClutches(
+    steamId: string,
+    startDate: Date,
+  ): Promise<Omit<PlayerClutchesEntity, "statsId">> {
+    const cacheKey = `clutches:${steamId}:${startDate.getTime()}`;
+
+    if (this.weaponsCache.has(cacheKey)) {
+      return this.weaponsCache.get(cacheKey) as Omit<
+        PlayerClutchesEntity,
+        "statsId"
+      >;
+    }
+
+    const aggregatedResult =
+      await this.database.PlayerClutchesModel.aggregate<IPlayerClutches>([
+        ...MatchRepository.matchesInRangeAggregation(steamId, startDate),
+        {
+          $group: {
+            _id: null,
+            clutch_1v1_attempted: {
+              $sum: { $ifNull: ["$clutch_1v1.attempted", 0] },
+            },
+            clutch_1v1_won: { $sum: { $ifNull: ["$clutch_1v1.won", 0] } },
+            clutch_1v2_attempted: {
+              $sum: { $ifNull: ["$clutch_1v2.attempted", 0] },
+            },
+            clutch_1v2_won: { $sum: { $ifNull: ["$clutch_1v2.won", 0] } },
+            clutch_1v3_attempted: {
+              $sum: { $ifNull: ["$clutch_1v3.attempted", 0] },
+            },
+            clutch_1v3_won: { $sum: { $ifNull: ["$clutch_1v3.won", 0] } },
+            clutch_1v4_attempted: {
+              $sum: { $ifNull: ["$clutch_1v4.attempted", 0] },
+            },
+            clutch_1v4_won: { $sum: { $ifNull: ["$clutch_1v4.won", 0] } },
+            clutch_1v5_attempted: {
+              $sum: { $ifNull: ["$clutch_1v5.attempted", 0] },
+            },
+            clutch_1v5_won: { $sum: { $ifNull: ["$clutch_1v5.won", 0] } },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            clutch_1v1: {
+              attempted: "$clutch_1v1_attempted",
+              won: "$clutch_1v1_won",
+            },
+            clutch_1v2: {
+              attempted: "$clutch_1v2_attempted",
+              won: "$clutch_1v2_won",
+            },
+            clutch_1v3: {
+              attempted: "$clutch_1v3_attempted",
+              won: "$clutch_1v3_won",
+            },
+            clutch_1v4: {
+              attempted: "$clutch_1v4_attempted",
+              won: "$clutch_1v4_won",
+            },
+            clutch_1v5: {
+              attempted: "$clutch_1v5_attempted",
+              won: "$clutch_1v5_won",
+            },
+          },
+        },
+      ]);
+
+    const entity = toPlayerClutchesEntity(aggregatedResult[0]);
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }

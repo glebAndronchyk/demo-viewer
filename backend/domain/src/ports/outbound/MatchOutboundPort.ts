@@ -16,6 +16,8 @@ import type { PlayerWeaponsUsageEntity } from "../../entities/PlayerWeaponsUsage
 import type { PlayerWeaponStatsEntity } from "../../entities/PlayerWeaponStatsEntity.ts";
 import type { PlayerUtilityEntity } from "../../entities/PlayerUtilityEntity.ts";
 import type { PlayerEconomyEntity } from "../../entities/PlayerEconomyEntity.ts";
+import type { PlayerAccuracyEntity } from "../../entities/PlayerAccuracyEntity.ts";
+import type { PlayerClutchesEntity } from "../../entities/PlayerClutchesEntity.ts";
 
 export interface AggregatedEventsFilter {
   matchId?: string;
@@ -114,4 +116,14 @@ export interface MatchOutboundPort {
     steamId: string,
     startDate: Date,
   ): Promise<Omit<PlayerEconomyEntity, "statsId">>;
+
+  aggregateAccuracy(
+    steamId: string,
+    startDate: Date,
+  ): Promise<Omit<PlayerAccuracyEntity, "statsId">>;
+
+  aggregateClutches(
+    steamId: string,
+    startDate: Date,
+  ): Promise<Omit<PlayerClutchesEntity, "statsId">>;
 }

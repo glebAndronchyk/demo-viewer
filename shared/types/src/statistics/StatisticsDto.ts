@@ -1,5 +1,18 @@
 import type { ApiSuccessResponse } from "../common/ApiResponse.ts";
 
+export type HitGroup =
+  | "Generic"
+  | "Head"
+  | "Chest"
+  | "Stomach"
+  | "LeftArm"
+  | "RightArm"
+  | "LeftLeg"
+  | "RightLeg"
+  | "Neck"
+  | "Gear"
+  | "Unknown";
+
 export interface PlayerStatsDto {
   participantSteamId: string;
   matchId?: string;
@@ -86,9 +99,38 @@ export interface EconomyAnalyticsResponseData {
   economyUsage: PlayerEconomyDto;
 }
 
+export interface ClutchStatDto {
+  attempted: number;
+  won: number;
+}
+
+export interface PlayerAccuracyDto {
+  totalShots?: number;
+  totalHits?: number;
+  headshots?: number;
+  topLevelAccuracy?: number;
+  hitBreakdown?: Record<HitGroup, number>;
+  dateRecorded?: string;
+}
+
+export interface PlayerClutchesDto {
+  clutch1v1?: ClutchStatDto;
+  clutch1v2?: ClutchStatDto;
+  clutch1v3?: ClutchStatDto;
+  clutch1v4?: ClutchStatDto;
+  clutch1v5?: ClutchStatDto;
+}
+
+export interface PerformanceAnalyticsResponseData {
+  accuracy: PlayerAccuracyDto;
+  clutches: PlayerClutchesDto;
+}
+
 export type MatchPlayerStatsResponseDto = ApiSuccessResponse<PlayerStatsDto>;
 export type TotalPlayerStatsResponseDto = ApiSuccessResponse<PlayerStatsDto>;
 export type WeaponAnalyticsResponseDto =
   ApiSuccessResponse<WeaponAnalyticsResponseData>;
 export type EconomyAnalyticsResponseDto =
   ApiSuccessResponse<EconomyAnalyticsResponseData>;
+export type PerformanceAnalyticsResponseDto =
+  ApiSuccessResponse<PerformanceAnalyticsResponseData>;
