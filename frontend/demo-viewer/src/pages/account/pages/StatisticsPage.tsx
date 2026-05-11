@@ -13,6 +13,8 @@ import { basicStatsLoader } from "../lib/basicStatsLoader.ts";
 import type {
   EconomyAnalyticsResponseData,
   EconomyAnalyticsResponseDto,
+  PerformanceAnalyticsResponseData,
+  PerformanceAnalyticsResponseDto,
   WeaponAnalyticsResponseData,
   WeaponAnalyticsResponseDto,
 } from "@demo-viewer/shared-types";
@@ -23,6 +25,10 @@ import { PerWeaponUsage } from "../components/PerWeaponUsage.tsx";
 import { format, isValid, parse } from "date-fns";
 import DatePicker from "../../../components/DatePicker/DatePicker.tsx";
 import { RoundEconomyPie } from "../components/RoundEconomyPie.tsx";
+import { TotalShotsHitsBar } from "../components/TotalShotsHitsBar.tsx";
+import { TopLevelAccuracyLiquid } from "../components/TopLevelAccuracyLiquid.tsx";
+import { HitBreakdownMap } from "../components/HitBreakdownMap.tsx";
+import { ClutchesBar } from "../components/ClutchesBar.tsx";
 
 const tabItems = [
   {
@@ -90,12 +96,22 @@ const StatisticsPage = () => {
 
 StatisticsPage.Performance = Object.assign(
   () => {
-    const data = useLoaderData<EconomyAnalyticsResponseData>();
+    const data = useLoaderData<PerformanceAnalyticsResponseData>();
 
     return (
       <Flex orientation="vertical">
-        <Section first title="Economy behavior chart">
-          <RoundEconomyPie roundEconomyStats={data.economyUsage} />
+        <Section first title="Accuracy breakdown">
+          <Flex orientation="horizontal">
+            <TotalShotsHitsBar accuracy={data.accuracy} />
+            <TopLevelAccuracyLiquid accuracy={data.accuracy} />
+          </Flex>
+        </Section>
+        <Section title="Hits breakdown">
+          <HitBreakdownMap accuracy={data.accuracy} />
+        </Section>
+
+        <Section title="Clutches breakdown">
+          <ClutchesBar clutches={data.clutches} />
         </Section>
       </Flex>
     );
@@ -110,7 +126,7 @@ StatisticsPage.Performance = Object.assign(
           `http://localhost:3000/statistics/total/performance?steamId=${steamId}&startDate="${startDate}"`,
         )
           .then((r) => r.json())
-          .then((r) => r as EconomyAnalyticsResponseDto)
+          .then((r) => r as PerformanceAnalyticsResponseDto)
           .then((r) => r.data);
 
         return result;
