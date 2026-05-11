@@ -4,8 +4,14 @@ import type { NotificationEntity } from "@demo-viewer/domain/src/entities/Notifi
 import { toNotificationEntity } from "../mappers/notification.mapper";
 import { DomainNotFoundError } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
 import { DatabaseService } from "../adapters/DatabaseService.ts";
+import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort.ts";
 
 export class NotificationRepository implements NotificationOutboundPort {
+  private readonly subscribers: Map<
+    string,
+    Set<(n: NotificationEntity) => void>
+  > = new Map();
+
   constructor(private readonly database: DatabaseService) {}
 
   async createNotification(
@@ -17,7 +23,10 @@ export class NotificationRepository implements NotificationOutboundPort {
       payload: data.payload,
       status: data.status,
     });
-    return toNotificationEntity(doc);
+
+    const entity = toNotificationEntity(doc);
+    this.notify(entity.recipientUserId, entity);
+    return entity;
   }
 
   async getPendingNotifications(limit: number): Promise<NotificationEntity[]> {
@@ -34,6 +43,8 @@ export class NotificationRepository implements NotificationOutboundPort {
       $set: { status: "delivered" },
     });
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
+
+    this.notify(result.recipient_user_id, toNotificationEntity(result));
   }
 
   async markAsDismissed(id: string): Promise<void> {
@@ -41,12 +52,25 @@ export class NotificationRepository implements NotificationOutboundPort {
       $set: { status: "dismissed" },
     });
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
+
+    this.notify(result.recipient_user_id, toNotificationEntity(result));
   }
 
   async getPendingForUser(userId: string): Promise<NotificationEntity[]> {
     const docs = await this.database.NotificationModel.find({
       recipient_user_id: userId,
       status: "pending",
+    }).lean();
+    return docs.map(toNotificationEntity);
+  }
+
+  async getByUserIdAndStatus(
+    userId: string,
+    status: NotificationEntity["status"],
+  ): Promise<NotificationEntity[]> {
+    const docs = await this.database.NotificationModel.find({
+      recipient_user_id: userId,
+      status,
     }).lean();
     return docs.map(toNotificationEntity);
   }
@@ -62,5 +86,24 @@ export class NotificationRepository implements NotificationOutboundPort {
       "payload.groupId": groupId,
     });
     return count > 0;
+  }
+
+  private notify(key: string, n: NotificationEntity) {
+    this.subscribers.get(key)?.forEach((cb) => cb(n));
+  }
+
+  subscribe(key: string, cb: (n: NotificationEntity) => void): () => void {
+    if (!this.subscribers.has(key)) {
+      this.subscribers.set(key, new Set());
+    }
+
+    this.subscribers.get(key)!.add(cb);
+
+    return () => {
+      const set = this.subscribers.get(key);
+      if (!set) return;
+      set.delete(cb);
+      if (set.size === 0) this.subscribers.delete(key);
+    };
   }
 }

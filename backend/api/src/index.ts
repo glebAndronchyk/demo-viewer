@@ -33,6 +33,7 @@ import { LocalFilesystemStorageAdapter } from "./adapters/LocalFilesystemStorage
 import { CollectMatchAnalyticsCron } from "./cron/CollectMatchAnalyticsCron";
 import { LayeredAnalyticsCalculator } from "./repository/LayeredAnalyticsCalculator";
 import { MemoryCache } from "@demo-viewer/backend-shared";
+import { NotificationsController } from "./controllers/NotificationsController.ts";
 
 const TypedApp = App.getTypedConstructor();
 
@@ -79,6 +80,12 @@ const di = new DIContainer()
     TypedApp,
     CommandBusService,
     UserRepository,
+  ])
+  .addSingleton(NotificationsController, [
+    TypedApp,
+    CommandBusService,
+    EnvConfiguration,
+    NotificationRepository,
   ])
   .addSingleton(StatisticsController, [TypedApp, CommandBusService])
   .addSingleton(AuthorizationController, [

@@ -1,17 +1,6 @@
 import type { ApiSuccessResponse } from "../common/ApiResponse.ts";
-
-export type HitGroup =
-  | "Generic"
-  | "Head"
-  | "Chest"
-  | "Stomach"
-  | "LeftArm"
-  | "RightArm"
-  | "LeftLeg"
-  | "RightLeg"
-  | "Neck"
-  | "Gear"
-  | "Unknown";
+import type { HitGroup } from "../common/HitGroup.ts";
+export type { HitGroup };
 
 export interface PlayerStatsDto {
   participantSteamId: string;

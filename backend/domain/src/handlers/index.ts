@@ -25,3 +25,4 @@ export { default as getPlayerWeaponAnalyticsRegistration } from "./GetPlayerWeap
 export { default as getPlayerEconomyAnalyticsRegistration } from "./GetPlayerEconomyAnalyticsCommandHandler.ts";
 export { default as getMyGroupsRegistration } from "./GetMyGroupsHandler.ts";
 export { default as getPlayerPerformanceAnalyticsRegistration } from "./GetPlayerPerformanceAnalyticsCommandHandler.ts";
+export { default as getUserNotificationsRegistration } from "./GetUserNotificationsCommandHandler.ts";

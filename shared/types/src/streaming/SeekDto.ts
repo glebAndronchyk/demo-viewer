@@ -1,4 +1,6 @@
 import type { ApiSuccessResponse } from "../common/ApiResponse.ts";
+import type { HitGroup } from "../common/HitGroup.ts";
+export type { HitGroup };
 
 export interface Vector2Dto {
   x: number;
@@ -132,18 +134,6 @@ export const MELEE_AND_EQUIPMENT_WEAPON_TYPES: WeaponTypeDto[] = [
   "Zeus x27",
 ];
 
-export type HitGroup =
-  | "Generic"
-  | "Head"
-  | "Chest"
-  | "Stomach"
-  | "LeftArm"
-  | "RightArm"
-  | "LeftLeg"
-  | "RightLeg"
-  | "Neck"
-  | "Gear"
-  | "Unknown";
 
 export type TeamType = "T" | "CT" | "Unknown";
 

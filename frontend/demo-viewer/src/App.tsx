@@ -46,7 +46,7 @@ const router = (user: AuthUser | null) =>
         },
         {
           path: "groups",
-          element: <GroupsPage />,
+          element: <GroupsPage />, // todo: prevent loaders rerun on search param change
           loader: useGroupsPageViewModel.loader,
           children: [
             {
