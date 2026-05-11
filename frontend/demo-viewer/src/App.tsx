@@ -14,6 +14,9 @@ import RootPage from "./pages/root/RootPage.tsx";
 import { useRootPageViewModel } from "./pages/root/viewmodel/RootPageViewModel.tsx";
 import StatisticsPage from "./pages/account/pages/StatisticsPage.tsx";
 import { type AuthUser, useAuth } from "./modules/auth";
+import GroupsPage from "./pages/groups/GroupsPage.tsx";
+import { useGroupsPageViewModel } from "./pages/groups/viewmodel/GroupsPageViewModel.tsx";
+import { useGroupDetailViewModel } from "./pages/groups/viewmodel/GroupDetailViewModel.tsx";
 
 const RootLayout = () => (
   <Layout style={{ minHeight: "100vh" }}>
@@ -40,6 +43,45 @@ const router = (user: AuthUser | null) =>
           path: "/player/:matchId",
           loader: useDemoViewerViewModel.matchManifestLoader,
           element: <DemoPlayerPage />,
+        },
+        {
+          path: "groups",
+          element: <GroupsPage />,
+          loader: useGroupsPageViewModel.loader,
+          children: [
+            {
+              index: true,
+              loader: useGroupsPageViewModel.redirectLoader,
+              element: null,
+            },
+            {
+              path: ":id",
+              element: <GroupsPage.DetailPage />,
+              loader: useGroupDetailViewModel.loader,
+              children: [
+                {
+                  index: true,
+                  loader: useGroupDetailViewModel.redirectLoader,
+                  element: null,
+                },
+                {
+                  path: "members",
+                  element: <GroupsPage.DetailPage.MembersPage />,
+                  loader: useGroupDetailViewModel.loader,
+                },
+                {
+                  path: "matches",
+                  element: <GroupsPage.DetailPage.MatchesPage />,
+                  loader: useGroupDetailViewModel.matchesLoader,
+                },
+                {
+                  path: "settings",
+                  element: <GroupsPage.DetailPage.SettingsPage />,
+                  loader: useGroupDetailViewModel.loader,
+                },
+              ],
+            },
+          ],
         },
         {
           path: "account",

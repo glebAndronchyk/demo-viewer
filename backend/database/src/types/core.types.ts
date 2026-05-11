@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface IGroup {
   owner_id: string;
@@ -11,7 +11,7 @@ export interface IGroup {
 export interface IGroupDocument extends IGroup, Document {}
 
 export interface IGroupMember {
-  user_id: string;
+  user_id: Types.ObjectId;
   group_id: string;
   createdAt: Date;
   updatedAt: Date;

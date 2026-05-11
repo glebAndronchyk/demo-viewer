@@ -5,6 +5,8 @@ export interface TeamOutboundPort {
   createTeam(name: string, ownerId: string): Promise<GroupEntity>;
   getTeamById(id: string): Promise<GroupEntity | null>;
   getTeamByOwnerId(ownerId: string): Promise<GroupEntity | null>;
+  getTeamsByOwnerId(ownerId: string): Promise<GroupEntity[]>;
+  getGroupsMemberOf(userId: string): Promise<GroupEntity[]>;
   addMember(groupId: string, userId: string): Promise<GroupMemberEntity>;
   removeMember(groupId: string, userId: string): Promise<void>;
   getMembers(groupId: string): Promise<GroupMemberEntity[]>;

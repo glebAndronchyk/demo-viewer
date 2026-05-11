@@ -93,9 +93,9 @@ export interface MatchOutboundPort {
     lookbackTicks: number,
   ): Promise<DemoEvent[]>;
 
-  getMatches(skip: number, take: number): Promise<MatchEntity[]>;
+  getMatches(skip: number, take: number, steamIds?: string[]): Promise<MatchEntity[]>;
 
-  getTotalMatches(): Promise<number>;
+  getTotalMatches(steamIds?: string[]): Promise<number>;
 
   aggregateWeaponUsagePct(
     steamId: string,

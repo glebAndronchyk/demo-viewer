@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 import {
   IGroupDocument,
   IGroupMemberDocument,
@@ -45,9 +45,9 @@ const DimensionsSchema = new Schema(
 export const GroupMemberSchema = new Schema<IGroupMemberDocument>(
   {
     user_id: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
-      trim: true,
     },
     group_id: {
       type: String,

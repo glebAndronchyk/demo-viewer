@@ -14,9 +14,9 @@
     "migrate:create": "bun run scripts/create-migration.ts"
   },
   "dependencies": {
-    "mongoose": "^8.0.0",
+    "mongoose": "^9.4.1",
     "migrate-mongo": "^11.0.0",
-    "mongodb": "^6.3.0"
+    "mongodb": "^7.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

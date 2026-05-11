@@ -10,13 +10,15 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
     GetPaginatedMatchesCommand,
     GetPaginatedMatchesCommandResult
   > = async (command) => {
-    const { page } = command;
+    const { page, steamIds: filterSteamIds } = command;
 
     const take = outbound.configuration.matchesPageSize;
     const skip = (page - 1) * outbound.configuration.matchesPageSize;
 
-    const totalMatches = await outbound.matchRepository.getTotalMatches();
-    const matches = await outbound.matchRepository.getMatches(skip, take);
+    const [totalMatches, matches] = await Promise.all([
+      outbound.matchRepository.getTotalMatches(filterSteamIds),
+      outbound.matchRepository.getMatches(skip, take, filterSteamIds),
+    ]);
 
     const steamIds = [
       ...new Set(

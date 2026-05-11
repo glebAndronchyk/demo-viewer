@@ -35,6 +35,20 @@ export class TeamController {
           },
           { body: t.Object({ name: t.String() }) },
         )
+        // GET /team/my — list of owned and joined groups
+        .get(
+          "/my",
+          async ({ jwt, cookie: { auth } }) => {
+            const data = await jwt.verify(auth.value as any);
+            if (!data) throw new UnauthorizedError();
+
+            const result = await commandBus.dispatch({
+              type: "get_my_groups",
+              requesterId: data.sub,
+            });
+            return { data: result, error: null, isSuccess: true };
+          },
+        )
         // Member-gated routes: GET /team/member/:groupId and /team/member/:groupId/users
         .use(
           new Elysia({ prefix: "/member" })

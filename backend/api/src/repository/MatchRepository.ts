@@ -1179,10 +1179,12 @@ export class MatchRepository implements MatchOutboundPort {
     },
   };
 
-  async getMatches(skip: number, take: number): Promise<MatchEntity[]> {
-    const matches = await this.database.MatchModel.find(
-      MatchRepository.validMatchFilter,
-    )
+  async getMatches(skip: number, take: number, steamIds?: string[]): Promise<MatchEntity[]> {
+    const filter = steamIds?.length
+      ? { ...MatchRepository.validMatchFilter, "participants.steam_id": { $in: steamIds } }
+      : MatchRepository.validMatchFilter;
+
+    const matches = await this.database.MatchModel.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(take);
@@ -1190,9 +1192,11 @@ export class MatchRepository implements MatchOutboundPort {
     return matches.map(toMatchEntity);
   }
 
-  async getTotalMatches(): Promise<number> {
-    return this.database.MatchModel.countDocuments(
-      MatchRepository.validMatchFilter,
-    );
+  async getTotalMatches(steamIds?: string[]): Promise<number> {
+    const filter = steamIds?.length
+      ? { ...MatchRepository.validMatchFilter, "participants.steam_id": { $in: steamIds } }
+      : MatchRepository.validMatchFilter;
+
+    return this.database.MatchModel.countDocuments(filter);
   }
 }

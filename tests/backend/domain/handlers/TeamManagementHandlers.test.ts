@@ -67,7 +67,7 @@ const makeOutbound = (overrides: Record<string, unknown> = {}) =>
 // ---------------------------------------------------------------------------
 
 describe("CreateTeamHandler", () => {
-  test("happy path: no existing team — creates team, adds owner as member, returns correct shape", async () => {
+  test("happy path: creates team, adds owner as member, returns correct shape", async () => {
     const group = makeGroup();
     const member = makeMember();
 
@@ -76,7 +76,6 @@ describe("CreateTeamHandler", () => {
 
     const outbound = makeOutbound({
       teamRepository: {
-        getTeamByOwnerId: async () => null,
         createTeam: async (name: string, ownerId: string) => {
           createTeamArgs = [name, ownerId];
           return group;
@@ -101,39 +100,12 @@ describe("CreateTeamHandler", () => {
     expect(addMemberArgs).toEqual([group.id, "u1"]);
   });
 
-  test("conflict: owner already has a team — throws DomainConflictError", async () => {
-    const outbound = makeOutbound({
-      teamRepository: {
-        getTeamByOwnerId: async () => makeGroup(),
-      },
-    });
-
-    const handler = createTeamHandler(outbound);
-    await expect(
-      handler({ type: "create_team", name: "Team Alpha", ownerId: "u1" }),
-    ).rejects.toThrow(DomainConflictError);
-  });
-
-  test("conflict error has correct message", async () => {
-    const outbound = makeOutbound({
-      teamRepository: {
-        getTeamByOwnerId: async () => makeGroup(),
-      },
-    });
-
-    const handler = createTeamHandler(outbound);
-    await expect(
-      handler({ type: "create_team", name: "Team Alpha", ownerId: "u1" }),
-    ).rejects.toThrow("User already owns a team");
-  });
-
   test("verify addMember is called with group.id and ownerId after createTeam", async () => {
     const group = makeGroup({ id: "g99" });
     const addMemberCalls: [string, string][] = [];
 
     const outbound = makeOutbound({
       teamRepository: {
-        getTeamByOwnerId: async () => null,
         createTeam: async () => group,
         addMember: async (groupId: string, userId: string) => {
           addMemberCalls.push([groupId, userId]);

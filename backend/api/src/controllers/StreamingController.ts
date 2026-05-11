@@ -23,7 +23,7 @@ export class StreamingController {
     memoryCache: MemoryCache,
   ) {
     const matchListCacheAccessor = new MemoryCacheAccessor<
-      number,
+      string,
       GetPaginatedMatchesCommandResult
     >(memoryCache, "matchList");
 
@@ -31,15 +31,18 @@ export class StreamingController {
       new Elysia({ prefix: "/streaming/matches", tags: ["streaming"] }).get(
         "/list",
         async ({
-          query: { page },
+          query: { page, steamIds: steamIdsParam },
         }): Promise<
           BaseResponse<{
             pagination: GetPaginatedMatchesCommandResult;
           }>
         > => {
-          if (matchListCacheAccessor.has(page)) {
+          const steamIds = steamIdsParam ? steamIdsParam.split(",").filter(Boolean) : undefined;
+          const cacheKey = `${page}:${steamIds?.join(",") ?? ""}`;
+
+          if (matchListCacheAccessor.has(cacheKey)) {
             return {
-              data: { pagination: matchListCacheAccessor.get(page)! },
+              data: { pagination: matchListCacheAccessor.get(cacheKey)! },
               isSuccess: true,
             };
           }
@@ -48,7 +51,10 @@ export class StreamingController {
             await commandBus.dispatch<GetPaginatedMatchesCommand>({
               type: "get_paginated_matchers",
               page,
+              steamIds,
             });
+
+          matchListCacheAccessor.set(cacheKey, paginatedResult);
 
           return {
             data: { pagination: paginatedResult },
@@ -58,6 +64,7 @@ export class StreamingController {
         {
           query: t.Object({
             page: t.Number(),
+            steamIds: t.Optional(t.String()),
           }),
         },
       ),

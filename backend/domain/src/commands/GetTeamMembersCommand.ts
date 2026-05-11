@@ -1,4 +1,5 @@
 import type { GenericCommand } from "../lib/command_bus";
+import type { GroupMemberEntity } from "../entities/GroupMemberEntity.ts";
 
 export interface GetTeamMembersCommand extends GenericCommand<"get_team_members"> {
   groupId: string;
@@ -6,5 +7,5 @@ export interface GetTeamMembersCommand extends GenericCommand<"get_team_members"
 }
 
 export interface GetTeamMembersCommandResult {
-  members: Array<{ memberId: string; userId: string; joinedAt: Date }>;
+  members: GroupMemberEntity[];
 }

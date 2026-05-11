@@ -16,13 +16,7 @@ export const getTeamMembersHandler = (outbound: DomainOutbound) => {
     if (!isMember) throw new DomainForbiddenError("You are not a member of this team");
 
     const members = await outbound.teamRepository.getMembers(command.groupId);
-    return {
-      members: members.map((m) => ({
-        memberId: m.id,
-        userId: m.userId,
-        joinedAt: m.createdAt,
-      })),
-    } satisfies GetTeamMembersCommandResult;
+    return { members } satisfies GetTeamMembersCommandResult;
   };
 
   handler.match = (c: object): c is GetTeamMembersCommand => {

@@ -23,4 +23,5 @@ export { default as getSteamFriendsRegistration } from "./GetSteamFriendsCommand
 export { default as getPaginatedMatchesRegistration } from "./GetPaginatedMatchesHandler.ts";
 export { default as getPlayerWeaponAnalyticsRegistration } from "./GetPlayerWeaponAnalyticsCommandHandler.ts";
 export { default as getPlayerEconomyAnalyticsRegistration } from "./GetPlayerEconomyAnalyticsCommandHandler.ts";
+export { default as getMyGroupsRegistration } from "./GetMyGroupsHandler.ts";
 export { default as getPlayerPerformanceAnalyticsRegistration } from "./GetPlayerPerformanceAnalyticsCommandHandler.ts";

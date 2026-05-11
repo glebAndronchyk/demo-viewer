@@ -2,6 +2,7 @@ import type { GenericCommand } from "../lib/command_bus";
 
 export interface GetPaginatedMatchesCommand extends GenericCommand<"get_paginated_matchers"> {
   page: number;
+  steamIds?: string[];
 }
 
 export interface GetPaginatedMatchesCommandResult {

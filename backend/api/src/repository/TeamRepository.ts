@@ -7,10 +7,15 @@ import {
   DomainConflictError,
   DomainNotFoundError,
 } from "@demo-viewer/domain/src/lib/errors/DomainErrors";
+import { Types } from "mongoose";
 
 export class TeamRepository implements TeamOutboundPort {
   async createTeam(name: string, ownerId: string): Promise<GroupEntity> {
-    const group = await GroupModel.create({ name, owner_id: ownerId, is_open: false });
+    const group = await GroupModel.create({
+      name,
+      owner_id: ownerId,
+      is_open: false,
+    });
     return toGroupEntity(group);
   }
 
@@ -24,9 +29,28 @@ export class TeamRepository implements TeamOutboundPort {
     return group ? toGroupEntity(group) : null;
   }
 
+  async getTeamsByOwnerId(ownerId: string): Promise<GroupEntity[]> {
+    const groups = await GroupModel.find({ owner_id: ownerId }).lean();
+    return groups.map(toGroupEntity);
+  }
+
+  async getGroupsMemberOf(userId: string): Promise<GroupEntity[]> {
+    const userObjectId = new Types.ObjectId(userId);
+    const memberships = await GroupMemberModel.find({ user_id: userObjectId }).lean();
+    const groupIds = memberships.map((m) => m.group_id);
+    const groups = await GroupModel.find({
+      _id: { $in: groupIds },
+      owner_id: { $ne: userId },
+    }).lean();
+    return groups.map(toGroupEntity);
+  }
+
   async addMember(groupId: string, userId: string): Promise<GroupMemberEntity> {
     try {
-      const member = await GroupMemberModel.create({ group_id: groupId, user_id: userId });
+      const member = await GroupMemberModel.create({
+        group_id: groupId,
+        user_id: new Types.ObjectId(userId),
+      });
       return toGroupMemberEntity(member);
     } catch (err: any) {
       if (err.code === 11000) {
@@ -37,28 +61,53 @@ export class TeamRepository implements TeamOutboundPort {
   }
 
   async removeMember(groupId: string, userId: string): Promise<void> {
-    const result = await GroupMemberModel.deleteOne({ group_id: groupId, user_id: userId });
+    const result = await GroupMemberModel.deleteOne({
+      group_id: groupId,
+      user_id: new Types.ObjectId(userId),
+    });
     if (result.deletedCount === 0) {
       throw new DomainNotFoundError("Member not found in team");
     }
   }
 
   async getMembers(groupId: string): Promise<GroupMemberEntity[]> {
-    const members = await GroupMemberModel.find({ group_id: groupId }).lean();
+    const members = await GroupMemberModel.aggregate([
+      {
+        $match: { group_id: groupId },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+    ]);
     return members.map(toGroupMemberEntity);
   }
 
   async isMember(groupId: string, userId: string): Promise<boolean> {
-    const count = await GroupMemberModel.countDocuments({ group_id: groupId, user_id: userId });
+    const count = await GroupMemberModel.countDocuments({
+      group_id: groupId,
+      user_id: new Types.ObjectId(userId),
+    });
     return count > 0;
   }
 
-  async updateTeam(id: string, updates: { name?: string; isOpen?: boolean }): Promise<GroupEntity> {
+  async updateTeam(
+    id: string,
+    updates: { name?: string; isOpen?: boolean },
+  ): Promise<GroupEntity> {
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.isOpen !== undefined) dbUpdates.is_open = updates.isOpen;
 
-    const group = await GroupModel.findByIdAndUpdate(id, { $set: dbUpdates }, { new: true }).lean();
+    const group = await GroupModel.findByIdAndUpdate(
+      id,
+      { $set: dbUpdates },
+      { new: true },
+    ).lean();
     if (!group) throw new DomainNotFoundError(`Team not found: ${id}`);
     return toGroupEntity(group);
   }
