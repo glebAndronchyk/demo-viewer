@@ -36,7 +36,9 @@ export class TeamRepository implements TeamOutboundPort {
 
   async getGroupsMemberOf(userId: string): Promise<GroupEntity[]> {
     const userObjectId = new Types.ObjectId(userId);
-    const memberships = await GroupMemberModel.find({ user_id: userObjectId }).lean();
+    const memberships = await GroupMemberModel.find({
+      user_id: userObjectId,
+    }).lean();
     const groupIds = memberships.map((m) => m.group_id);
     const groups = await GroupModel.find({
       _id: { $in: groupIds },
@@ -48,7 +50,7 @@ export class TeamRepository implements TeamOutboundPort {
   async addMember(groupId: string, userId: string): Promise<GroupMemberEntity> {
     try {
       const member = await GroupMemberModel.create({
-        group_id: groupId,
+        group_id: new Types.ObjectId(groupId),
         user_id: new Types.ObjectId(userId),
       });
       return toGroupMemberEntity(member);
@@ -62,7 +64,7 @@ export class TeamRepository implements TeamOutboundPort {
 
   async removeMember(groupId: string, userId: string): Promise<void> {
     const result = await GroupMemberModel.deleteOne({
-      group_id: groupId,
+      group_id: new Types.ObjectId(groupId),
       user_id: new Types.ObjectId(userId),
     });
     if (result.deletedCount === 0) {
@@ -73,7 +75,7 @@ export class TeamRepository implements TeamOutboundPort {
   async getMembers(groupId: string): Promise<GroupMemberEntity[]> {
     const members = await GroupMemberModel.aggregate([
       {
-        $match: { group_id: groupId },
+        $match: { group_id: new Types.ObjectId(groupId) },
       },
       {
         $lookup: {
@@ -83,13 +85,14 @@ export class TeamRepository implements TeamOutboundPort {
           as: "user",
         },
       },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
     ]);
     return members.map(toGroupMemberEntity);
   }
 
   async isMember(groupId: string, userId: string): Promise<boolean> {
     const count = await GroupMemberModel.countDocuments({
-      group_id: groupId,
+      group_id: new Types.ObjectId(groupId),
       user_id: new Types.ObjectId(userId),
     });
     return count > 0;

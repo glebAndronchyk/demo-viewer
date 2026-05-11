@@ -4,28 +4,72 @@ import GlobalOffensive from "globaloffensive";
 import { homedir } from "os";
 import { join } from "path";
 
+const RETRY_BASE_DELAY_MS = 120_000;
+const MAX_ATTEMPTS = 10;
+
 export class SteamBotService {
+  private _connected = false;
+  private _user: SteamUser | null = null;
+  private _gc: GlobalOffensive | null = null;
+
   get bot(): SteamUser {
-    return this.user;
+    if (!this._user) throw new Error("[STEAM_BOT] Not connected yet");
+    return this._user;
   }
 
   get gc(): GlobalOffensive {
-    return this.gameCoordinator;
+    if (!this._gc) throw new Error("[STEAM_BOT] Not connected yet");
+    return this._gc;
   }
 
-  constructor(
-    private readonly user: SteamUser,
-    private readonly gameCoordinator: GlobalOffensive,
-  ) {}
+  get isConnected(): boolean {
+    return this._connected;
+  }
 
   /**
-   * Connects to a steam user and waits for whole login process to end. May require you to enter a steam guard key
+   * Starts the Steam bot connection in the background with exponential backoff.
+   * Returns immediately — does not block server startup.
    */
-  static async create(configuration: ConfigurationInboundPort) {
-    const { resolve, promise } = Promise.withResolvers<SteamBotService>();
+  static createBackground(
+    configuration: ConfigurationInboundPort,
+  ): SteamBotService {
+    const service = new SteamBotService();
+    void service.connectWithRetry(configuration);
+    return service;
+  }
+
+  private async connectWithRetry(
+    configuration: ConfigurationInboundPort,
+    attempt = 1,
+  ): Promise<void> {
+    try {
+      await this.connect(configuration);
+    } catch (e: any) {
+      const isRateLimit =
+        e?.eresult === 84 || e?.message === "RateLimitExceeded";
+      const label = isRateLimit ? "RateLimitExceeded" : String(e?.message ?? e);
+
+      if (attempt >= MAX_ATTEMPTS) {
+        console.error(
+          `[STEAM_BOT] Giving up after ${attempt} attempts: ${label}`,
+        );
+        return;
+      }
+
+      const delayMs = Math.min(attempt * RETRY_BASE_DELAY_MS, 300_000);
+      console.log(
+        `[STEAM_BOT] ${label} — retry ${attempt}/${MAX_ATTEMPTS} in ${delayMs / 1000}s`,
+      );
+      await Bun.sleep(delayMs);
+      return this.connectWithRetry(configuration, attempt + 1);
+    }
+  }
+
+  private connect(configuration: ConfigurationInboundPort): Promise<void> {
+    const { resolve, reject, promise } = Promise.withResolvers<void>();
 
     const bot = new SteamUser({
-      autoRelogin: true,
+      autoRelogin: false,
       dataDirectory: join(homedir(), "auth", "steam"),
       protocol: EConnectionProtocol.TCP,
     });
@@ -37,8 +81,6 @@ export class SteamBotService {
       accountName: configuration.steamGameCoordinatorBotAccountName,
       password: configuration.steamGameCoordinatorBotAccountPassword,
     });
-
-    const serviceInstance = new this(bot, gc);
 
     // #region gc
 
@@ -69,32 +111,42 @@ export class SteamBotService {
         `[STEAM_BOT] gamesPlayed called, _playingAppIds=${JSON.stringify((bot as any)._playingAppIds)}`,
       );
 
-      resolve(serviceInstance);
+      this._user = bot;
+      this._gc = gc;
+      this._connected = true;
+
+      resolve();
     });
 
     bot.on("steamGuard", async (domain, callback) => {
       console.log(`[STEAM_BOT] Steam Guard required, domain=${domain}`);
       const code = prompt("Enter steam guard code");
       console.log(`[STEAM_BOT] Steam Guard code entered: ${code}`);
-
       if (!code) return;
-
       callback(code);
     });
 
-    bot.on("error", (e) => {
+    bot.on("error", (e: Error & { eresult?: number }) => {
       console.log(`[STEAM_BOT] ERROR:`, e);
+      reject(e);
     });
 
     bot.on("disconnected", (eresult, msg) => {
       console.log(`[STEAM_BOT] DISCONNECTED: eresult=${eresult} msg=${msg}`);
+      if (this._connected) {
+        this._connected = false;
+        this._user = null;
+        this._gc = null;
+        console.log(`[STEAM_BOT] Scheduling reconnect...`);
+        void this.connectWithRetry(configuration);
+      }
     });
 
-    bot.on("webSession", (sessionId, cookies) => {
+    bot.on("webSession", () => {
       console.log("[STEAM_BOT] webSession fired");
     });
 
-    bot.on("loginKey", (key) => {
+    bot.on("loginKey", () => {
       console.log("[STEAM_BOT] loginKey fired");
     });
 

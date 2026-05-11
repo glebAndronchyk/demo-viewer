@@ -60,7 +60,7 @@ export const useGroupDetailViewModel = {
 
     const steamIdsParam = steamIds.join(",");
     const matchesRes = await fetch(
-      `${API}/streaming/matches/list?page=${page}&steamIds=${steamIdsParam}`,
+      `${API}/streaming/matches/list?page=${page}&steamIds=${steamIdsParam}&groupId=${id}`,
       { credentials: "include" },
     ).then((r) => r.json());
 

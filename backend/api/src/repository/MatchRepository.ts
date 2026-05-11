@@ -1179,9 +1179,16 @@ export class MatchRepository implements MatchOutboundPort {
     },
   };
 
-  async getMatches(skip: number, take: number, steamIds?: string[]): Promise<MatchEntity[]> {
+  async getMatches(
+    skip: number,
+    take: number,
+    steamIds?: string[],
+  ): Promise<MatchEntity[]> {
     const filter = steamIds?.length
-      ? { ...MatchRepository.validMatchFilter, "participants.steam_id": { $in: steamIds } }
+      ? {
+          ...MatchRepository.validMatchFilter,
+          "participants.steam_id": { $in: steamIds },
+        }
       : MatchRepository.validMatchFilter;
 
     const matches = await this.database.MatchModel.find(filter)
@@ -1194,7 +1201,10 @@ export class MatchRepository implements MatchOutboundPort {
 
   async getTotalMatches(steamIds?: string[]): Promise<number> {
     const filter = steamIds?.length
-      ? { ...MatchRepository.validMatchFilter, "participants.steam_id": { $in: steamIds } }
+      ? {
+          ...MatchRepository.validMatchFilter,
+          "participants.steam_id": { $in: steamIds },
+        }
       : MatchRepository.validMatchFilter;
 
     return this.database.MatchModel.countDocuments(filter);

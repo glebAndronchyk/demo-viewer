@@ -93,7 +93,11 @@ export interface MatchOutboundPort {
     lookbackTicks: number,
   ): Promise<DemoEvent[]>;
 
-  getMatches(skip: number, take: number, steamIds?: string[]): Promise<MatchEntity[]>;
+  getMatches(
+    skip: number,
+    take: number,
+    steamIds?: string[],
+  ): Promise<MatchEntity[]>;
 
   getTotalMatches(steamIds?: string[]): Promise<number>;
 

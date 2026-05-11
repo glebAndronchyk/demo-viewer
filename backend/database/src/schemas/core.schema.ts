@@ -50,9 +50,9 @@ export const GroupMemberSchema = new Schema<IGroupMemberDocument>(
       required: true,
     },
     group_id: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Group',
       required: true,
-      trim: true,
     },
   },
   {

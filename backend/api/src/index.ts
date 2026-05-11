@@ -40,7 +40,7 @@ const config = new EnvConfiguration();
 console.log(`Loaded config:${config.toJson()}`);
 
 const db = await DatabaseService.connect(config);
-const steamBot = await SteamBotService.create(config);
+const steamBot = SteamBotService.createBackground(config);
 
 const di = new DIContainer()
   .addInstance(EnvConfiguration, config)

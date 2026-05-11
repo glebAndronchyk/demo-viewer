@@ -31,14 +31,16 @@ export class StreamingController {
       new Elysia({ prefix: "/streaming/matches", tags: ["streaming"] }).get(
         "/list",
         async ({
-          query: { page, steamIds: steamIdsParam },
+          query: { page, steamIds: steamIdsParam, groupId },
         }): Promise<
           BaseResponse<{
             pagination: GetPaginatedMatchesCommandResult;
           }>
         > => {
-          const steamIds = steamIdsParam ? steamIdsParam.split(",").filter(Boolean) : undefined;
-          const cacheKey = `${page}:${steamIds?.join(",") ?? ""}`;
+          const steamIds = steamIdsParam
+            ? steamIdsParam.split(",").filter(Boolean)
+            : undefined;
+          const cacheKey = `${page}:${groupId || ""}:${steamIds?.join(",") ?? ""}`;
 
           if (matchListCacheAccessor.has(cacheKey)) {
             return {
@@ -52,6 +54,7 @@ export class StreamingController {
               type: "get_paginated_matchers",
               page,
               steamIds,
+              groupId,
             });
 
           matchListCacheAccessor.set(cacheKey, paginatedResult);
@@ -64,6 +67,7 @@ export class StreamingController {
         {
           query: t.Object({
             page: t.Number(),
+            groupId: t.Optional(t.String()),
             steamIds: t.Optional(t.String()),
           }),
         },

@@ -12,7 +12,7 @@ export interface IGroupDocument extends IGroup, Document {}
 
 export interface IGroupMember {
   user_id: Types.ObjectId;
-  group_id: string;
+  group_id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

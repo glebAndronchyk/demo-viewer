@@ -23,7 +23,7 @@ export function toGroupMemberEntity(doc: GroupMemberInput): GroupMemberEntity {
   return {
     id: doc._id.toString(),
     userId: doc.user_id.toString(),
-    groupId: doc.group_id,
+    groupId: doc.group_id.toString(),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     user: doc.user ? toUserEntity(doc.user) : null,

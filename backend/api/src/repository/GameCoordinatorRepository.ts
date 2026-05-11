@@ -14,14 +14,19 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
     string,
     (match: GlobalOffensive.Match) => void
   >();
+  private gcListenerRegistered = false;
 
   constructor(
     private readonly configuration: ConfigurationInboundPort,
     private readonly botService: SteamBotService,
   ) {
     this.http = axios.create();
+  }
 
-    // create a single listener for all incoming gc.matchList requests
+  private ensureGcListener() {
+    if (this.gcListenerRegistered) return;
+    this.gcListenerRegistered = true;
+
     this.botService.gc.addListener(
       "matchList",
       (matches: GlobalOffensive.Match[]) => {
@@ -130,6 +135,8 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
 
     const { promise, resolve } =
       Promise.withResolvers<BaseResponse<{ url: string }>>();
+
+    this.ensureGcListener();
 
     console.log(`[GC] requesting game for shareCode=${shareCode}`);
     this.matchListListeners.set(decodedShareCode.matchId, (match) => {
