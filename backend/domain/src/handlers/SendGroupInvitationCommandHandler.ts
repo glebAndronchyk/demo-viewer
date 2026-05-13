@@ -22,13 +22,6 @@ export const sendGroupInvitationCommandHandler = (outbound: DomainOutbound) => {
       throw new DomainForbiddenError('Only the team owner can invite members');
     }
 
-    const friendSteamIds = await outbound.steamFriendsRepository.getFriendsOf(
-      command.requesterSteamId,
-    );
-    if (!friendSteamIds.includes(command.targetSteamId)) {
-      throw new DomainForbiddenError('Target user is not in your Steam friends list');
-    }
-
     const targetUser = await outbound.userRepository.getUserBySteamId(command.targetSteamId);
     if (!targetUser) {
       throw new DomainNotFoundError(`User with steamId ${command.targetSteamId} not found`);
@@ -47,6 +40,7 @@ export const sendGroupInvitationCommandHandler = (outbound: DomainOutbound) => {
       recipientUserId: targetUser.id,
       payload: { groupId: command.groupId, invitedBy: command.requesterId },
       status: 'pending',
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     return { notificationId: notification.id } satisfies SendGroupInvitationCommandResult;

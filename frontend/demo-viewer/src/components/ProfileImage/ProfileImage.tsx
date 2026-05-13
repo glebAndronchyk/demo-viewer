@@ -1,9 +1,8 @@
-import { Avatar, Badge, Dropdown, Flex, type MenuProps } from "antd";
+import { Avatar, Dropdown, Flex, type MenuProps } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 
 interface ProfileProps {
   options: MenuProps["items"];
-  notifications: number;
   children?: React.ReactNode;
 }
 
@@ -12,13 +11,7 @@ export const ProfileImage = (props: ProfileProps) => {
     <Flex orientation="horizontal" className="items-center">
       {props.children}
       <Dropdown placement="bottomRight" menu={{ items: props.options }}>
-        <Badge count={props.notifications}>
-          <Avatar
-            className="cursor-pointer"
-            size={32}
-            icon={<UserOutlined />}
-          />
-        </Badge>
+        <Avatar className="cursor-pointer" size={32} icon={<UserOutlined />} />
       </Dropdown>
     </Flex>
   );

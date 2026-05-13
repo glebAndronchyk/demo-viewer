@@ -10,7 +10,6 @@ interface ProfileImageProps {
 export const ProfileImage = (props: ProfileImageProps) => {
   return (
     <UIProfileImage
-      notifications={0}
       options={[
         {
           key: "account",

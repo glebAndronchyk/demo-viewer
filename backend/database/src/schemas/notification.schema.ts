@@ -9,12 +9,13 @@ export const NotificationSchema = new Schema<INotificationDocument>(
     status: {
       type: String,
       required: true,
-      enum: ['pending', 'delivered', 'dismissed'],
+      enum: ['pending', 'delivered', 'dismissed', 'expired', 'accepted'],
       default: 'pending',
     },
+    expiresAt: { type: Date, required: false, default: null },
   },
   { timestamps: true, collection: 'notifications' },
 );
 
 NotificationSchema.index({ recipient_user_id: 1 });
-NotificationSchema.index({ status: 1 });
+NotificationSchema.index({ status: 1, expiresAt: 1 });

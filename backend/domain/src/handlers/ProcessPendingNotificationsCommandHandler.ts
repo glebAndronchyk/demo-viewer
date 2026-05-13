@@ -11,7 +11,7 @@ export const processPendingNotificationsCommandHandler = (outbound: DomainOutbou
     ProcessPendingNotificationsCommand,
     ProcessPendingNotificationsCommandResult
   > = async (command) => {
-    const notifications = await outbound.notificationRepository.getPendingNotifications(
+    const notifications = await outbound.notificationRepository.getExpiredPendingNotifications(
       command.batchSize,
     );
 
@@ -20,11 +20,7 @@ export const processPendingNotificationsCommandHandler = (outbound: DomainOutbou
     await Promise.all(
       notifications.map(async (notification) => {
         try {
-          if (notification.type === 'group_invitation') {
-            const { groupId } = notification.payload as { groupId: string };
-            await outbound.teamRepository.addMember(groupId, notification.recipientUserId);
-          }
-          await outbound.notificationRepository.markAsDelivered(notification.id);
+          await outbound.notificationRepository.markAsExpired(notification.id);
           processed++;
         } catch {
           // leave notification pending to retry on next cron tick

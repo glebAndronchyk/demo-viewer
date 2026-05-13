@@ -9,13 +9,11 @@ export const userPlugin = (secret: string) => {
       { as: "scoped" },
       async ({ jwt, cookie: { auth }, params }) => {
         const data = await jwt.verify(auth.value as any);
-        if (!data) {
-          throw new UnauthorizedError();
-        }
-        if ("id" in params && params.id !== data.sub) {
+        if (!data) throw new UnauthorizedError();
+        if (params !== null && typeof params === "object" && "id" in params && params.id !== data.sub) {
           throw new ForbiddenError();
         }
-        return data;
+        return { sub: data.sub };
       },
     );
 };

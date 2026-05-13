@@ -10,6 +10,7 @@ export function toNotificationEntity(doc: NotificationInput): NotificationEntity
     recipientUserId: doc.recipient_user_id,
     payload: doc.payload,
     status: doc.status,
+    expiresAt: doc.expiresAt ?? undefined,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

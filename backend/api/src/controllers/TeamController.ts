@@ -5,6 +5,7 @@ import { TeamRepository } from "../repository/TeamRepository";
 import { jwtPlugin } from "../lib/elysia/plugins/jwtPlugin";
 import { teamMemberPlugin } from "../lib/elysia/plugins/teamMemberPlugin";
 import { teamOwnerPlugin } from "../lib/elysia/plugins/teamOwnerPlugin";
+import { userPlugin } from "../lib/elysia/plugins/userPlugin";
 import { UnauthorizedError } from "../lib/errors/AppErrors";
 
 export class TeamController {
@@ -34,6 +35,23 @@ export class TeamController {
             return { data: result, error: null, isSuccess: true };
           },
           { body: t.Object({ name: t.String() }) },
+        )
+        // POST /team/accept/invitation
+        .use(
+          new Elysia({ prefix: "/accept" })
+            .use(userPlugin(secret))
+            .post(
+              "/invitation",
+              async ({ sub, body }) => {
+                const result = await commandBus.dispatch({
+                  type: "accept_group_invitation",
+                  requesterId: sub,
+                  notificationId: body.notificationId,
+                });
+                return { data: result, error: null, isSuccess: true };
+              },
+              { body: t.Object({ notificationId: t.String() }) },
+            ),
         )
         // GET /team/my — list of owned and joined groups
         .get(
@@ -85,9 +103,9 @@ export class TeamController {
               "/:groupId/invite",
               async ({ params: { groupId }, body, sub }) => {
                 const result = await commandBus.dispatch({
-                  type: "add_user_to_team",
+                  type: "send_group_invitation",
                   groupId,
-                  steamId: body.steamId,
+                  targetSteamId: body.steamId,
                   requesterId: sub,
                 });
                 return { data: result, error: null, isSuccess: true };

@@ -22,6 +22,7 @@ export class NotificationRepository implements NotificationOutboundPort {
       recipient_user_id: data.recipientUserId,
       payload: data.payload,
       status: data.status,
+      ...(data.expiresAt !== undefined && { expiresAt: data.expiresAt }),
     });
 
     const entity = toNotificationEntity(doc);
@@ -38,19 +39,52 @@ export class NotificationRepository implements NotificationOutboundPort {
     return docs.map(toNotificationEntity);
   }
 
+  async getExpiredPendingNotifications(
+    limit: number,
+  ): Promise<NotificationEntity[]> {
+    const docs = await this.database.NotificationModel.find({
+      status: "pending",
+      expiresAt: { $lte: new Date() },
+    })
+      .limit(limit)
+      .lean();
+    return docs.map(toNotificationEntity);
+  }
+
+  async markAsExpired(id: string): Promise<void> {
+    const result = await this.database.NotificationModel.findByIdAndUpdate(
+      id,
+      {
+        $set: { status: "expired" },
+      },
+      { new: true },
+    );
+    if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
+
+    this.notify(result.recipient_user_id, toNotificationEntity(result));
+  }
+
   async markAsDelivered(id: string): Promise<void> {
-    const result = await this.database.NotificationModel.findByIdAndUpdate(id, {
-      $set: { status: "delivered" },
-    });
+    const result = await this.database.NotificationModel.findByIdAndUpdate(
+      id,
+      {
+        $set: { status: "delivered" },
+      },
+      { new: true },
+    );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
     this.notify(result.recipient_user_id, toNotificationEntity(result));
   }
 
   async markAsDismissed(id: string): Promise<void> {
-    const result = await this.database.NotificationModel.findByIdAndUpdate(id, {
-      $set: { status: "dismissed" },
-    });
+    const result = await this.database.NotificationModel.findByIdAndUpdate(
+      id,
+      {
+        $set: { status: "dismissed" },
+      },
+      { new: true },
+    );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
     this.notify(result.recipient_user_id, toNotificationEntity(result));
@@ -73,6 +107,24 @@ export class NotificationRepository implements NotificationOutboundPort {
       status,
     }).lean();
     return docs.map(toNotificationEntity);
+  }
+
+  async getById(id: string): Promise<NotificationEntity | null> {
+    const doc = await this.database.NotificationModel.findById(id).lean();
+    return doc ? toNotificationEntity(doc) : null;
+  }
+
+  async markAsAccepted(id: string): Promise<void> {
+    const result = await this.database.NotificationModel.findByIdAndUpdate(
+      id,
+      {
+        $set: { status: "accepted" },
+      },
+      { new: true },
+    );
+    if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
+
+    this.notify(result.recipient_user_id, toNotificationEntity(result));
   }
 
   async hasPendingInvitation(

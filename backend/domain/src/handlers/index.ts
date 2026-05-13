@@ -26,3 +26,4 @@ export { default as getPlayerEconomyAnalyticsRegistration } from "./GetPlayerEco
 export { default as getMyGroupsRegistration } from "./GetMyGroupsHandler.ts";
 export { default as getPlayerPerformanceAnalyticsRegistration } from "./GetPlayerPerformanceAnalyticsCommandHandler.ts";
 export { default as getUserNotificationsRegistration } from "./GetUserNotificationsCommandHandler.ts";
+export { default as acceptGroupInvitationRegistration } from "./AcceptGroupInvitationCommandHandler.ts";

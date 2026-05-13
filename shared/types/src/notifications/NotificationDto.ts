@@ -1,14 +1,31 @@
-export type NotificationStatus = "pending" | "delivered" | "dismissed";
+export type NotificationStatus =
+  | "pending"
+  | "delivered"
+  | "dismissed"
+  | "expired"
+  | "accepted";
 
-export interface NotificationDto {
+export interface GroupInvitationPayload {
+  groupId: string;
+  invitedBy: string;
+}
+
+export interface NotificationDto<TPayload = Record<string, unknown>> {
   id: string;
   type: string;
   recipientUserId: string;
-  payload: Record<string, unknown>;
+  payload: TPayload;
   status: NotificationStatus;
   createdAt: string;
   updatedAt: string;
 }
+
+export type GroupInvitationNotificationDto =
+  NotificationDto<GroupInvitationPayload> & {
+    type: "group_invitation";
+  };
+
+export type KnownNotificationDto = GroupInvitationNotificationDto;
 
 export interface NotificationInitEventData {
   event: "init";

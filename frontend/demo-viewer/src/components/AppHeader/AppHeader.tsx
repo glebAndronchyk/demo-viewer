@@ -2,6 +2,7 @@ import { Button, Layout, Spin, Typography, theme } from "antd";
 import { useAuth } from "../../modules/auth";
 import { ProfileImage } from "../../modules/auth/components/ProfileImage.tsx";
 import { Link } from "react-router";
+import { NotificationsList } from "../../modules/auth/components/NotificationList.tsx";
 
 export function AppHeader() {
   const { user, isLoading } = useAuth();
@@ -29,7 +30,10 @@ export function AppHeader() {
         {isLoading ? (
           <Spin size="small" />
         ) : user ? (
-          <ProfileImage user={user} />
+          <>
+            <NotificationsList />
+            <ProfileImage user={user} />
+          </>
         ) : (
           <Button type="primary" href="http://localhost:3000/auth/steam">
             Login with Steam

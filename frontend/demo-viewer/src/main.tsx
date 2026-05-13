@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import { AuthProvider } from "./modules/auth";
 
 import { ConfigProvider, theme } from "antd";
+import { RootViewModel } from "./viewmodels/RootViewModel.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -60,7 +61,9 @@ createRoot(document.getElementById("root")!).render(
       }}
     >
       <AuthProvider>
-        <App />
+        <RootViewModel>
+          <App />
+        </RootViewModel>
       </AuthProvider>
     </ConfigProvider>
   </StrictMode>,

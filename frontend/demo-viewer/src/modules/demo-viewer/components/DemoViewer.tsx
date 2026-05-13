@@ -36,6 +36,8 @@ interface DebugThreeProps {
   controls?: boolean;
 }
 
+// @ts-expect-error debug
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DebugThree = (props: DebugThreeProps) => {
   const { orbit, camera, axes, controls } = props;
   const { camera: sceneCamera } = useThree();
@@ -98,14 +100,23 @@ const DebugThree = (props: DebugThreeProps) => {
   );
 };
 
-export default function DemoViewer() {
+interface DemoViewerProps {
+  className?: string;
+}
+
+export default function DemoViewer(props: DemoViewerProps) {
   return (
-    <Canvas className="[&_canvas]:!w-[500px] [&_canvas]:!h-[500px]">
+    <Canvas className={props.className}>
       <FrameOperator />
+      <OrbitControls
+        enableRotate={false}
+        enablePan={false}
+        enableZoom={false}
+      />
       <Suspense fallback={null}>
         <Scene />
       </Suspense>
-      <DebugThree axes camera orbit controls />
+      {/*<DebugThree axes camera orbit controls />*/}
     </Canvas>
   );
 }

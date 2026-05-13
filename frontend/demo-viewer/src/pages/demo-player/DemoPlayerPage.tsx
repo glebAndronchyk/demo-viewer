@@ -12,9 +12,9 @@ const DemoPlayerPage = () => {
       <Layout.Header>
         <ScoreOutput />
       </Layout.Header>
-      <Layout style={{ maxHeight: "50vh" }}>
+      <Layout style={{ maxHeight: "50vh", minHeight: "50vh" }}>
         <Layout.Content>
-          <DemoViewer />
+          <DemoViewer className="[&_canvas]:w-125! [&_canvas]:h-full! [&_div]:flex [&_div]:justify-center" />
         </Layout.Content>
         <Layout.Sider width="40%">
           <EventLog />

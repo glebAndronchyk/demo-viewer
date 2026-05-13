@@ -3,8 +3,8 @@ import { CommandBusService } from "../adapters/CommandBusService.ts";
 import { userPlugin } from "../lib/elysia/plugins/userPlugin.ts";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort.ts";
 import type { GetUserNotificationsCommand } from "@demo-viewer/domain/src/commands/GetUserNotificationsCommand.ts";
-import { NotificationEntity } from "@demo-viewer/domain/src/entities/NotificationEntity.ts";
 import { NotificationOutboundPort } from "@demo-viewer/domain/src/ports/outbound/NotificationOutboundPort.ts";
+import type { NotificationEntity } from "@demo-viewer/domain/src/entities/NotificationEntity.ts";
 
 export class NotificationsController {
   constructor(
@@ -17,31 +17,42 @@ export class NotificationsController {
       new Elysia({ prefix: "/notifications", tags: ["notifications"] }).use(
         userPlugin(configuration.jwtSecret).get(
           "/session",
-          async function* ({ userId }) {
+          async function* ({ sub }) {
             yield sse({
-              type: "init",
+              event: "init",
               data: await commandBus.dispatch<GetUserNotificationsCommand>({
                 type: "get_user_notifications",
                 status: "pending",
-                userId,
+                userId: sub,
               }),
             });
 
+            const queue: NotificationEntity[] = [];
             let resolve: ((n: NotificationEntity) => void) | null = null;
 
-            const unsub = notifications.subscribe(userId, (n) => {
-              if (resolve && typeof resolve === "function") {
-                resolve(n);
+            const unsub = notifications.subscribe(sub, (n) => {
+              if (resolve) {
+                const r = resolve;
+                resolve = null;
+                r(n);
+              } else {
+                queue.push(n);
               }
             });
 
-            try {
-              const notification = await new Promise<NotificationEntity>(
-                (res) => {
+            const next = () =>
+              new Promise<NotificationEntity>((res) => {
+                if (queue.length > 0) {
+                  res(queue.shift()!);
+                } else {
                   resolve = res;
-                },
-              );
-              yield sse({ event: "update", data: notification });
+                }
+              });
+
+            try {
+              while (true) {
+                yield sse({ event: "update", data: await next() });
+              }
             } finally {
               unsub();
             }
