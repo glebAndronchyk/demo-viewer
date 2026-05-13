@@ -908,7 +908,7 @@ export class MatchRepository implements MatchOutboundPort {
   async aggregateWeaponStats(steamId: string, startDate: Date) {
     const cacheKey = `stats:${steamId}:${startDate.getTime()}`;
 
-    if (this.weaponsCache.has(steamId)) {
+    if (this.weaponsCache.has(cacheKey)) {
       return this.weaponsCache.get(cacheKey) as PlayerWeaponStatsEntity;
     }
 

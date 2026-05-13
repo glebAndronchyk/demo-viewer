@@ -1,4 +1,5 @@
 import { NotificationModel } from "@demo-viewer/database";
+import { Types } from "mongoose";
 import type { NotificationOutboundPort } from "@demo-viewer/domain/src/ports/outbound/NotificationOutboundPort";
 import type { NotificationEntity } from "@demo-viewer/domain/src/entities/NotificationEntity";
 import { toNotificationEntity } from "../mappers/notification.mapper";
@@ -19,7 +20,7 @@ export class NotificationRepository implements NotificationOutboundPort {
   ): Promise<NotificationEntity> {
     const doc = await NotificationModel.create({
       type: data.type,
-      recipient_user_id: data.recipientUserId,
+      recipient_user_id: new Types.ObjectId(data.recipientUserId),
       payload: data.payload,
       status: data.status,
       ...(data.expiresAt !== undefined && { expiresAt: data.expiresAt }),
@@ -61,7 +62,7 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id, toNotificationEntity(result));
+    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
   }
 
   async markAsDelivered(id: string): Promise<void> {
@@ -74,7 +75,7 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id, toNotificationEntity(result));
+    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
   }
 
   async markAsDismissed(id: string): Promise<void> {
@@ -87,12 +88,12 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id, toNotificationEntity(result));
+    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
   }
 
   async getPendingForUser(userId: string): Promise<NotificationEntity[]> {
     const docs = await this.database.NotificationModel.find({
-      recipient_user_id: userId,
+      recipient_user_id: new Types.ObjectId(userId),
       status: "pending",
     }).lean();
     return docs.map(toNotificationEntity);
@@ -103,7 +104,7 @@ export class NotificationRepository implements NotificationOutboundPort {
     status: NotificationEntity["status"],
   ): Promise<NotificationEntity[]> {
     const docs = await this.database.NotificationModel.find({
-      recipient_user_id: userId,
+      recipient_user_id: new Types.ObjectId(userId),
       status,
     }).lean();
     return docs.map(toNotificationEntity);
@@ -124,7 +125,7 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id, toNotificationEntity(result));
+    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
   }
 
   async hasPendingInvitation(
@@ -132,7 +133,7 @@ export class NotificationRepository implements NotificationOutboundPort {
     groupId: string,
   ): Promise<boolean> {
     const count = await this.database.NotificationModel.countDocuments({
-      recipient_user_id: userId,
+      recipient_user_id: new Types.ObjectId(userId),
       type: "group_invitation",
       status: "pending",
       "payload.groupId": groupId,
