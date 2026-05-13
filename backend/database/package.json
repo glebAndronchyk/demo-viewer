@@ -11,7 +11,8 @@
     "migrate:up": "migrate-mongo up",
     "migrate:down": "migrate-mongo down",
     "migrate:status": "migrate-mongo status",
-    "migrate:create": "bun run scripts/create-migration.ts"
+    "migrate:create": "bun run scripts/create-migration.ts",
+    "dump": "bunx mongodump --db demo-viewer"
   },
   "dependencies": {
     "mongoose": "^9.4.1",
