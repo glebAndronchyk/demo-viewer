@@ -146,7 +146,7 @@ func (p *Parser) Parse() error {
 	var chunksBatch []DemoChunk
 
 	flushBatch := func() error {
-		if err := p.repo.InsertChunkBatch(chunksBatch); err != nil {
+		if err := p.repo.InsertChunkBatch(p.demoID, chunksBatch); err != nil {
 			return fmt.Errorf("failed to insert chunk batch: %w", err)
 		}
 		chunksBatch = chunksBatch[:0]
@@ -171,7 +171,6 @@ func (p *Parser) Parse() error {
 
 			chunk := DemoChunk{
 				MessageType:   "chunk",
-				DemoID:        demoHeader.DemoID,
 				ChunkIndex:    p.totalChunksProcessed,
 				StartTick:     p.framesBuffer[0].DemoTick,
 				EndTick:       p.framesBuffer[len(p.framesBuffer)-1].DemoTick,
@@ -236,7 +235,6 @@ func (p *Parser) Parse() error {
 
 		chunk := DemoChunk{
 			MessageType:   "chunk",
-			DemoID:        demoHeader.DemoID,
 			ChunkIndex:    p.totalChunksProcessed,
 			StartTick:     p.framesBuffer[0].DemoTick,
 			EndTick:       p.framesBuffer[len(p.framesBuffer)-1].DemoTick,

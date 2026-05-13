@@ -39,7 +39,7 @@ export interface MatchOutboundPort {
     step: number;
     startGameTick: number;
     endGameTick: number;
-    demoId: string;
+    matchId: string;
   }): Promise<DemoChunkEntity["frames"] | null>;
 
   getAggregatedEvents<const T extends readonly EventConstructor<MatchEvent>[]>(
@@ -88,7 +88,7 @@ export interface MatchOutboundPort {
   getTotalPlayerStats(steamId: string): Promise<PlayerStatsEntity | null>;
 
   getTransientEventsAtTick(
-    demoId: string,
+    matchId: string,
     gameTick: number,
     lookbackTicks: number,
   ): Promise<DemoEvent[]>;

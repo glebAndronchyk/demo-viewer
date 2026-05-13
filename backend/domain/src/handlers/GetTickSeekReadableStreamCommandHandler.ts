@@ -26,7 +26,7 @@ export const getTickSeekReadableStreamCommandHandler = (
       startGameTick: command.startGameTick,
       endGameTick: command.endGameTick,
       step: command.step,
-      demoId: match.demoId,
+      matchId: match.id,
     });
 
     if (!ticksInRange || !ticksInRange.length) {
@@ -37,7 +37,7 @@ export const getTickSeekReadableStreamCommandHandler = (
 
     const transientEvents = command.includeTransientEvents
       ? await outbound.matchRepository.getTransientEventsAtTick(
-          match.demoId,
+          match.id,
           command.startGameTick,
           outbound.configuration.transientEventsLookbackTicks,
         )

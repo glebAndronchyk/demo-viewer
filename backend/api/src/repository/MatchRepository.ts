@@ -67,7 +67,7 @@ import {
   IPlayerClutches,
   IPlayerEconomy,
 } from "@demo-viewer/database/src/types/round_outcome.types.ts";
-import { PipelineStage } from "mongoose";
+import { PipelineStage, Types } from "mongoose";
 import { toPlayerClutchesEntity } from "../mappers/player-clutches.mapper.ts";
 
 export { detectClutchRounds };
@@ -210,7 +210,7 @@ export class MatchRepository implements MatchOutboundPort {
     );
 
     const rawFrames = await this.database.DemoChunkModel.aggregate([
-      { $match: { demo_id: match.demo_id } },
+      { $match: { match_id: match._id } },
       { $unwind: "$frames" },
       {
         $match: {
@@ -306,7 +306,7 @@ export class MatchRepository implements MatchOutboundPort {
     if (!match) throw new NotFoundError(`Match with id ${matchId} not found.`);
 
     const [result] = (await this.database.DemoChunkModel.aggregate([
-      { $match: { demo_id: match.demo_id } },
+      { $match: { match_id: match._id } },
       { $unwind: "$frames" },
       { $unwind: "$frames.player_states" },
       {
@@ -337,7 +337,7 @@ export class MatchRepository implements MatchOutboundPort {
 
     const result: { _id: number }[] =
       await this.database.DemoChunkModel.aggregate([
-        { $match: { demo_id: match.demo_id } },
+        { $match: { match_id: match._id } },
         { $unwind: "$frames" },
         { $unwind: "$frames.player_states" },
         {
@@ -370,7 +370,7 @@ export class MatchRepository implements MatchOutboundPort {
     step: number;
     startGameTick: number;
     endGameTick: number;
-    demoId: string;
+    matchId: string;
   }): Promise<DemoChunkEntity["frames"] | null> {
     const tickSet = Array.from(
       { length: (payload.endGameTick - payload.startGameTick) / payload.step },
@@ -381,7 +381,7 @@ export class MatchRepository implements MatchOutboundPort {
       [
         {
           $match: {
-            demo_id: payload.demoId,
+            match_id: new Types.ObjectId(payload.matchId),
             $or: [
               {
                 start_game_tick: {
@@ -408,7 +408,7 @@ export class MatchRepository implements MatchOutboundPort {
         },
         {
           $group: {
-            _id: "$demo_id",
+            _id: "$match_id",
             frames: { $push: "$frames" },
           },
         },
@@ -533,8 +533,7 @@ export class MatchRepository implements MatchOutboundPort {
 
     if (!match) throw new Error("No match found for matchId");
 
-    const chunkMatch: Record<string, unknown> = {};
-    if (match.demo_id !== undefined) chunkMatch["demo_id"] = match.demo_id;
+    const chunkMatch: Record<string, unknown> = { match_id: match._id };
 
     const buildCtorCondition = (
       ctor: EventConstructor<MatchEvent>,
@@ -627,7 +626,7 @@ export class MatchRepository implements MatchOutboundPort {
     const matchStartRounds =
       await this.database.DemoChunkModel.aggregate<IFrame>([
         {
-          $match: { demo_id: match.demo_id },
+          $match: { match_id: match._id },
         },
         { $unwind: "$frames" },
         {
@@ -775,7 +774,7 @@ export class MatchRepository implements MatchOutboundPort {
   }
 
   async getTransientEventsAtTick(
-    demoId: string,
+    matchId: string,
     gameTick: number,
     lookbackTicks: number,
   ): Promise<DemoEvent[]> {
@@ -790,7 +789,7 @@ export class MatchRepository implements MatchOutboundPort {
     const result = await this.database.DemoChunkModel.aggregate([
       {
         $match: {
-          demo_id: demoId,
+          match_id: new Types.ObjectId(matchId),
           end_game_tick: { $gte: windowStart },
           start_game_tick: { $lte: gameTick },
         },

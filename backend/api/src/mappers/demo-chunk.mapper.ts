@@ -5,7 +5,6 @@ import { toDemoChunkFrame } from "./demo-chunk-frame.mapper";
 export function toDemoChunkEntity(doc: IDemoChunk): DemoChunkEntity {
   return {
     messageType: doc.message_type,
-    demoId: doc.demo_id,
     chunkIndex: doc.chunk_index,
     startTick: doc.start_tick,
     endTick: doc.end_tick,
@@ -23,7 +22,6 @@ export function toDemoChunkModel(
   return {
     chunk_index: entity.chunkIndex,
     createdAt: entity.createdAt,
-    demo_id: entity.demoId,
     end_game_tick: entity.endGameTick,
     end_tick: entity.endTick,
     frames: [], // todo

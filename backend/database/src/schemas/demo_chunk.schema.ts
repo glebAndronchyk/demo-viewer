@@ -108,7 +108,7 @@ const FrameSchema = new Schema(
 export const DemoChunkSchema = new Schema<IDemoChunkDocument>(
   {
     message_type: { type: String, required: true },
-    demo_id: { type: String, required: true, trim: true },
+    match_id: { type: Schema.Types.ObjectId, required: true, ref: 'matches' },
     chunk_index: { type: Number, required: true, min: 0 },
     start_tick: { type: Number, required: true },
     end_tick: { type: Number, required: true },
@@ -123,8 +123,8 @@ export const DemoChunkSchema = new Schema<IDemoChunkDocument>(
 );
 
 // Indexes
-DemoChunkSchema.index({ demo_id: 1 });
-DemoChunkSchema.index({ demo_id: 1, chunk_index: 1 }, { unique: true });
-DemoChunkSchema.index({ demo_id: 1, start_tick: 1, end_tick: 1 });
+DemoChunkSchema.index({ match_id: 1 });
+DemoChunkSchema.index({ match_id: 1, chunk_index: 1 }, { unique: true });
+DemoChunkSchema.index({ match_id: 1, start_tick: 1, end_tick: 1 });
 DemoChunkSchema.index({ 'frames.player_states.steam_id_64': 1 });
 DemoChunkSchema.index({ 'frames.events.type': 1 });

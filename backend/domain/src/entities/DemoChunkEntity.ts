@@ -82,7 +82,6 @@ export interface Frame {
 
 export interface DemoChunkEntity {
   messageType: string;
-  demoId: string;
   chunkIndex: number;
   startTick: number;
   endTick: number;

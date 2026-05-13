@@ -1,5 +1,7 @@
 package parser
 
+import "go.mongodb.org/mongo-driver/v2/bson"
+
 // MatchParticipant is stored in the match document after parsing completes
 type MatchParticipant struct {
 	SteamID    string `bson:"steam_id,omitempty"`
@@ -43,14 +45,14 @@ type DemoData struct {
 // DemoChunk represents a chunk of frames for MongoDB storage
 // This structure is used when storing in MongoDB with compression
 type DemoChunk struct {
-	MessageType   string  `bson:"message_type" json:"message_type"`
-	DemoID        string  `bson:"demo_id" json:"demo_id"`                 // Unique demo identifier
-	ChunkIndex    int     `bson:"chunk_index" json:"chunk_index"`         // Chunk number (0-based)
-	StartTick     int     `bson:"start_tick" json:"start_tick"`           // First tick in this chunk
-	EndTick       int     `bson:"end_tick" json:"end_tick"`               // Last tick in this chunk
-	StartGameTick int     `bson:"start_game_tick" json:"start_game_tick"` // First game tick
-	EndGameTick   int     `bson:"end_game_tick" json:"end_game_tick"`     // Last game tick
-	Frames        []Frame `bson:"frames" json:"frames"`                   // Actual frame data
+	MessageType   string        `bson:"message_type" json:"message_type"`
+	MatchID       bson.ObjectID `bson:"match_id" json:"match_id"`               // ObjectId reference to matches._id
+	ChunkIndex    int           `bson:"chunk_index" json:"chunk_index"`         // Chunk number (0-based)
+	StartTick     int           `bson:"start_tick" json:"start_tick"`           // First tick in this chunk
+	EndTick       int           `bson:"end_tick" json:"end_tick"`               // Last tick in this chunk
+	StartGameTick int           `bson:"start_game_tick" json:"start_game_tick"` // First game tick
+	EndGameTick   int           `bson:"end_game_tick" json:"end_game_tick"`     // Last game tick
+	Frames        []Frame       `bson:"frames" json:"frames"`                   // Actual frame data
 }
 
 // DemoHeader contains metadata about the demo file

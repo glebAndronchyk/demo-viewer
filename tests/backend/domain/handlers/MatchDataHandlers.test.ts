@@ -305,7 +305,7 @@ describe("GetTickSeekReadableStreamCommandHandler", () => {
 
     expect(result.frames).toEqual(sampleFrames);
     expect(result.transientEvents).toEqual(sampleTransientEvents);
-    expect(transientCallArgs).toEqual(["demo1", 100, 128]);
+    expect(transientCallArgs).toEqual(["match1", 100, 128]);
   });
 
   test("match not found → throws DomainNotFoundError", async () => {

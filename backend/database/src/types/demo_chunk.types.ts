@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface IVector2 {
   x: number;
@@ -84,7 +84,7 @@ export interface IFrame {
 
 export interface IDemoChunk {
   message_type: string;
-  demo_id: string;
+  match_id: Types.ObjectId;
   chunk_index: number;
   start_tick: number;
   end_tick: number;

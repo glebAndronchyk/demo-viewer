@@ -106,7 +106,7 @@ func (r *Repository) UpdateMatchMetadata(demoID string, header DemoHeader) error
 	return err
 }
 
-func (r *Repository) InsertChunkBatch(chunks []DemoChunk) error {
+func (r *Repository) InsertChunkBatch(demoID string, chunks []DemoChunk) error {
 	if len(chunks) == 0 {
 		return nil
 	}
@@ -114,8 +114,16 @@ func (r *Repository) InsertChunkBatch(chunks []DemoChunk) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	var match struct {
+		ID bson.ObjectID `bson:"_id"`
+	}
+	if err := r.matchesCol.FindOne(ctx, bson.M{"demo_id": demoID}).Decode(&match); err != nil {
+		return fmt.Errorf("InsertChunkBatch: match not found for demo_id %s: %w", demoID, err)
+	}
+
 	docs := make([]interface{}, len(chunks))
 	for i, c := range chunks {
+		c.MatchID = match.ID
 		docs[i] = c
 	}
 
@@ -146,9 +154,16 @@ func (r *Repository) PatchTransientEventEndedAt(demoID string, patches []Transie
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	var match struct {
+		ID bson.ObjectID `bson:"_id"`
+	}
+	if err := r.matchesCol.FindOne(ctx, bson.M{"demo_id": demoID}).Decode(&match); err != nil {
+		return fmt.Errorf("PatchTransientEventEndedAt: match not found for demo_id %s: %w", demoID, err)
+	}
+
 	for _, p := range patches {
 		filter := bson.M{
-			"demo_id":     demoID,
+			"match_id":    match.ID,
 			"chunk_index": p.ChunkIndex,
 		}
 		update := bson.M{
