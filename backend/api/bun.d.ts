@@ -18,5 +18,6 @@ declare module "bun" {
     CS2_APP_ID: number;
     STEAM_GAME_COORDINATOR_BOT_ACCOUNT_NAME: string;
     STEAM_GAME_COORDINATOR_BOT_ACCOUNT_PASSWORD: string;
+    PREVENT_PARSING: string;
   }
 }

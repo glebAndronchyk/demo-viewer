@@ -85,6 +85,12 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.STORAGE_LOCAL_BASE_PATH ?? "../storage/assets";
   }
 
+  get preventParsing(): boolean {
+    return this.env.PREVENT_PARSING
+      ? this.env.PREVENT_PARSING === "true"
+      : false;
+  }
+
   constructor() {
     this.env = Bun.env;
   }

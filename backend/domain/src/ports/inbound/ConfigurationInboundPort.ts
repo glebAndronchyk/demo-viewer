@@ -89,4 +89,9 @@ export interface ConfigurationInboundPort {
    * a cap for statistics range. adjust to aggregate stats from broader period
    */
   statisticsQueryCapMonth: number;
+
+  /**
+   * Prevent running of cron job related to matches collection
+   */
+  preventParsing: boolean;
 }

@@ -32,6 +32,8 @@ export class CollectMatchesFromUserCron {
           // pattern: "0 */1 * * * *", // todo scalable
           pattern: "*/10 * * * * *", // todo scalable
           async run() {
+            if (configuration.preventParsing) return;
+
             const store = app.store as CollectMatchFromUserCronState &
               CronState;
 
