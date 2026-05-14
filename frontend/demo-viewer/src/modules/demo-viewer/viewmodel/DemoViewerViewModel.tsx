@@ -114,7 +114,7 @@ const useDemoViewer = () => {
     staticState.current.isBuffering = true;
     const prevTick = staticState.current.currentTick;
     staticState.current.currentTick = tick;
-    const { frame } = await _bufferDemo();
+    const { frame } = await _bufferDemo({ includeTransientEvents: true });
 
     _reconstructGeometriesFromFrame(frame);
 
@@ -247,7 +247,7 @@ const useDemoViewer = () => {
     _listeners.current.forEach((l) => l(event, data));
   };
 
-  const _bufferDemo = async () => {
+  const _bufferDemo = async (args?: { includeTransientEvents?: boolean }) => {
     // todo deal with _l2Cache
     const startTick = staticState.current.currentTick;
     const cachedCurrentFrame = await _cache.current.getByNearbyTick(
@@ -265,6 +265,7 @@ const useDemoViewer = () => {
           endGameTick: staticState.current.finalBufferedTick + bufferingWindow,
           step: matchData.matchManifest.tickRate,
           matchId: matchData.matchId!,
+          includeTransientEvents: Boolean(args?.includeTransientEvents),
         })
           .then((r) => _cache.current.store(r))
           .then((cache) => {
@@ -284,6 +285,7 @@ const useDemoViewer = () => {
         endGameTick: startTick + bufferingWindow,
         step: matchData.matchManifest.tickRate,
         matchId: matchData.matchId!,
+        includeTransientEvents: Boolean(args?.includeTransientEvents),
       }),
     );
     const frameTick = Math.max(0, startTick);
@@ -309,11 +311,13 @@ const useDemoViewer = () => {
     endGameTick: number;
     step: number;
     matchId: string;
+    includeTransientEvents: boolean;
   }) => {
     const params = new URLSearchParams();
     params.set("startGameTick", String(args.startGameTick));
     params.set("endGameTick", String(args.endGameTick));
     params.set("step", String(args.step));
+    params.set("includeTransientEvents", String(args.includeTransientEvents));
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
