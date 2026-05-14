@@ -7,6 +7,7 @@ import { decodeMatchShareCode } from "csgo-sharecode";
 import GlobalOffensive from "globaloffensive";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
 import { SteamBotService } from "../adapters/SteamBotService";
+import { MemoryCache, MemoryCacheAccessor } from "@demo-viewer/backend-shared";
 
 export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
   private readonly http: AxiosInstance;
@@ -15,12 +16,15 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
     (match: GlobalOffensive.Match) => void
   >();
   private gcListenerRegistered = false;
+  private readonly shareCodeCache: MemoryCacheAccessor<string, unknown>;
 
   constructor(
     private readonly configuration: ConfigurationInboundPort,
     private readonly botService: SteamBotService,
+    private readonly cache: MemoryCache,
   ) {
     this.http = axios.create();
+    this.shareCodeCache = new MemoryCacheAccessor(cache, "share-code");
   }
 
   private ensureGcListener() {
@@ -149,6 +153,7 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
         });
       }
 
+      console.log(`[GC] received url for match:${url}`);
       resolve({ data: { url }, isSuccess: true });
     });
 
@@ -159,5 +164,19 @@ export class GameCoordinatorRepository implements GameCoordinatorOutboundPort {
 
   downloadMatchById(matchId: string): Promise<BaseResponse<{ path: string }>> {
     throw new Error("Method not implemented.");
+  }
+
+  markShareCodeAsCorrupted(code: string) {
+    const cacheKey = `share-code:corrupted:${code}`;
+
+    this.shareCodeCache.set(cacheKey, true);
+
+    return Promise.resolve();
+  }
+
+  isShareCodeCorrupted(code: string): Promise<boolean> {
+    const cacheKey = `share-code:corrupted:${code}`;
+
+    return Promise.resolve(this.shareCodeCache.has(cacheKey));
   }
 }

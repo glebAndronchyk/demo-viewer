@@ -14,38 +14,47 @@ export const downloadAndParseDemoCommandHandler = (
     DownloadAndParseDemoCommand,
     DownloadAndParseDemoCommandResult
   > = async (command) => {
-    const nextCodeResult =
-      await outbound.gameCoordinatorRepository.getNextAvailableShareCode(
-        command.userSteamId,
-        command.userSteamIdKey,
+    let code: string = command.lastKnownShareCode;
+    const [isMatchSeen, isShareCodeCorrupted] = await Promise.all([
+      outbound.matchRepository.isMatchWithShareCodeExists(
         command.lastKnownShareCode,
-      );
+      ),
+      outbound.gameCoordinatorRepository.isShareCodeCorrupted(
+        command.lastKnownShareCode,
+      ),
+    ]);
 
-    if (!nextCodeResult.isSuccess) {
-      throw nextCodeResult.error;
-    }
+    if (isMatchSeen || isShareCodeCorrupted) {
+      const nextCodeResult =
+        await outbound.gameCoordinatorRepository.getNextAvailableShareCode(
+          command.userSteamId,
+          command.userSteamIdKey,
+          command.lastKnownShareCode,
+        );
 
-    await outbound.userRepository.updateKnownShareCode(
-      command.userId,
-      nextCodeResult.data.nextCode,
-    );
+      if (!nextCodeResult.isSuccess) {
+        throw nextCodeResult.error;
+      }
 
-    const matchUrlResult =
-      await outbound.gameCoordinatorRepository.getMatchUrlById(
+      await outbound.userRepository.updateKnownShareCode(
+        command.userId,
         nextCodeResult.data.nextCode,
       );
+      code = nextCodeResult.data.nextCode;
+    }
+
+    const matchUrlResult =
+      await outbound.gameCoordinatorRepository.getMatchUrlById(code);
 
     if (!matchUrlResult.isSuccess) {
       throw matchUrlResult.error;
     }
 
-    const existingMatch = await outbound.matchRepository.findByShareCode(
-      nextCodeResult.data.nextCode,
-    );
+    const existingMatch = await outbound.matchRepository.findByShareCode(code);
 
     if (existingMatch) {
       console.log(
-        `[DownloadAndParseDemo] Share code ${nextCodeResult.data.nextCode} already parsed, skipping.`,
+        `[DownloadAndParseDemo] Share code ${code} already parsed, skipping.`,
       );
       return { url: null };
     }
@@ -55,6 +64,8 @@ export const downloadAndParseDemoCommandHandler = (
     );
 
     if (!pingResult.isSuccess) {
+      await outbound.gameCoordinatorRepository.markShareCodeAsCorrupted(code);
+
       throw new DomainUnavailableError(
         pingResult.error?.message ?? "Demo not available for download",
       );
@@ -64,7 +75,7 @@ export const downloadAndParseDemoCommandHandler = (
       () =>
         outbound.parserRepository.parseDemoFromRemote(
           matchUrlResult.data.url,
-          nextCodeResult.data.nextCode,
+          code,
         ).promise,
     );
 

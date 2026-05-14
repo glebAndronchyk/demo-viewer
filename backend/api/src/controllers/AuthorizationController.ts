@@ -61,15 +61,20 @@ export class AuthorizationController {
         )
         .get("/me", async ({ jwt, cookie: { auth } }) => {
           const data = await jwt.verify(auth.value as any);
-
           if (!data) {
             throw new UnauthorizedError();
           }
 
           const user = await userRepository.getUserById(data.sub as string);
-          const hasSharingData = !!(user?.steamIdKey && user?.initialKnownShareCode);
+          const hasSharingData = !!(
+            user?.steamIdKey && user?.initialKnownShareCode
+          );
 
-          return { data: { ...data, hasSharingData }, error: null, isSuccess: true };
+          return {
+            data: { ...data, hasSharingData },
+            error: null,
+            isSuccess: true,
+          };
         }),
     );
   }

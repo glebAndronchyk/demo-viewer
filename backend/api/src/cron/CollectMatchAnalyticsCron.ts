@@ -31,8 +31,6 @@ export class CollectMatchAnalyticsCron {
           // pattern: "0 */1 * * * *", // todo scalable
           pattern: "*/10 * * * * *", // todo scalable
           async run() {
-            return;
-
             const store = app.store as CollectMatchAnalyticsCronState;
 
             if (store.isAnalyticsRunning) {
@@ -56,6 +54,9 @@ export class CollectMatchAnalyticsCron {
               );
 
             if (!matches.length) {
+              store.isAnalyticsRunning = false;
+              store.analyticsSeekIndex = nextSeekIndex;
+
               console.log(
                 `[CRON][CollectMatchAnalyticsCron] No matches found to iterate over. index: ${store.analyticsSeekIndex}`,
               );

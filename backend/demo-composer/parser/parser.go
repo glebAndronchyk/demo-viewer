@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
+	dem "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/events"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/msg"
 )
 
 // Its better to use different collections in database to reduce physical space per demo.
@@ -84,6 +85,9 @@ func (p *Parser) currentGameTick() int {
 
 // startTransientEvent registers a start event with the tracker and records its in-memory data map.
 func (p *Parser) startTransientEvent(key, eventType string, data map[string]interface{}) {
+	if len(p.framesBuffer) == 0 {
+		return
+	}
 	frameIdx := len(p.framesBuffer) - 1
 	eventIdx := len(p.framesBuffer[frameIdx].Events) - 1
 	p.tracker.onStartEvent(key, &openTransientEvent{
@@ -128,11 +132,6 @@ func (p *Parser) Parse() error {
 	parser := dem.NewParser(reader)
 	defer parser.Close()
 
-	// Parse header to advance the stream; for CS2 demos the header fields are
-	// mostly empty at this point — real metadata arrives during ParseToEnd().
-	if _, err := parser.ParseHeader(); err != nil {
-		return fmt.Errorf("failed to parse header: %w", err)
-	}
 	demoHeader := DemoHeader{
 		DemoID:    p.demoID,
 		ShareCode: p.shareCode,
@@ -152,6 +151,12 @@ func (p *Parser) Parse() error {
 		chunksBatch = chunksBatch[:0]
 		return nil
 	}
+
+	// Capture map name from server info message (replaces v4 ParseHeader/Header API)
+	var mapName string
+	parser.RegisterNetMessageHandler(func(m *msg.CSVCMsg_ServerInfo) {
+		mapName = m.GetMapName()
+	})
 
 	// Register event handlers
 	p.registerEventHandlers(parser)
@@ -191,8 +196,6 @@ func (p *Parser) Parse() error {
 		}
 	})
 
-	// Parse to end — after this, parser.Header() and parser.TickRate() are
-	// fully populated for CS2 demos (values come from the data stream, not the file header).
 	if err := parser.ParseToEnd(); err != nil {
 		return fmt.Errorf("failed to parse demo: %w", err)
 	}
@@ -201,17 +204,16 @@ func (p *Parser) Parse() error {
 		return frameErr
 	}
 
-	// Collect metadata that is only available after the full parse.
-	h := parser.Header()
-	demoHeader.MapName = h.MapName
-	demoHeader.ServerName = h.ServerName
-	demoHeader.ClientName = h.ClientName
-	demoHeader.Duration = h.PlaybackTime.Seconds()
+	// Collect metadata available after full parse.
+	// ServerName, ClientName, SignonLength are not available in demoinfocs-golang v5.
+	demoHeader.MapName = mapName
+	demoHeader.Duration = parser.CurrentTime().Seconds()
 	demoHeader.TickRate = float32(parser.TickRate())
-	demoHeader.FrameRate = float32(h.FrameRate())
-	demoHeader.SignonLength = h.SignonLength
-	demoHeader.PlaybackTicks = h.PlaybackTicks
-	demoHeader.PlaybackFrames = h.PlaybackFrames
+	demoHeader.PlaybackFrames = parser.CurrentFrame()
+	demoHeader.PlaybackTicks = parser.GameState().IngameTick()
+	if demoHeader.Duration > 0 {
+		demoHeader.FrameRate = float32(float64(demoHeader.PlaybackFrames) / demoHeader.Duration)
+	}
 
 	finalGS := parser.GameState()
 	tScore := finalGS.TeamTerrorists().Score()
@@ -357,7 +359,6 @@ func (p *Parser) capturePlayerStates(gs dem.GameState) []PlayerState {
 // capturePlayerState captures a single player's state
 func (p *Parser) capturePlayerState(player *common.Player) PlayerState {
 	pos := player.Position()
-	vel := player.Velocity()
 	viewDir := player.ViewDirectionX()
 
 	equipment := Equipment{
@@ -402,11 +403,7 @@ func (p *Parser) capturePlayerState(player *common.Player) PlayerState {
 			X: float64(viewDir),
 			Y: float64(player.ViewDirectionY()),
 		},
-		Velocity: Vector3{
-			X: float64(vel.X),
-			Y: float64(vel.Y),
-			Z: float64(vel.Z),
-		},
+		Velocity: Vector3{X: 0, Y: 0, Z: 0},
 		HP:               player.Health(),
 		Armor:            player.Armor(),
 		HasHelmet:        player.HasHelmet(),

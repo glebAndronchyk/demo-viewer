@@ -29,7 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           setUser(authUser);
           if (!data.data.hasSharingData) {
-            window.location.href = `${window.location.origin}/account/settings`;
+            const redirect = `${window.location.origin}/account/sharing-settings`;
+            if (window.location.href.includes(redirect)) return;
+            window.location.href = redirect;
           }
         } else {
           setUser(null);

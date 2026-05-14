@@ -839,8 +839,10 @@ export class MatchRepository implements MatchOutboundPort {
       {
         $lookup: {
           from: "player_stats",
-          localField: statsIdField,
-          foreignField: "_id",
+          let: { statsId: { $toObjectId: `$${statsIdField}` } },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$statsId"] } } },
+          ],
           as: "stats",
         },
       },
@@ -1092,7 +1094,7 @@ export class MatchRepository implements MatchOutboundPort {
         },
       ]);
 
-    const entity = toPlayerAccuracyEntity(aggregatedResult[0]);
+    const entity = toPlayerAccuracyEntity(aggregatedResult[0] ?? {});
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }
@@ -1164,7 +1166,7 @@ export class MatchRepository implements MatchOutboundPort {
         },
       ]);
 
-    const entity = toPlayerClutchesEntity(aggregatedResult[0]);
+    const entity = toPlayerClutchesEntity(aggregatedResult[0] ?? {});
     this.weaponsCache.set(cacheKey, entity);
     return entity;
   }
@@ -1207,5 +1209,21 @@ export class MatchRepository implements MatchOutboundPort {
       : MatchRepository.validMatchFilter;
 
     return this.database.MatchModel.countDocuments(filter);
+  }
+
+  async isMatchWithShareCodeExists(code: string): Promise<boolean> {
+    const result = await this.database.MatchModel.exists({
+      share_code: code,
+    });
+
+    return Boolean(result);
+  }
+
+  async getAnalyzedMatchesFromSet(s: Set<string>): Promise<Set<string>> {
+    const matches = await this.database.PlayerStatsModel.distinct("match_id", {
+      match_id: { $in: Array.from(s) },
+    });
+
+    return new Set(matches);
   }
 }

@@ -7,9 +7,10 @@ function decimal128ToNumber(value?: Types.Decimal128): number | undefined {
   return value != null ? parseFloat(value.toString()) : undefined;
 }
 
-export function toPlayerAccuracyEntity(doc: IPlayerAccuracy): PlayerAccuracyEntity {
+export function toPlayerAccuracyEntity(
+  doc: Partial<IPlayerAccuracy>,
+): PlayerAccuracyEntity {
   let hitBreakdown: Record<HitGroup, number> | undefined;
-
   if (doc.hit_breakdown) {
     const b = doc.hit_breakdown;
     hitBreakdown = {

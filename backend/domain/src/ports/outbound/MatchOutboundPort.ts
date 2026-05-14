@@ -130,4 +130,8 @@ export interface MatchOutboundPort {
     steamId: string,
     startDate: Date,
   ): Promise<Omit<PlayerClutchesEntity, "statsId">>;
+
+  isMatchWithShareCodeExists(code: string): Promise<boolean>;
+
+  getAnalyzedMatchesFromSet(matches: Set<string>): Promise<Set<string>>;
 }

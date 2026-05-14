@@ -29,8 +29,6 @@ import { TotalShotsHitsBar } from "../components/TotalShotsHitsBar.tsx";
 import { TopLevelAccuracyLiquid } from "../components/TopLevelAccuracyLiquid.tsx";
 import { HitBreakdownMap } from "../components/HitBreakdownMap.tsx";
 import { ClutchesBar } from "../components/ClutchesBar.tsx";
-import { mockPlayerWeaponStats } from "../lib/mockWeaponStats.ts";
-import { mockAccuracyStats } from "../lib/mockAccuracyStats.ts";
 
 const tabItems = [
   {
@@ -109,7 +107,7 @@ StatisticsPage.Performance = Object.assign(
           </Flex>
         </Section>
         <Section title="Hits breakdown">
-          <HitBreakdownMap accuracy={mockAccuracyStats.accuracy} />
+          <HitBreakdownMap accuracy={data.accuracy} />
         </Section>
 
         <Section title="Clutches breakdown">
@@ -175,9 +173,9 @@ StatisticsPage.Weapons = Object.assign(
         <Section title="Weapon Usage" first>
           <WeaponUsageRadar weaponUsage={data.weaponUsagePct} />
         </Section>
-        {Boolean(mockPlayerWeaponStats.weapons.length) && (
+        {Boolean(data.weaponStats.weapons) && (
           <Section title="Per Weapon stats">
-            <PerWeaponUsage perWeaponUsage={mockPlayerWeaponStats} />
+            <PerWeaponUsage perWeaponUsage={data.weaponStats} />
           </Section>
         )}
         <Section title="Grenades Usage">

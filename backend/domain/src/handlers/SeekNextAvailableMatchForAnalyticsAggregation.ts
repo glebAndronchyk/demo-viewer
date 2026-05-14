@@ -5,6 +5,7 @@ import type {
   SeekNextAvailableMatchForAnalyticsAggregationCommand,
   SeekNextAvailableMatchForAnalyticsAggregationCommandResult,
 } from "../commands/SeekNextAvailableMatchForAnalyticsAggregationCommand.ts";
+import { isValidMatchEntity } from "../entities/MatchEntity.ts";
 
 export const seekNextAvailableMatchForAnalyticsAggregationHandler = (
   outbound: DomainOutbound,
@@ -20,11 +21,20 @@ export const seekNextAvailableMatchForAnalyticsAggregationHandler = (
       step,
     );
 
-    const mappedMatches = matches.map((m) => m.id);
+    const mappedMatches = new Set(
+      matches.filter(isValidMatchEntity).map((m) => m.id),
+    );
+    const actualAmountOfMatches = mappedMatches.size;
 
-    const nextSeekIndex = command.seekIndex + step;
+    const nextSeekIndex = command.seekIndex + actualAmountOfMatches;
 
-    return { matches: mappedMatches, nextSeekIndex };
+    const alreadySeenMatches =
+      await outbound.matchRepository.getAnalyzedMatchesFromSet(mappedMatches);
+
+    return {
+      matches: Array.from(mappedMatches.difference(alreadySeenMatches)),
+      nextSeekIndex,
+    };
   };
 
   handler.match = (

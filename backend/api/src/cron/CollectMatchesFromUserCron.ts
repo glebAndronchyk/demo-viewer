@@ -30,7 +30,7 @@ export class CollectMatchesFromUserCron {
         cron({
           name: "collectMatchesFromUserCron",
           // pattern: "0 */1 * * * *", // todo scalable
-          pattern: "*/2 * * * * *", // todo scalable
+          pattern: "*/10 * * * * *", // todo scalable
           async run() {
             const store = app.store as CollectMatchFromUserCronState &
               CronState;

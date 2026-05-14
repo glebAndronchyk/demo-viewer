@@ -66,7 +66,11 @@ const di = new DIContainer()
   // repositories/services/commands
   .addSingleton(TeamRepository)
   .addSingleton(AuthRepository, [EnvConfiguration])
-  .addSingleton(GameCoordinatorRepository, [EnvConfiguration, SteamBotService])
+  .addSingleton(GameCoordinatorRepository, [
+    EnvConfiguration,
+    SteamBotService,
+    MemoryCache,
+  ])
   .addSingleton(ParserRepository, [EnvConfiguration])
   .addSingleton(UserRepository, [DatabaseService as never])
   .addSingleton(MatchRepository, [DatabaseService as never, MemoryCache])

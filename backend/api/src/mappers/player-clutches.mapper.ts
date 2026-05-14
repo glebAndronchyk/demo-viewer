@@ -1,5 +1,11 @@
-import { IPlayerClutches, IClutchStat } from "@demo-viewer/database/dist/types/round_outcome.types";
-import { ClutchStatEntity, PlayerClutchesEntity } from "@demo-viewer/domain/src/entities/PlayerClutchesEntity";
+import {
+  IPlayerClutches,
+  IClutchStat,
+} from "@demo-viewer/database/dist/types/round_outcome.types";
+import {
+  ClutchStatEntity,
+  PlayerClutchesEntity,
+} from "@demo-viewer/domain/src/entities/PlayerClutchesEntity";
 
 function toClutchStatEntity(stat?: IClutchStat): ClutchStatEntity | undefined {
   if (!stat) return undefined;
@@ -9,7 +15,9 @@ function toClutchStatEntity(stat?: IClutchStat): ClutchStatEntity | undefined {
   };
 }
 
-export function toPlayerClutchesEntity(doc: IPlayerClutches): PlayerClutchesEntity {
+export function toPlayerClutchesEntity(
+  doc: Partial<IPlayerClutches>,
+): PlayerClutchesEntity {
   return {
     statsId: doc.stats_id,
     _analyticsType: "clutches",

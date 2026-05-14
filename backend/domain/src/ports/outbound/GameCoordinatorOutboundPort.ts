@@ -12,4 +12,6 @@ export interface GameCoordinatorOutboundPort {
   getMatchUrlById(matchId: string): Promise<BaseResponse<{ url: string }>>;
   downloadMatchById(matchId: string): Promise<BaseResponse<{ path: string }>>;
   pingMatchUrl(url?: string): Promise<BaseResponse<never>>;
+  isShareCodeCorrupted(code: string): Promise<boolean>;
+  markShareCodeAsCorrupted(code: string): Promise<void>;
 }
