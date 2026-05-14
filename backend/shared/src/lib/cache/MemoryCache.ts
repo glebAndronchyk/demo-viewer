@@ -1,3 +1,5 @@
+import type { MemoryCacheAccessor } from "./MemoryCacheAccessor.ts";
+
 export class MemoryCache {
   private readonly store = new Map<string, unknown>();
 
@@ -15,5 +17,21 @@ export class MemoryCache {
 
   has(key: string): boolean {
     return this.store.has(key);
+  }
+
+  invalidateAccessor(a: MemoryCacheAccessor<any, any>) {
+    this.invalidateNameSpace(a.namespace);
+  }
+
+  invalidateKey(key: string) {
+    this.store.delete(key);
+  }
+
+  invalidateNameSpace(ns: string) {
+    this.store.keys().forEach((k) => {
+      if (k.includes(ns)) {
+        this.store.delete(k);
+      }
+    });
   }
 }

@@ -4,6 +4,8 @@ import { DownloadAndParseDemoCommand } from "@demo-viewer/domain/src/commands/Do
 import { CommandBusService } from "../adapters/CommandBusService";
 import { persist } from "../lib/elysia/plugins/persist";
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
+import { MemoryCache } from "@demo-viewer/backend-shared";
+import { CacheKeys } from "@demo-viewer/backend-shared/src/lib/constants/CacheKeys.ts";
 
 interface CollectMatchFromUserCronState {
   parsingSeekIndex: number;
@@ -18,6 +20,7 @@ export class CollectMatchesFromUserCron {
     app: Elysia,
     commandBus: CommandBusService,
     configuration: ConfigurationInboundPort,
+    cache: MemoryCache,
   ) {
     app
       .state(
@@ -74,7 +77,11 @@ export class CollectMatchesFromUserCron {
                   })
                   .catch((e) => console.log(`[CRON][ERROR] ${e}`)),
               ),
-            );
+            ).then((parseResults) => {
+              if (parseResults.filter((r) => r && r.url).length) {
+                cache.invalidateNameSpace(CacheKeys.MatchList);
+              }
+            });
 
             store.isParsingRunning = false;
           },

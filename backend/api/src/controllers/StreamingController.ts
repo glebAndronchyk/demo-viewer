@@ -15,6 +15,7 @@ import {
   GetPaginatedMatchesCommand,
   GetPaginatedMatchesCommandResult,
 } from "@demo-viewer/domain/src/commands/GetPaginatedMatchesCommand.ts";
+import { CacheKeys } from "@demo-viewer/backend-shared/src/lib/constants/CacheKeys.ts";
 
 export class StreamingController {
   constructor(
@@ -25,7 +26,7 @@ export class StreamingController {
     const matchListCacheAccessor = new MemoryCacheAccessor<
       string,
       GetPaginatedMatchesCommandResult
-    >(memoryCache, "matchList");
+    >(memoryCache, CacheKeys.MatchList);
 
     app.use(
       new Elysia({ prefix: "/streaming/matches", tags: ["streaming"] }).get(

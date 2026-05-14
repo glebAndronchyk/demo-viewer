@@ -3,11 +3,15 @@ import type { MemoryCache } from "./MemoryCache.ts";
 export class MemoryCacheAccessor<K extends string | number, V> {
   constructor(
     private readonly cache: MemoryCache,
-    private readonly namespace: string,
+    private readonly _namespace: string,
   ) {}
 
+  get namespace() {
+    return this._namespace;
+  }
+
   private key(k: K): string {
-    return `${this.namespace}:${k}`;
+    return `${this._namespace}:${k}`;
   }
 
   get(k: K): V | undefined {
