@@ -113,6 +113,7 @@ export class PlayerPawn extends Mesh implements Animatable {
       return;
     }
 
+    this.teamSwitch(framePlayer);
     if (framePlayer.isAlive) {
       this.resurrect();
     } else {

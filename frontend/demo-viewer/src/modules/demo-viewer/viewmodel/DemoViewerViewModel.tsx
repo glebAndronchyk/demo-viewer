@@ -354,6 +354,40 @@ const useDemoViewer = () => {
   };
 
   const _reconstructGeometriesFromFrame = (frame: FrameDto) => {
+    const playersAsGeometries = new Set(
+      Array.from(staticState.current.geometries.entries())
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .filter(([_, g]) => g instanceof PlayerPawn)
+        .map(([k]) => k),
+    );
+    const playersFromFrames = new Set(
+      frame.playerStates.map((ps) => ps.steamId64),
+    );
+
+    const newPlayers = playersFromFrames.difference(playersAsGeometries);
+    const playersToRemove = playersAsGeometries.difference(playersFromFrames);
+
+    // remove players that doesn't belong to current frame
+    playersToRemove.forEach((id) => {
+      destroyGeometry(id);
+    });
+
+    // recreate players that werent registered yet
+    frame.playerStates
+      .filter((ps) => newPlayers.has(ps.steamId64))
+      .forEach((ps) => {
+        if (!staticState.current.geometries.has(ps.steamId64)) {
+          addGeometry(
+            ps.steamId64,
+            PlayerPawn.join(
+              ps.steamId64,
+              staticState.current.playground,
+              matchData.playerTextureAtlas,
+            ),
+          );
+        }
+      });
+
     staticState.current.geometries.forEach((g) => {
       if (isAnimatableInterface(g)) {
         g.reconstructFromFrame(frame);
