@@ -114,6 +114,7 @@ const di = new DIContainer()
     TypedApp,
     CommandBusService,
     EnvConfiguration,
+    MemoryCache,
   ])
   .addSingleton(LayeredAnalyticsCalculator, [
     MatchRepository,
