@@ -26,8 +26,8 @@ const HitBreakdownSchema = new Schema(
 export const PlayerAccuracySchema = new Schema<IPlayerAccuracyDocument>(
   {
     stats_id: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     total_shots: {
       type: Number,
@@ -60,8 +60,8 @@ PlayerAccuracySchema.index({ stats_id: 1 });
 export const PlayerReactionSchema = new Schema<IPlayerReactionDocument>(
   {
     stats_id: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     avg_ttr: {
       type: Schema.Types.Decimal128,
@@ -94,8 +94,8 @@ PlayerReactionSchema.index({ stats_id: 1 });
 export const PlayerBehaviorSchema = new Schema<IPlayerBehaviorDocument>(
   {
     stats_id: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     aggression_signal: {
       type: Schema.Types.Decimal128,

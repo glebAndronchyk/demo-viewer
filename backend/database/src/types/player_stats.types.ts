@@ -12,7 +12,7 @@ export interface IPlayerStats {
   total_kpr?: Types.Decimal128;
   total_apr?: Types.Decimal128;
   total_score?: number;
-  match_id?: string;
+  match_id?: Types.ObjectId;
   total_rounds_played?: number;
   date_recorded?: Date;
   createdAt: Date;

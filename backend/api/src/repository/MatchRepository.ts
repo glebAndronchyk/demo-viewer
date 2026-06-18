@@ -658,7 +658,7 @@ export class MatchRepository implements MatchOutboundPort {
     steamId: string,
   ): Promise<PlayerStatsEntity | null> {
     const doc = await this.database.PlayerStatsModel.findOne({
-      match_id: matchId,
+      match_id: new Types.ObjectId(matchId),
       participant_steam_id: steamId,
     }).lean();
 
@@ -839,7 +839,7 @@ export class MatchRepository implements MatchOutboundPort {
       {
         $lookup: {
           from: "player_stats",
-          let: { statsId: { $toObjectId: `$${statsIdField}` } },
+          let: { statsId: `$${statsIdField}` },
           pipeline: [
             { $match: { $expr: { $eq: ["$_id", "$$statsId"] } } },
           ],
@@ -857,7 +857,7 @@ export class MatchRepository implements MatchOutboundPort {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: [{ $toString: "$_id" }, "$$matchId"] },
+                    { $eq: ["$_id", "$$matchId"] },
                     { $gte: ["$date_played", date] },
                   ],
                 },
@@ -1221,9 +1221,9 @@ export class MatchRepository implements MatchOutboundPort {
 
   async getAnalyzedMatchesFromSet(s: Set<string>): Promise<Set<string>> {
     const matches = await this.database.PlayerStatsModel.distinct("match_id", {
-      match_id: { $in: Array.from(s) },
+      match_id: { $in: Array.from(s).map((id) => new Types.ObjectId(id)) },
     });
 
-    return new Set(matches);
+    return new Set(matches.map((id) => id.toString()));
   }
 }

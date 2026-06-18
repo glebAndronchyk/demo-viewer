@@ -1,11 +1,11 @@
-import { Schema, Types } from 'mongoose';
+import { Schema } from "mongoose";
 import {
   IGroupDocument,
   IGroupMemberDocument,
   IAssetDocument,
   IMapDocument,
   IMapSectorDocument,
-} from '../types/core.types';
+} from "../types/core.types";
 
 export const GroupSchema = new Schema<IGroupDocument>(
   {
@@ -27,8 +27,8 @@ export const GroupSchema = new Schema<IGroupDocument>(
   },
   {
     timestamps: true,
-    collection: 'groups',
-  }
+    collection: "groups",
+  },
 );
 
 // Indexes
@@ -39,26 +39,26 @@ const DimensionsSchema = new Schema(
     width: { type: Number, required: true },
     height: { type: Number, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 export const GroupMemberSchema = new Schema<IGroupMemberDocument>(
   {
     user_id: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     group_id: {
       type: Schema.Types.ObjectId,
-      ref: 'Group',
+      ref: "Group",
       required: true,
     },
   },
   {
     timestamps: true,
-    collection: 'group_members',
-  }
+    collection: "group_members",
+  },
 );
 
 // Indexes
@@ -80,8 +80,8 @@ export const AssetSchema = new Schema<IAssetDocument>(
   },
   {
     timestamps: true,
-    collection: 'assets',
-  }
+    collection: "assets",
+  },
 );
 
 // Indexes
@@ -102,8 +102,8 @@ export const MapSchema = new Schema<IMapDocument>(
   },
   {
     timestamps: true,
-    collection: 'maps',
-  }
+    collection: "maps",
+  },
 );
 
 // Indexes
@@ -117,7 +117,7 @@ const RectSchema = new Schema(
     x2: { type: Schema.Types.Decimal128, required: true },
     y2: { type: Schema.Types.Decimal128, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 export const MapSectorSchema = new Schema<IMapSectorDocument>(
@@ -139,8 +139,8 @@ export const MapSectorSchema = new Schema<IMapSectorDocument>(
   },
   {
     timestamps: true,
-    collection: 'map_sectors',
-  }
+    collection: "map_sectors",
+  },
 );
 
 // Indexes

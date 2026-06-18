@@ -39,8 +39,8 @@ export const PlayerStatsSchema = new Schema<IPlayerStatsDocument>(
       type: Number,
     },
     match_id: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "Match",
     },
     total_rounds_played: {
       type: Number,

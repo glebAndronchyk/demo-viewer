@@ -27,7 +27,7 @@ export interface IClutchStat {
 }
 
 export interface IPlayerClutches {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   clutch_1v1?: IClutchStat;
   clutch_1v2?: IClutchStat;
   clutch_1v3?: IClutchStat;

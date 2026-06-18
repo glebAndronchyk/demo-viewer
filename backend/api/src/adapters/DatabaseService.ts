@@ -5,8 +5,10 @@ import {
   MatchModel,
   NotificationModel,
   PlayerAccuracyModel,
+  PlayerBehaviorModel,
   PlayerClutchesModel,
   PlayerEconomyModel,
+  PlayerReactionModel,
   PlayerStatsModel,
   PlayerUtilityModel,
   PlayerWeaponsUsageModel,
@@ -47,6 +49,14 @@ export class DatabaseService {
 
   get PlayerAccuracyModel() {
     return PlayerAccuracyModel;
+  }
+
+  get PlayerReactionModel() {
+    return PlayerReactionModel;
+  }
+
+  get PlayerBehaviorModel() {
+    return PlayerBehaviorModel;
   }
 
   get PlayerUtilityModel() {

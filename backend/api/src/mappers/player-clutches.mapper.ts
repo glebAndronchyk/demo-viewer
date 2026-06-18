@@ -6,6 +6,9 @@ import {
   ClutchStatEntity,
   PlayerClutchesEntity,
 } from "@demo-viewer/domain/src/entities/PlayerClutchesEntity";
+import { Types } from "mongoose";
+
+type PlayerClutchesInput = Partial<Omit<IPlayerClutches, "stats_id"> & { stats_id?: Types.ObjectId | string }>;
 
 function toClutchStatEntity(stat?: IClutchStat): ClutchStatEntity | undefined {
   if (!stat) return undefined;
@@ -16,10 +19,10 @@ function toClutchStatEntity(stat?: IClutchStat): ClutchStatEntity | undefined {
 }
 
 export function toPlayerClutchesEntity(
-  doc: Partial<IPlayerClutches>,
+  doc: PlayerClutchesInput,
 ): PlayerClutchesEntity {
   return {
-    statsId: doc.stats_id,
+    statsId: doc.stats_id?.toString() ?? "",
     _analyticsType: "clutches",
     clutch1v1: toClutchStatEntity(doc.clutch_1v1),
     clutch1v2: toClutchStatEntity(doc.clutch_1v2),

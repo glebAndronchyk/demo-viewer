@@ -6,6 +6,13 @@ import type { GetUserNotificationsCommand } from "@demo-viewer/domain/src/comman
 import { NotificationOutboundPort } from "@demo-viewer/domain/src/ports/outbound/NotificationOutboundPort.ts";
 import type { NotificationEntity } from "@demo-viewer/domain/src/entities/NotificationEntity.ts";
 
+function* test() {
+  yield 1;
+  yield 2;
+}
+
+Array.from(test());
+
 export class NotificationsController {
   constructor(
     app: Elysia,

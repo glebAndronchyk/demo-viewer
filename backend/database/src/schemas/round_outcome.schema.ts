@@ -76,9 +76,8 @@ const ClutchStatSchema = new Schema(
 export const PlayerClutchesSchema = new Schema<IPlayerClutchesDocument>(
   {
     stats_id: {
-      type: String,
-      required: false,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "PlayerStats",
     },
     clutch_1v1: {
       type: ClutchStatSchema,

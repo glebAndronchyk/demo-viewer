@@ -31,6 +31,25 @@ export class NotificationRepository implements NotificationOutboundPort {
     return entity;
   }
 
+  private notify(key: string, n: NotificationEntity) {
+    this.subscribers.get(key)?.forEach((cb) => cb(n));
+  }
+
+  subscribe(key: string, cb: (n: NotificationEntity) => void): () => void {
+    if (!this.subscribers.has(key)) {
+      this.subscribers.set(key, new Set());
+    }
+
+    this.subscribers.get(key)!.add(cb);
+
+    return () => {
+      const set = this.subscribers.get(key);
+      if (!set) return;
+      set.delete(cb);
+      if (set.size === 0) this.subscribers.delete(key);
+    };
+  }
+
   async getPendingNotifications(limit: number): Promise<NotificationEntity[]> {
     const docs = await this.database.NotificationModel.find({
       status: "pending",
@@ -62,7 +81,10 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
+    this.notify(
+      result.recipient_user_id.toString(),
+      toNotificationEntity(result),
+    );
   }
 
   async markAsDelivered(id: string): Promise<void> {
@@ -75,7 +97,10 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
+    this.notify(
+      result.recipient_user_id.toString(),
+      toNotificationEntity(result),
+    );
   }
 
   async markAsDismissed(id: string): Promise<void> {
@@ -88,7 +113,10 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
+    this.notify(
+      result.recipient_user_id.toString(),
+      toNotificationEntity(result),
+    );
   }
 
   async getPendingForUser(userId: string): Promise<NotificationEntity[]> {
@@ -125,7 +153,10 @@ export class NotificationRepository implements NotificationOutboundPort {
     );
     if (!result) throw new DomainNotFoundError(`Notification not found: ${id}`);
 
-    this.notify(result.recipient_user_id.toString(), toNotificationEntity(result));
+    this.notify(
+      result.recipient_user_id.toString(),
+      toNotificationEntity(result),
+    );
   }
 
   async hasPendingInvitation(
@@ -139,24 +170,5 @@ export class NotificationRepository implements NotificationOutboundPort {
       "payload.groupId": groupId,
     });
     return count > 0;
-  }
-
-  private notify(key: string, n: NotificationEntity) {
-    this.subscribers.get(key)?.forEach((cb) => cb(n));
-  }
-
-  subscribe(key: string, cb: (n: NotificationEntity) => void): () => void {
-    if (!this.subscribers.has(key)) {
-      this.subscribers.set(key, new Set());
-    }
-
-    this.subscribers.get(key)!.add(cb);
-
-    return () => {
-      const set = this.subscribers.get(key);
-      if (!set) return;
-      set.delete(cb);
-      if (set.size === 0) this.subscribers.delete(key);
-    };
   }
 }

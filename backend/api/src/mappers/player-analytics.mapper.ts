@@ -20,7 +20,7 @@ function numberToDecimal128(value?: number): Types.Decimal128 | undefined {
 
 export function toPlayerClutchesModel(entity: PlayerClutchesEntity): IPlayerClutches {
   return {
-    stats_id: entity.statsId,
+    stats_id: new Types.ObjectId(entity.statsId),
     clutch_1v1: entity.clutch1v1,
     clutch_1v2: entity.clutch1v2,
     clutch_1v3: entity.clutch1v3,
@@ -76,7 +76,7 @@ export function toPlayerWeaponsUsageModel(entity: PlayerWeaponsUsageEntity): IPl
 export function toPlayerAccuracyModel(entity: PlayerAccuracyEntity): IPlayerAccuracy {
   const b = entity.hitBreakdown;
   return {
-    stats_id: entity.statsId,
+    stats_id: new Types.ObjectId(entity.statsId),
     total_shots: entity.totalShots,
     total_hits: entity.totalHits,
     headshots: entity.headshots,

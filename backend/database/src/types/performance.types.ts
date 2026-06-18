@@ -15,7 +15,7 @@ export interface IHitBreakdown {
 }
 
 export interface IPlayerAccuracy {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   total_shots?: number;
   total_hits?: number;
   headshots?: number;
@@ -27,7 +27,7 @@ export interface IPlayerAccuracy {
 export interface IPlayerAccuracyDocument extends IPlayerAccuracy, Document {}
 
 export interface IPlayerReaction {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   avg_ttr?: Types.Decimal128;
   min_ttr?: Types.Decimal128;
   max_ttr?: Types.Decimal128;
@@ -39,7 +39,7 @@ export interface IPlayerReaction {
 export interface IPlayerReactionDocument extends IPlayerReaction, Document {}
 
 export interface IPlayerBehavior {
-  stats_id: string;
+  stats_id: Types.ObjectId;
   aggression_signal?: Types.Decimal128;
   lurking_signal?: Types.Decimal128;
   support_signal?: Types.Decimal128;

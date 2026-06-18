@@ -10,7 +10,7 @@ export function toPlayerStatsEntity(doc: IPlayerStats): PlayerStatsEntity {
   return {
     _analyticsType: "stats",
     participantSteamId: doc.participant_steam_id,
-    matchId: doc.match_id,
+    matchId: doc.match_id?.toString(),
     totalKills: doc.total_kills,
     totalDeaths: doc.total_deaths,
     totalAssists: doc.total_assists,
@@ -31,7 +31,7 @@ export function toPlayerStatsEntity(doc: IPlayerStats): PlayerStatsEntity {
 export function toPlayerStatsModel(entity: PlayerStatsEntity): IPlayerStats {
   return {
     participant_steam_id: entity.participantSteamId,
-    match_id: entity.matchId,
+    match_id: entity.matchId ? new Types.ObjectId(entity.matchId) : undefined,
     total_kills: entity.totalKills,
     total_deaths: entity.totalDeaths,
     total_assists: entity.totalAssists,

@@ -7,8 +7,10 @@ function decimal128ToNumber(value?: Types.Decimal128): number | undefined {
   return value != null ? parseFloat(value.toString()) : undefined;
 }
 
+type PlayerAccuracyInput = Partial<Omit<IPlayerAccuracy, "stats_id"> & { stats_id?: Types.ObjectId | string }>;
+
 export function toPlayerAccuracyEntity(
-  doc: Partial<IPlayerAccuracy>,
+  doc: PlayerAccuracyInput,
 ): PlayerAccuracyEntity {
   let hitBreakdown: Record<HitGroup, number> | undefined;
   if (doc.hit_breakdown) {
@@ -30,7 +32,7 @@ export function toPlayerAccuracyEntity(
 
   return {
     _analyticsType: "accuracy",
-    statsId: doc.stats_id,
+    statsId: doc.stats_id?.toString() ?? "",
     totalShots: doc.total_shots,
     totalHits: doc.total_hits,
     headshots: doc.headshots,
