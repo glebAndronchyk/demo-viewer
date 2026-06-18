@@ -137,6 +137,7 @@ type Equipment struct {
 	Grenades     []string `bson:"grenades" json:"grenades"`
 }
 
+
 // GameState represents the overall game state at a specific tick
 type GameState struct {
 	RoundNumber       int     `bson:"round_number" json:"round_number"`

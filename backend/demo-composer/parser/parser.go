@@ -403,7 +403,7 @@ func (p *Parser) capturePlayerState(player *common.Player) PlayerState {
 			X: float64(viewDir),
 			Y: float64(player.ViewDirectionY()),
 		},
-		Velocity: Vector3{X: 0, Y: 0, Z: 0},
+		Velocity:         Vector3{X: 0, Y: 0, Z: 0},
 		HP:               player.Health(),
 		Armor:            player.Armor(),
 		HasHelmet:        player.HasHelmet(),
@@ -828,6 +828,8 @@ func (p *Parser) registerEventHandlers(parser dem.Parser) {
 			data["thrower_steam_id_64"] = strconv.FormatUint(e.Projectile.Thrower.SteamID64, 10)
 			data["thrower_name"] = e.Projectile.Thrower.Name
 		}
+
+		data["trajectory"] = DegradeTrajectoryArray(e.Projectile.Trajectory, 16) // todo configurable
 
 		p.addEventToCurrentFrame("grenade_destroy", data)
 		p.endTransientEvent("grenade_destroy", grenadeKey(entityID))
