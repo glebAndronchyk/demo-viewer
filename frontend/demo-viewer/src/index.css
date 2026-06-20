@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Caveat+Brush&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Patrick+Hand+SC&display=swap');@import "tailwindcss";
 
 /* ============================================================
    TOKENS — PAPER / SKETCHBOOK PALETTE (tokens_wireframe4)
@@ -37,9 +36,9 @@
   --team-t-dim:     oklch(0.88 0.06 55);
 
   /* Typography */
-  --font-display:   'Caveat Brush', 'Caveat', cursive;
-  --font-mono:      'Caveat', cursive;
-  --font-ui:        'Caveat', cursive;
+  --font-logo:      'Bebas Neue', sans-serif;
+  --font-mono:      'Exo 2', monospace;
+  --font-ui:        'Patrick Hand SC', cursive;
 
   --fs-micro:   11px;
   --fs-xs:      12px;

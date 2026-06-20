@@ -3,13 +3,16 @@ import { useAuth } from "../../modules/auth";
 import { ProfileImage } from "../../modules/auth/components/ProfileImage.tsx";
 import { Link } from "react-router";
 import { NotificationsList } from "../../modules/auth/components/NotificationList.tsx";
+import { Paper } from "../Paper";
 
 export function AppHeader() {
   const { user, isLoading } = useAuth();
   const { token } = theme.useToken();
 
   return (
-    <Layout.Header
+    <Paper
+      as={Layout.Header}
+      className="shadow"
       style={{
         position: "fixed",
         width: "100%",
@@ -22,9 +25,15 @@ export function AppHeader() {
     >
       <Typography.Title
         level={4}
-        style={{ margin: 0, color: token.colorPrimary }}
+        style={{
+          margin: 0,
+          color: token.colorPrimary,
+          fontFamily: "var(--font-logo)",
+        }}
       >
-        <Link to="/">Demo Viewer</Link>
+        <Link style={{ all: "unset", cursor: "pointer" }} to="/">
+          Demo Viewer
+        </Link>
       </Typography.Title>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {isLoading ? (
@@ -40,6 +49,6 @@ export function AppHeader() {
           </Button>
         )}
       </div>
-    </Layout.Header>
+    </Paper>
   );
 }

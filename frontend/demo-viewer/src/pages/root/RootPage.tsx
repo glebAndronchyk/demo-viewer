@@ -4,6 +4,7 @@ import {
   useRootPageViewModel,
 } from "./viewmodel/RootPageViewModel.tsx";
 import { useLoaderData } from "react-router";
+import { Paper } from "../../components/Paper";
 
 const RootPage = () => {
   const { changeMatchesPage, navigateToDemo } = useRootPageViewModel();
@@ -21,7 +22,7 @@ const RootPage = () => {
 
   return (
     <Layout className="p-4 h-full">
-      <div>
+      <Paper className="bg-white p-4 overflow-hidden border-black">
         <div className="flex mb-2 justify-between items-center">
           <p className="text-2xl">Registered matches list</p>
           <Pagination
@@ -35,9 +36,10 @@ const RootPage = () => {
         <Flex orientation="vertical" gap={8} className="max-h-full">
           {matches.page.map((m) => {
             return (
-              <Row
+              <Paper
+                as={Row}
                 key={m.demoId}
-                className="cursor-pointer p-2 border items-center justify-between"
+                className="cursor-pointer p-2 border items-center justify-between border-black"
                 onClick={() => handleMatchNavigate(m.matchId)}
               >
                 <Col span={4}>{m.map}</Col>
@@ -63,11 +65,11 @@ const RootPage = () => {
                     })}
                   </Flex>
                 </Col>
-              </Row>
+              </Paper>
             );
           })}
         </Flex>
-      </div>
+      </Paper>
     </Layout>
   );
 };
