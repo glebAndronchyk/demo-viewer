@@ -8,6 +8,7 @@ import {
 } from "./viewmodel/GroupsPageViewModel.tsx";
 import GroupDetailPage from "./GroupDetailPage.tsx";
 import { useTransition, useState } from "react";
+import { Paper } from "../../components/Paper";
 
 const GroupsSider = () => {
   const data = useLoaderData<MyGroupsData>();
@@ -61,7 +62,8 @@ const GroupsSider = () => {
 };
 
 const CreateGroupModal = () => {
-  const { createModalOpen, closeCreateModal, createGroup } = useGroupsPageViewModel();
+  const { createModalOpen, closeCreateModal, createGroup } =
+    useGroupsPageViewModel();
   const [name, setName] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -78,7 +80,10 @@ const CreateGroupModal = () => {
       title="Create Group"
       open={createModalOpen}
       onOk={handleOk}
-      onCancel={() => { closeCreateModal(); setName(""); }}
+      onCancel={() => {
+        closeCreateModal();
+        setName("");
+      }}
       confirmLoading={isPending}
       okText="Create"
     >
@@ -96,9 +101,13 @@ const CreateGroupModal = () => {
 const GroupsPageInner = () => {
   return (
     <Layout className="h-full p-5">
-      <Layout.Sider className="mr-3" width={220}>
+      <Paper
+        as={Layout.Sider}
+        className="overflow-hidden mr-3 border"
+        width={220}
+      >
         <GroupsSider />
-      </Layout.Sider>
+      </Paper>
       <Layout.Content>
         <Outlet />
       </Layout.Content>

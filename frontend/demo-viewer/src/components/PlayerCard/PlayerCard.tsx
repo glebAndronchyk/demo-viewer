@@ -1,4 +1,5 @@
 import { clsx } from "../../lib/clsx.ts";
+import { Paper } from "../Paper";
 
 export interface PlayerData {
   health: number;
@@ -17,12 +18,12 @@ export type PlayerCardProps = PlayerData & {
 
 export const PlayerCard = (props: PlayerCardProps) => {
   return (
-    <div className={clsx("gap-1 p-1 flex-1 border", props.className)}>
+    <Paper className={clsx("gap-1 p-1 flex-1 border", props.className)}>
       <p>{props.name}</p>
       <p>{props.weapon}</p>
       <p>{props.health}</p>
       <p>{props.state}</p>
       <p>{props.side}</p>
-    </div>
+    </Paper>
   );
 };

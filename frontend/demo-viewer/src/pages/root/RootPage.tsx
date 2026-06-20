@@ -22,7 +22,7 @@ const RootPage = () => {
 
   return (
     <Layout className="p-4 h-full">
-      <Paper className="bg-white p-4 overflow-hidden border-black">
+      <Paper className="bg-white p-4 overflow-hidden border">
         <div className="flex mb-2 justify-between items-center">
           <p className="text-2xl">Registered matches list</p>
           <Pagination
@@ -39,7 +39,7 @@ const RootPage = () => {
               <Paper
                 as={Row}
                 key={m.demoId}
-                className="cursor-pointer p-2 border items-center justify-between border-black"
+                className="cursor-pointer p-2 border items-center justify-between"
                 onClick={() => handleMatchNavigate(m.matchId)}
               >
                 <Col span={4}>{m.map}</Col>

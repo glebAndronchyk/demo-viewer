@@ -3,13 +3,14 @@ import SettingsPage from "./pages/SettingsPage.tsx";
 import { Layout } from "antd";
 import { Outlet } from "react-router";
 import StatisticsPage from "./pages/StatisticsPage.tsx";
+import { Paper } from "../../components/Paper";
 
 export const AccountPage = () => {
   return (
     <Layout className="h-full p-5">
-      <Layout.Sider className="mr-3">
+      <Paper as={Layout.Sider} className="overflow-hidden mr-3 border">
         <AccountMenu />
-      </Layout.Sider>
+      </Paper>
       <Layout.Content>
         <Outlet />
       </Layout.Content>

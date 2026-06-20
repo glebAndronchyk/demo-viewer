@@ -1,6 +1,7 @@
 import { Avatar, Col, Flex, Pagination, Row, Tag, Typography } from "antd";
 import { useLoaderData, useNavigate, useSearchParams } from "react-router";
 import type { GroupMember } from "../viewmodel/GroupDetailViewModel.tsx";
+import { Paper } from "../../../components/Paper";
 
 interface MatchesLoaderData {
   matches: {
@@ -88,7 +89,8 @@ const MatchesPage = () => {
 
       <Flex vertical gap={8}>
         {(matches?.page ?? []).map((m) => (
-          <Row
+          <Paper
+            as={Row}
             key={m.demoId}
             className="cursor-pointer p-2 border items-center justify-between"
             onClick={() => handleMatchClick(m.matchId)}
@@ -108,7 +110,7 @@ const MatchesPage = () => {
                 ))}
               </Flex>
             </Col>
-          </Row>
+          </Paper>
         ))}
       </Flex>
     </div>

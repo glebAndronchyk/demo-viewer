@@ -4,6 +4,7 @@ import {
   type ComponentPropsWithoutRef,
   useMemo,
 } from "react";
+import { theme } from "antd";
 
 type PaperProps<C extends ElementType = "div"> = {
   as?: C;
@@ -17,6 +18,7 @@ const clamp = (num: number, min: number, max: number) =>
   Math.min(Math.max(num, min), max);
 
 export const Paper = <C extends ElementType = "div">(props: PaperProps<C>) => {
+  const { token } = theme.useToken();
   const { as, ...rest } = props;
   const Component = (as ?? "div") as ElementType;
   const paperBorders = useMemo(() => {
@@ -101,6 +103,7 @@ export const Paper = <C extends ElementType = "div">(props: PaperProps<C>) => {
       {...(restWithoutStyle as object)}
       style={{
         ...(paperBorders as CSSProperties),
+        borderColor: token.colorBorder,
         ...style,
       }}
     />
