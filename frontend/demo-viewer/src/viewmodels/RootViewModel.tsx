@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { AppConfiguration } from "../features/configuration";
 
 const useRoot = () => {
   type Consumer = (type: "update" | "init", e: MessageEvent) => void;
@@ -17,7 +18,7 @@ const useRoot = () => {
   };
 
   const acceptGroupInvitation = async (notificationId: string) => {
-    await fetch("//localhost:3000/team/accept/invitation", {
+    await fetch(`${AppConfiguration.apiUrl}/team/accept/invitation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -26,14 +27,14 @@ const useRoot = () => {
   };
 
   const declineGroupInvitation = async (notificationId: string) => {
-    await fetch(`//localhost:3000/notifications/${notificationId}/dismiss`, {
+    await fetch(`${AppConfiguration.apiUrl}/notifications/${notificationId}/dismiss`, {
       method: "POST",
       credentials: "include",
     });
   };
 
   useEffect(() => {
-    const source = new EventSource("//localhost:3000/notifications/session", {
+    const source = new EventSource(`${AppConfiguration.apiUrl}/notifications/session`, {
       withCredentials: true,
     });
 

@@ -26,6 +26,7 @@ import { PlaygroundConfiguration } from "../entities/PlaygroundConfiguration.ts"
 import type { ViewerState } from "../types/ViewerState.ts";
 import { type Animatable, isAnimatableInterface } from "../types/Animatable.ts";
 import { PlayerTextureAtlas } from "../entities/PlayerTextureAtlas.ts";
+import { AppConfiguration } from "../../../features/configuration";
 
 const useDemoViewer = () => {
   // #region types
@@ -321,7 +322,7 @@ const useDemoViewer = () => {
 
     // todo: better error handling -- frame failed to load, and loop breaks (occurs on init when startTick = 0)
     const framesResult = await fetch(
-      `http://localhost:3000/streaming/player/seek/${args.matchId}?${params.toString()}`,
+      `${AppConfiguration.apiUrl}/streaming/player/seek/${args.matchId}?${params.toString()}`,
     )
       .then((r) => r.json())
       .then((r) => (r as SeekResponseDto).data.frames)
@@ -439,7 +440,7 @@ export const useDemoViewerViewModel = Object.assign(
       } = args;
 
       const matchManifestPromise = fetch(
-        `http://localhost:3000/streaming/player/manifest/${matchId}`,
+        `${AppConfiguration.apiUrl}/streaming/player/manifest/${matchId}`,
       )
         .then((r) => r.json())
         .then((r) => (r as ManifestResponseDto).data)

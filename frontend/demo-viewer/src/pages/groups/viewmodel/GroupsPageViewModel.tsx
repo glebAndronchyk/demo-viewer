@@ -1,7 +1,11 @@
-import { createContext, type PropsWithChildren, useContext, useState } from "react";
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
 import { type LoaderFunction, redirect, useNavigate } from "react-router";
-
-const API = "http://localhost:3000";
+import { AppConfiguration } from "../../../features/configuration";
 
 export interface GroupSummary {
   id: string;
@@ -27,7 +31,7 @@ const useGroupsPage = () => {
   const closeCreateModal = () => setCreateModalOpen(false);
 
   const createGroup = async (name: string) => {
-    const res = await fetch(`${API}/team`, {
+    const res = await fetch(`${AppConfiguration.apiUrl}/team`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -43,19 +47,25 @@ const useGroupsPage = () => {
   return { createModalOpen, openCreateModal, closeCreateModal, createGroup };
 };
 
-const GroupsPageViewModelContext = createContext<ReturnType<typeof useGroupsPage>>(null as never);
+const GroupsPageViewModelContext = createContext<
+  ReturnType<typeof useGroupsPage>
+>(null as never);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useGroupsPageViewModel = Object.assign(
   () => useContext(GroupsPageViewModelContext),
   {
     loader: (async () => {
-      const res = await fetch(`${API}/team/my`, { credentials: "include" }).then((r) => r.json());
+      const res = await fetch(`${AppConfiguration.apiUrl}/team/my`, {
+        credentials: "include",
+      }).then((r) => r.json());
       return res.data as MyGroupsData;
     }) satisfies LoaderFunction,
 
     redirectLoader: (async (args) => {
-      const res = await fetch(`${API}/team/my`, { credentials: "include" }).then((r) => r.json());
+      const res = await fetch(`${AppConfiguration.apiUrl}/team/my`, {
+        credentials: "include",
+      }).then((r) => r.json());
       const data = res.data as MyGroupsData;
       const first = data.owned[0] ?? data.joined[0];
       if (first) {

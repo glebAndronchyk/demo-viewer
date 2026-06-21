@@ -2,6 +2,7 @@ import { createContext, type PropsWithChildren, useContext } from "react";
 import { type LoaderFunction, useNavigate } from "react-router";
 import type { MatchListResponseDto } from "@demo-viewer/shared-types";
 import { debounce } from "../../../lib/debounce.ts";
+import { AppConfiguration } from "../../../features/configuration";
 
 const useRootPage = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export const useRootPageViewModel = Object.assign(
       const page = Number(url.searchParams.get("page") || 1);
 
       const matches = await fetch(
-        `http://localhost:3000/streaming/matches/list?page=${page}`,
+        `${AppConfiguration.apiUrl}/streaming/matches/list?page=${page}`,
       )
         .then((r) => r.json())
         .then((r) => r as MatchListResponseDto)

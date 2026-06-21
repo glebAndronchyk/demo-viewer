@@ -29,6 +29,7 @@ import { TotalShotsHitsBar } from "../components/TotalShotsHitsBar.tsx";
 import { TopLevelAccuracyLiquid } from "../components/TopLevelAccuracyLiquid.tsx";
 import { HitBreakdownMap } from "../components/HitBreakdownMap.tsx";
 import { ClutchesBar } from "../components/ClutchesBar.tsx";
+import { AppConfiguration } from "../../../features/configuration";
 
 const tabItems = [
   {
@@ -123,7 +124,7 @@ StatisticsPage.Performance = Object.assign(
 
         // todo: proper http client
         const result = await fetch(
-          `http://localhost:3000/statistics/total/performance?steamId=${steamId}&startDate="${startDate}"`,
+          `${AppConfiguration.apiUrl}/statistics/total/performance?steamId=${steamId}&startDate="${startDate}"`,
         )
           .then((r) => r.json())
           .then((r) => r as PerformanceAnalyticsResponseDto)
@@ -153,7 +154,7 @@ StatisticsPage.Economics = Object.assign(
 
         // todo: proper http client
         const result = await fetch(
-          `http://localhost:3000/statistics/total/economy?steamId=${steamId}&startDate="${startDate}"`,
+          `${AppConfiguration.apiUrl}/statistics/total/economy?steamId=${steamId}&startDate="${startDate}"`,
         )
           .then((r) => r.json())
           .then((r) => r as EconomyAnalyticsResponseDto)
@@ -191,7 +192,7 @@ StatisticsPage.Weapons = Object.assign(
 
         // todo: proper http client
         const result = await fetch(
-          `http://localhost:3000/statistics/total/weapons?steamId=${steamId}&startDate="${startDate}"`,
+          `${AppConfiguration.apiUrl}/statistics/total/weapons?steamId=${steamId}&startDate="${startDate}"`,
         )
           .then((r) => r.json())
           .then((r) => r as WeaponAnalyticsResponseDto)

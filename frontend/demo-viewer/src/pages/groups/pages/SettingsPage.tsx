@@ -2,8 +2,9 @@ import { Button, Flex, Form, Input, message, Switch, Typography } from "antd";
 import { useLoaderData, useRevalidator } from "react-router";
 import type { GroupDetailData } from "../viewmodel/GroupDetailViewModel.tsx";
 import { useTransition, useState } from "react";
+import { AppConfiguration } from "../../../features/configuration";
 
-const API = "http://localhost:3000";
+const API = AppConfiguration.apiUrl;
 
 const SettingsPage = () => {
   const { group } = useLoaderData<GroupDetailData>();

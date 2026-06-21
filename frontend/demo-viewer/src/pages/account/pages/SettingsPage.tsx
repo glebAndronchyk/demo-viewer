@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button, Form, Input, Typography, message } from "antd";
 import { useAuth } from "../../../modules/auth";
+import { AppConfiguration } from "../../../features/configuration";
 
 interface SettingsFormValues {
   steamIdKey: string;
@@ -19,7 +20,7 @@ const SettingsPage = () => {
     setSubmitting(true);
     try {
       const res = await fetch(
-        `http://localhost:3000/user/${user.userId}/update-user-sharing-data`,
+        `${AppConfiguration.apiUrl}/user/${user.userId}/update-user-sharing-data`,
         {
           method: "PUT",
           credentials: "include",

@@ -4,6 +4,7 @@ import type {
   GroupMemberDto,
   GetTeamResponseData,
 } from "@demo-viewer/shared-types";
+import { AppConfiguration } from "../../../features/configuration";
 
 export type {
   GroupDetailDto as GroupDetail,
@@ -11,7 +12,7 @@ export type {
   GetTeamResponseData as GroupDetailData,
 };
 
-const API = "http://localhost:3000";
+const API = AppConfiguration.apiUrl;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useGroupDetailViewModel = {

@@ -4,6 +4,7 @@ import { ProfileImage } from "../../modules/auth/components/ProfileImage.tsx";
 import { Link } from "react-router";
 import { NotificationsList } from "../../modules/auth/components/NotificationList.tsx";
 import { Paper } from "../Paper";
+import { AppConfiguration } from "../../features/configuration";
 
 export function AppHeader() {
   const { user, isLoading } = useAuth();
@@ -44,7 +45,7 @@ export function AppHeader() {
             <ProfileImage user={user} />
           </>
         ) : (
-          <Button type="primary" href="http://localhost:3000/auth/steam">
+          <Button type="primary" href={`${AppConfiguration.apiUrl}/auth/steam`}>
             Login with Steam
           </Button>
         )}

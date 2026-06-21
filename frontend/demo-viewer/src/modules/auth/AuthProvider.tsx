@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AuthContext, type AuthUser } from "./AuthContext";
+import { AppConfiguration } from "../../features/configuration";
 
 interface AuthMeResponse {
   isSuccess: boolean;
@@ -15,7 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:3000/auth/me", { credentials: "include" })
+    fetch(`${AppConfiguration.apiUrl}/auth/me`, { credentials: "include" })
       .then((res) => {
         if (res.status === 401) return null;
         return res.json() as Promise<AuthMeResponse>;

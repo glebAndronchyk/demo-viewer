@@ -4,8 +4,9 @@ import { useLoaderData, useRevalidator } from "react-router";
 import { useAuth } from "../../../modules/auth";
 import { useTransition, useState } from "react";
 import type { GroupDetailData, GroupMember } from "../viewmodel/GroupDetailViewModel.tsx";
+import { AppConfiguration } from "../../../features/configuration";
 
-const API = "http://localhost:3000";
+const API = AppConfiguration.apiUrl;
 
 const InviteForm = ({ groupId }: { groupId: string }) => {
   const [steamId, setSteamId] = useState("");
