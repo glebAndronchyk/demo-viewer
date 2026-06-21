@@ -155,7 +155,6 @@
     },
   },
   "patchedDependencies": {
-    "lzma@2.3.2": "patches/lzma@2.3.2.patch",
     "@doctormckay/steam-crypto@1.2.0": "patches/@doctormckay%2Fsteam-crypto@1.2.0.patch",
   },
   "packages": {
