@@ -45,7 +45,8 @@ export const Paper = <C extends ElementType = "div">(props: PaperProps<C>) => {
               : randomRange(clamp(now - distribution, 0, 100), now);
           const controlX =
             sign > 0 ? randomRange(now, next) : randomRange(next, now);
-          const controlY = sign > 0 ? randomRange(10, 12) : randomRange(88, 90);
+          const controlY =
+            sign > 0 ? randomRange(1, 2.5) : randomRange(98, 99.5);
 
           acc.prevCoords[0] = next;
           acc.prevCoords[1] = sign > 0 ? 0 : 100; // top or bottom edge
