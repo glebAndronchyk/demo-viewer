@@ -123,7 +123,7 @@ jobs:
           app-name: 'demo-viewer'
           slot-name: 'Production'
           package: .
-          startup-command: 'backend/api/dist/api'
+          startup-command: 'API_PORT=$PORT backend/api/dist/api'
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -152,5 +152,5 @@ jobs:
           app-name: 'demo-viewer-ui'
           slot-name: 'Production'
           package: .
-          startup-command: 'bunx serve .'
+          startup-command: 'bunx serve . -l tcp://0.0.0.0:$PORT'
           
