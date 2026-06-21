@@ -1,4 +1,4 @@
-const { collMod } = require("./_utils");
+const { collMod } = require("../migrationUtils");
 
 module.exports = {
   async up(db) {

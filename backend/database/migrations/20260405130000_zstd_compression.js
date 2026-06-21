@@ -1,4 +1,4 @@
-const { collectionOptions } = require('./_utils');
+const { collectionOptions } = require('../migrationUtils');
 
 const DEMO_CHUNKS_VALIDATOR = {
   $jsonSchema: {

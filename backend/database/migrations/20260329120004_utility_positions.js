@@ -1,4 +1,4 @@
-const { collectionOptions } = require('./_utils');
+const { collectionOptions } = require('../migrationUtils');
 
 module.exports = {
   async up(db, client) {
