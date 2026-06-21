@@ -121,7 +121,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'demo-viewer'
-          slot-name: 'Production'
           package: .
           startup-command: 'API_PORT=$PORT backend/api/dist/api'
 
@@ -150,7 +149,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'demo-viewer-ui'
-          slot-name: 'Production'
           package: .
           startup-command: 'bunx serve . -l tcp://0.0.0.0:$PORT'
           
