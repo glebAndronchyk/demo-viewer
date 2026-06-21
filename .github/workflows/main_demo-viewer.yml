@@ -71,6 +71,7 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          ZSTD_SUPPORT: ${{ secrets.ZSTD_SUPPORT }}
 
   build-frontend:
     name: "Build frontend application"
