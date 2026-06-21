@@ -92,4 +92,5 @@ jobs:
           app-name: 'demo-viewer'
           slot-name: 'Production'
           package: .
+          startup-command: 'backend/api/dist/api'
           
