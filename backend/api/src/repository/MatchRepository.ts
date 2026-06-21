@@ -225,60 +225,56 @@ export class MatchRepository implements MatchOutboundPort {
         },
       },
       {
+        $addFields: {
+          myTeam: {
+            $getField: {
+              field: "team",
+              input: {
+                $first: {
+                  $filter: {
+                    input: "$frames.player_states",
+                    as: "p",
+                    cond: { $eq: ["$$p.steam_id_64", steamId64] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         $project: {
           round_number: "$frames.game_state.round_number",
           demo_tick: "$frames.demo_tick",
           counts: {
-            $let: {
-              vars: {
-                myTeam: {
-                  $getField: {
-                    field: "team",
-                    input: {
-                      $first: {
-                        $filter: {
-                          input: "$frames.player_states",
-                          as: "p",
-                          cond: {
-                            $eq: ["$$p.steam_id_64", steamId64],
-                          },
-                        },
-                      },
-                    },
+            myTeam: "$myTeam",
+            aliveTeammates: {
+              $size: {
+                $filter: {
+                  input: "$frames.player_states",
+                  as: "p",
+                  cond: {
+                    $and: [
+                      { $eq: ["$$p.team", "$myTeam"] },
+                      { $eq: ["$$p.is_alive", true] },
+                      { $eq: ["$$p.is_connected", true] },
+                    ],
                   },
                 },
               },
-              in: {
-                myTeam: "$$myTeam",
-                aliveTeammates: {
-                  $size: {
-                    $filter: {
-                      input: "$frames.player_states",
-                      as: "p",
-                      cond: {
-                        $and: [
-                          { $eq: ["$$p.team", "$$myTeam"] },
-                          { $eq: ["$$p.is_alive", true] },
-                          { $eq: ["$$p.is_connected", true] },
-                        ],
-                      },
-                    },
-                  },
-                },
-                aliveEnemies: {
-                  $size: {
-                    $filter: {
-                      input: "$frames.player_states",
-                      as: "p",
-                      cond: {
-                        $and: [
-                          { $in: ["$$p.team", ["T", "CT"]] },
-                          { $ne: ["$$p.team", "$$myTeam"] },
-                          { $eq: ["$$p.is_alive", true] },
-                          { $eq: ["$$p.is_connected", true] },
-                        ],
-                      },
-                    },
+            },
+            aliveEnemies: {
+              $size: {
+                $filter: {
+                  input: "$frames.player_states",
+                  as: "p",
+                  cond: {
+                    $and: [
+                      { $in: ["$$p.team", ["T", "CT"]] },
+                      { $ne: ["$$p.team", "$myTeam"] },
+                      { $eq: ["$$p.is_alive", true] },
+                      { $eq: ["$$p.is_connected", true] },
+                    ],
                   },
                 },
               },
@@ -419,23 +415,23 @@ export class MatchRepository implements MatchOutboundPort {
                 input: tickSet,
                 as: "tick",
                 in: {
-                  $let: {
-                    vars: {
-                      // pick the last frame at this tick for player state (most up-to-date snapshot)
-                      targetFrame: {
-                        $arrayElemAt: [
-                          {
-                            $filter: {
-                              input: "$frames",
-                              as: "frame",
-                              cond: { $eq: ["$$frame.game_tick", "$$tick"] },
-                            },
+                  $mergeObjects: [
+                    // pick the last frame at this tick for player state (most up-to-date snapshot)
+                    {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$frames",
+                            as: "frame",
+                            cond: { $eq: ["$$frame.game_tick", "$$tick"] },
                           },
-                          -1,
-                        ],
-                      },
-                      // collect events from all frames in range (prev tick, current tick]
-                      accumulatedEvents: {
+                        },
+                        -1,
+                      ],
+                    },
+                    {
+                      events: {
+                        // collect events from all frames in range (prev tick, current tick]
                         $reduce: {
                           input: {
                             $filter: {
@@ -491,15 +487,7 @@ export class MatchRepository implements MatchOutboundPort {
                         },
                       },
                     },
-                    in: {
-                      $mergeObjects: [
-                        "$$targetFrame",
-                        {
-                          events: "$$accumulatedEvents",
-                        },
-                      ],
-                    },
-                  },
+                  ],
                 },
               },
             },
@@ -552,14 +540,7 @@ export class MatchRepository implements MatchOutboundPort {
       return condition;
     };
 
-    const facetStages = Object.fromEntries(
-      eventsToProject.map((ctor) => [
-        ctor.getFacetName(),
-        [{ $match: buildCtorCondition(ctor) }],
-      ]),
-    );
-
-    const [facetResult] = await this.database.DemoChunkModel.aggregate([
+    const pipelinePrefix: PipelineStage[] = [
       { $match: chunkMatch },
       { $unwind: "$frames" },
       { $unwind: "$frames.events" },
@@ -573,8 +554,19 @@ export class MatchRepository implements MatchOutboundPort {
           },
         },
       },
-      { $facet: facetStages },
-    ]);
+    ];
+
+    const entries = await Promise.all(
+      eventsToProject.map(async (ctor) => {
+        const docs = await this.database.DemoChunkModel.aggregate([
+          ...pipelinePrefix,
+          { $match: buildCtorCondition(ctor) },
+        ]);
+        return [ctor.getFacetName(), docs] as const;
+      }),
+    );
+
+    const facetResult: Record<string, unknown[]> = Object.fromEntries(entries);
 
     const projection = eventsToProject.map((ctor) => {
       const raw: unknown[] = facetResult?.[ctor.getFacetName()] ?? [];
@@ -839,10 +831,8 @@ export class MatchRepository implements MatchOutboundPort {
       {
         $lookup: {
           from: "player_stats",
-          let: { statsId: `$${statsIdField}` },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$statsId"] } } },
-          ],
+          localField: statsIdField,
+          foreignField: "_id",
           as: "stats",
         },
       },
@@ -851,23 +841,13 @@ export class MatchRepository implements MatchOutboundPort {
       {
         $lookup: {
           from: "matches",
-          let: { matchId: "$stats.match_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$_id", "$$matchId"] },
-                    { $gte: ["$date_played", date] },
-                  ],
-                },
-              },
-            },
-          ],
+          localField: "stats.match_id",
+          foreignField: "_id",
           as: "match",
         },
       },
       { $unwind: "$match" },
+      { $match: { "match.date_played": { $gte: date } } },
     ] as PipelineStage[];
   }
 
