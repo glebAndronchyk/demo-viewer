@@ -94,4 +94,9 @@ export interface ConfigurationInboundPort {
    * Prevent running of cron job related to matches collection
    */
   preventParsing: boolean;
+
+  /**
+   * One-time Steam Guard email code. Set as an Azure app setting when Steam Guard is triggered.
+   */
+  steamGuardCode: string | undefined;
 }

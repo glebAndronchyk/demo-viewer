@@ -91,6 +91,10 @@ export class EnvConfiguration implements ConfigurationInboundPort {
       : false;
   }
 
+  get steamGuardCode(): string | undefined {
+    return this.env.STEAM_GUARD_CODE || undefined;
+  }
+
   constructor() {
     this.env = Bun.env;
   }

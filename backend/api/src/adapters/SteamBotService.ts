@@ -120,7 +120,7 @@ export class SteamBotService {
 
     bot.on("steamGuard", async (domain, callback) => {
       console.log(`[STEAM_BOT] Steam Guard required, domain=${domain}`);
-      const code = prompt("Enter steam guard code");
+      const code = configuration.steamGuardCode || prompt("Enter steam guard code");
       console.log(`[STEAM_BOT] Steam Guard code entered: ${code}`);
       if (!code) return;
       callback(code);
