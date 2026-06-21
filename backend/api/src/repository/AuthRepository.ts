@@ -22,22 +22,13 @@ export class AuthRepository implements AuthOutboundPort {
   }
 
   async createUser(steamId: string): Promise<UserRecord> {
-    try {
-      const [user] = await UserModel.create([{ steam_id: steamId }]);
-      const entity = toUserEntity(user!);
-      return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
-    } catch (err: any) {
-      // Cosmos DB doesn't support $setOnInsert upserts reliably; concurrent logins
-      // for the same Steam ID race here. On E11000, the user was just created — fetch it.
-      if (err?.code === 11000) {
-        const existing = await UserModel.findOne({ steam_id: steamId }).lean();
-        if (existing) {
-          const entity = toUserEntity(existing);
-          return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
-        }
-      }
-      throw err;
-    }
+    const user = await UserModel.findOneAndUpdate(
+      { steam_id: steamId },
+      { $setOnInsert: { steam_id: steamId } },
+      { upsert: true, new: true },
+    );
+    const entity = toUserEntity(user!);
+    return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
   }
 
   async linkMatchesToUser(steamId: string, userId: string): Promise<number> {
