@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // player_weapons_usage
     if (!existingNames.has('player_weapons_usage')) {
-      await db.createCollection('player_weapons_usage', {
-        validator: {
+      await db.createCollection('player_weapons_usage', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -23,17 +24,14 @@ module.exports = {
               machine_guns_pct: { bsonType: 'decimal' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('player_weapons_usage').createIndex({ stats_id: 1 });
 
     // weapon_stats
     if (!existingNames.has('weapon_stats')) {
-      await db.createCollection('weapon_stats', {
-        validator: {
+      await db.createCollection('weapon_stats', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['player_weapon_usage_id', 'weapon_name'],
@@ -48,9 +46,7 @@ module.exports = {
               headshots: { bsonType: 'int' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('weapon_stats').createIndex({ player_weapon_usage_id: 1 });

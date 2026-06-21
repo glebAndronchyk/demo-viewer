@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // assets
     if (!existingNames.has('assets')) {
-      await db.createCollection('assets', {
-        validator: {
+      await db.createCollection('assets', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['path', 'dimensions'],
@@ -23,17 +24,14 @@ module.exports = {
               },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('assets').createIndex({ path: 1 });
 
     // maps
     if (!existingNames.has('maps')) {
-      await db.createCollection('maps', {
-        validator: {
+      await db.createCollection('maps', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['map_name', 'asset_id'],
@@ -42,9 +40,7 @@ module.exports = {
               asset_id: { bsonType: 'string' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('maps').createIndex({ map_name: 1 }, { unique: true });
@@ -52,8 +48,7 @@ module.exports = {
 
     // map_sectors
     if (!existingNames.has('map_sectors')) {
-      await db.createCollection('map_sectors', {
-        validator: {
+      await db.createCollection('map_sectors', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['sector_name', 'rect', 'map_id'],
@@ -72,9 +67,7 @@ module.exports = {
               map_id: { bsonType: 'string' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('map_sectors').createIndex({ map_id: 1 });

@@ -1,29 +1,28 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existing = await db.listCollections({ name: 'demo_chunks' }).toArray();
     if (existing.length > 0) return;
 
-    await db.createCollection('demo_chunks', {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['message_type', 'demo_id', 'chunk_index', 'start_tick', 'end_tick', 'start_game_tick', 'end_game_tick', 'frames'],
-          properties: {
-            message_type: { bsonType: 'string' },
-            demo_id: { bsonType: 'string' },
-            chunk_index: { bsonType: 'int' },
-            start_tick: { bsonType: 'int' },
-            end_tick: { bsonType: 'int' },
-            start_game_tick: { bsonType: 'int' },
-            end_game_tick: { bsonType: 'int' },
-            frames: { bsonType: 'array' },
-            createdAt: { bsonType: 'date' },
-            updatedAt: { bsonType: 'date' },
-          },
+    await db.createCollection('demo_chunks', collectionOptions({
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['message_type', 'demo_id', 'chunk_index', 'start_tick', 'end_tick', 'start_game_tick', 'end_game_tick', 'frames'],
+        properties: {
+          message_type: { bsonType: 'string' },
+          demo_id: { bsonType: 'string' },
+          chunk_index: { bsonType: 'int' },
+          start_tick: { bsonType: 'int' },
+          end_tick: { bsonType: 'int' },
+          start_game_tick: { bsonType: 'int' },
+          end_game_tick: { bsonType: 'int' },
+          frames: { bsonType: 'array' },
+          createdAt: { bsonType: 'date' },
+          updatedAt: { bsonType: 'date' },
         },
       },
-      validationAction: 'warn',
-    });
+    }));
 
     const collection = db.collection('demo_chunks');
     await collection.createIndex({ demo_id: 1 });

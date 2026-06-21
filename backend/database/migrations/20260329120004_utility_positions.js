@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // utility_schema
     if (!existingNames.has('utility_schema'))
-    await db.createCollection('utility_schema', {
-      validator: {
+      await db.createCollection('utility_schema', collectionOptions({
         $jsonSchema: {
           bsonType: 'object',
           required: ['stats_id'],
@@ -27,9 +28,7 @@ module.exports = {
             date_recorded: { bsonType: 'date' },
           },
         },
-      },
-      validationAction: 'warn',
-    });
+      }));
 
     await db.collection('utility_schema').createIndex({ stats_id: 1 });
 
@@ -41,8 +40,7 @@ module.exports = {
     if (collections.length > 0) {
       await db.collection('positions_stats_schema').rename('positions_stats');
     } else if (!existingNames.has('positions_stats')) {
-      await db.createCollection('positions_stats', {
-        validator: {
+      await db.createCollection('positions_stats', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -56,9 +54,7 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('positions_stats').createIndex({ stats_id: 1 });

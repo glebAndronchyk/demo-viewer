@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // player_accuracy
     if (!existingNames.has('player_accuracy')) {
-      await db.createCollection('player_accuracy', {
-        validator: {
+      await db.createCollection('player_accuracy', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -30,9 +31,7 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     const accuracyIndexes = await db.collection('player_accuracy').indexes();
@@ -42,8 +41,7 @@ module.exports = {
 
     // player_reaction
     if (!existingNames.has('player_reaction')) {
-      await db.createCollection('player_reaction', {
-        validator: {
+      await db.createCollection('player_reaction', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -57,9 +55,7 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     const reactionIndexes = await db.collection('player_reaction').indexes();
@@ -69,8 +65,7 @@ module.exports = {
 
     // player_behavior
     if (!existingNames.has('player_behavior')) {
-      await db.createCollection('player_behavior', {
-        validator: {
+      await db.createCollection('player_behavior', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -86,9 +81,7 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     const behaviorIndexes = await db.collection('player_behavior').indexes();

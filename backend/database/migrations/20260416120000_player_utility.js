@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db) {
     const existingNames = new Set(
@@ -5,8 +7,7 @@ module.exports = {
     );
 
     if (!existingNames.has('player_utility')) {
-      await db.createCollection('player_utility', {
-        validator: {
+      await db.createCollection('player_utility', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -26,9 +27,7 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('player_utility').createIndex({ stats_id: 1 });

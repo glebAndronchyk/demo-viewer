@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // users
     if (!existingNames.has('users')) {
-      await db.createCollection('users', {
-        validator: {
+      await db.createCollection('users', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['steam_id'],
@@ -15,17 +16,14 @@ module.exports = {
               steam_id: { bsonType: 'string' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('users').createIndex({ steam_id: 1 }, { unique: true });
 
     // groups
     if (!existingNames.has('groups')) {
-      await db.createCollection('groups', {
-        validator: {
+      await db.createCollection('groups', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['owner_id', 'name'],
@@ -34,17 +32,14 @@ module.exports = {
               name: { bsonType: 'string' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('groups').createIndex({ owner_id: 1 });
 
     // group_members
     if (!existingNames.has('group_members')) {
-      await db.createCollection('group_members', {
-        validator: {
+      await db.createCollection('group_members', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['user_id', 'group_id'],
@@ -53,9 +48,7 @@ module.exports = {
               group_id: { bsonType: 'string' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('group_members').createIndex({ user_id: 1 });

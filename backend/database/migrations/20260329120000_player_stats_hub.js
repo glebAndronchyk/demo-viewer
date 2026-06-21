@@ -1,11 +1,12 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existing = await db.listCollections({ name: 'player_stats' }).toArray();
     if (existing.length > 0) return;
 
-    await db.createCollection('player_stats', {
-      validator: {
-        $jsonSchema: {
+    await db.createCollection('player_stats', collectionOptions({
+      $jsonSchema: {
           bsonType: 'object',
           required: ['participant_steam_id'],
           properties: {
@@ -27,9 +28,7 @@ module.exports = {
             date_recorded: { bsonType: 'date' },
           },
         },
-      },
-      validationAction: 'warn',
-    });
+      }));
 
     const collection = db.collection('player_stats');
     await collection.createIndex({ participant_steam_id: 1 });

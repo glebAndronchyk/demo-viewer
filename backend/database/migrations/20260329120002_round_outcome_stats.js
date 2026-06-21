@@ -1,3 +1,5 @@
+const { collectionOptions } = require('./_utils');
+
 module.exports = {
   async up(db, client) {
     const existingNames = new Set(
@@ -6,8 +8,7 @@ module.exports = {
 
     // player_trades
     if (!existingNames.has('player_trades')) {
-      await db.createCollection('player_trades', {
-        validator: {
+      await db.createCollection('player_trades', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -18,17 +19,14 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('player_trades').createIndex({ stats_id: 1 });
 
     // player_economy
     if (!existingNames.has('player_economy')) {
-      await db.createCollection('player_economy', {
-        validator: {
+      await db.createCollection('player_economy', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -42,17 +40,14 @@ module.exports = {
               date_recorded: { bsonType: 'date' },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('player_economy').createIndex({ stats_id: 1 });
 
     // player_clutches
     if (!existingNames.has('player_clutches')) {
-      await db.createCollection('player_clutches', {
-        validator: {
+      await db.createCollection('player_clutches', collectionOptions({
           $jsonSchema: {
             bsonType: 'object',
             required: ['stats_id'],
@@ -95,9 +90,7 @@ module.exports = {
               },
             },
           },
-        },
-        validationAction: 'warn',
-      });
+        }));
     }
 
     await db.collection('player_clutches').createIndex({ stats_id: 1 });

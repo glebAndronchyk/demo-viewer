@@ -1,6 +1,4 @@
-const ZSTD_STORAGE_ENGINE = {
-  wiredTiger: { configString: 'block_compressor=zstd' },
-};
+const { collectionOptions } = require('./_utils');
 
 const DEMO_CHUNKS_VALIDATOR = {
   $jsonSchema: {
@@ -60,13 +58,9 @@ const MATCHES_VALIDATOR = {
   },
 };
 
-async function recreateDemoChunks(db, opts = {}) {
+async function recreateDemoChunks(db, withStorageEngine = false) {
   await db.collection('demo_chunks').drop();
-  await db.createCollection('demo_chunks', {
-    ...opts,
-    validator: DEMO_CHUNKS_VALIDATOR,
-    validationAction: 'warn',
-  });
+  await db.createCollection('demo_chunks', collectionOptions(DEMO_CHUNKS_VALIDATOR, { storageEngine: withStorageEngine }));
   const col = db.collection('demo_chunks');
   await col.createIndex({ demo_id: 1 });
   await col.createIndex({ demo_id: 1, chunk_index: 1 }, { unique: true });
@@ -75,13 +69,9 @@ async function recreateDemoChunks(db, opts = {}) {
   await col.createIndex({ 'frames.events.type': 1 });
 }
 
-async function recreateMatches(db, opts = {}) {
+async function recreateMatches(db, withStorageEngine = false) {
   await db.collection('matches').drop().catch(() => {});
-  await db.createCollection('matches', {
-    ...opts,
-    validator: MATCHES_VALIDATOR,
-    validationAction: 'warn',
-  });
+  await db.createCollection('matches', collectionOptions(MATCHES_VALIDATOR, { storageEngine: withStorageEngine }));
   const col = db.collection('matches');
   await col.createIndex({ date_played: -1 });
   await col.createIndex({ date_uploaded: -1 });
@@ -95,13 +85,12 @@ async function recreateMatches(db, opts = {}) {
 
 module.exports = {
   async up(db) {
-    await recreateDemoChunks(db, { storageEngine: ZSTD_STORAGE_ENGINE });
-    await recreateMatches(db, { storageEngine: ZSTD_STORAGE_ENGINE });
+    await recreateDemoChunks(db, true);
+    await recreateMatches(db, true);
   },
 
   async down(db) {
-    // Recreate with no storageEngine option (reverts to MongoDB default snappy)
-    await recreateDemoChunks(db);
-    await recreateMatches(db);
+    await recreateDemoChunks(db, false);
+    await recreateMatches(db, false);
   },
 };
