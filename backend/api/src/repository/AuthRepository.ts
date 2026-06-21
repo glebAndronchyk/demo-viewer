@@ -22,31 +22,36 @@ export class AuthRepository implements AuthOutboundPort {
   }
 
   async createUser(steamId: string): Promise<UserRecord> {
-    try {
-      const [user] = await UserModel.create([{ steam_id: steamId }]);
-      const entity = toUserEntity(user!);
-      return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
-    } catch (err: any) {
-      // Cosmos DB doesn't support $setOnInsert upserts reliably; concurrent logins
-      // for the same Steam ID race here. On E11000, the user was just created — fetch it.
-      if (err?.code === 11000) {
-        const existing = await UserModel.findOne({ steam_id: steamId }).lean();
-        if (existing) {
-          const entity = toUserEntity(existing);
-          return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
-        }
-      }
-      throw err;
-    }
+    // findOneAndUpdate with upsert is safe on Cosmos DB: avoids the find→insert race
+    // and returns the existing doc on conflict instead of throwing E11000.
+    const user = await UserModel.findOneAndUpdate(
+      { steam_id: steamId },
+      { $setOnInsert: { steam_id: steamId } },
+      { upsert: true, new: true },
+    );
+    const entity = toUserEntity(user!);
+    return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
   }
 
   async linkMatchesToUser(steamId: string, userId: string): Promise<number> {
-    const result = await MatchModel.updateMany(
+    // Cosmos DB does not support arrayFilters — update each matching doc individually.
+    const matches = await MatchModel.find(
       { "participants.steam_id": steamId },
-      { $set: { "participants.$[elem].user_id": userId } },
-      { arrayFilters: [{ "elem.steam_id": steamId }] },
+      { _id: 1 },
+    ).lean();
+
+    if (matches.length === 0) return 0;
+
+    const results = await Promise.all(
+      matches.map((m) =>
+        MatchModel.updateOne(
+          { _id: m._id, "participants.steam_id": steamId },
+          { $set: { "participants.$.user_id": userId } },
+        ),
+      ),
     );
-    return result.modifiedCount;
+
+    return results.reduce((sum, r) => sum + r.modifiedCount, 0);
   }
 
   signJwt(payload: { sub: string; steamId: string }): Promise<string> {
