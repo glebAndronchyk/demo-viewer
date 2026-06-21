@@ -41,7 +41,7 @@ jobs:
         working-directory: backend/demo-composer
 
       - name: Build API
-        run: bun run build
+        run: bun build ./src/index.ts --target bun --outdir ./dist
         working-directory: backend/api
 
       - name: Upload artifact for deployment
@@ -124,7 +124,7 @@ jobs:
         with:
           app-name: 'demo-viewer'
           package: .
-          startup-command: 'API_PORT=$PORT backend/api/dist/api'
+          startup-command: 'bash /home/site/wwwroot/scripts/startup.sh'
 
   deploy-frontend:
     runs-on: ubuntu-latest
