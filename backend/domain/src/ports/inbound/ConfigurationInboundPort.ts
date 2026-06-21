@@ -99,4 +99,5 @@ export interface ConfigurationInboundPort {
    * One-time Steam Guard email code. Set as an Azure app setting when Steam Guard is triggered.
    */
   steamGuardCode: string | undefined;
+  steamAuthDirectory: string | undefined;
 }

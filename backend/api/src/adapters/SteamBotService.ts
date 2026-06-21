@@ -70,7 +70,7 @@ export class SteamBotService {
 
     const bot = new SteamUser({
       autoRelogin: false,
-      dataDirectory: join(homedir(), "auth", "steam"),
+      dataDirectory: configuration.steamAuthDirectory ?? join(homedir(), "auth", "steam"),
       protocol: EConnectionProtocol.TCP,
     });
 

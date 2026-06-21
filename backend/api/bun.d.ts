@@ -13,6 +13,7 @@ declare module "bun" {
     MATCHES_PAGE_SIZE: string;
 
     STEAM_BASE_URL: string;
+    STEAM_GUARD_CODE: string;
     STEAM_API_KEY: string;
     STEAM_NEXT_MATCH_SHARE_URL: string;
     CS2_APP_ID: number;
