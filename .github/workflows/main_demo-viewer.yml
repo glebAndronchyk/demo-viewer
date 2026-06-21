@@ -68,6 +68,9 @@ jobs:
       - name: Run migration script
         run: bun migrate:up
         working-directory: backend/database
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
 
   deploy:
     runs-on: ubuntu-latest
