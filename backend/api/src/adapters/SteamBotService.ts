@@ -150,8 +150,8 @@ export class SteamBotService {
       console.log("[STEAM_BOT] loginKey fired");
     });
 
-    bot.on("debug", (m) => {
-      console.log(`[STEAM_BOT] ${m}`);
+    bot.on("debug", (m: string, ...args: any[]) => {
+      console.log(`[STEAM_BOT] ${m}`, ...args.map((a: any) => a instanceof Error ? `${a.message} (eresult=${(a as any).eresult})` : JSON.stringify(a)));
     });
 
     return promise;
