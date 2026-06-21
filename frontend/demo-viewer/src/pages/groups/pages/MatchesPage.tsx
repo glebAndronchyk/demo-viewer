@@ -66,10 +66,10 @@ const MatchesPage = () => {
           <Tag
             key={m.userId}
             className="cursor-pointer"
-            color={playerFilter === m.userId ? "blue" : undefined}
-            onClick={() => handlePlayerFilter(m.userId)}
+            color={playerFilter === m.user?.steamId ? "blue" : undefined}
+            onClick={() => handlePlayerFilter(m.user?.steamId ?? null)}
           >
-            {m.userId}
+            {m.user?.steamId ?? m.userId}
           </Tag>
         ))}
       </Flex>

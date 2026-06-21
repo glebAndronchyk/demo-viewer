@@ -14,17 +14,19 @@ export const getPaginatedMatchesHandler = (outbound: DomainOutbound) => {
 
     const take = outbound.configuration.matchesPageSize;
     const skip = (page - 1) * outbound.configuration.matchesPageSize;
-    const allSteamIds = new Set(filterSteamIds || []);
 
-    if (filterGroupId) {
+    let allSteamIds: Set<string>;
+    if (filterSteamIds?.length) {
+      allSteamIds = new Set(filterSteamIds);
+    } else if (filterGroupId) {
       const members = await outbound.teamRepository.getMembers(filterGroupId);
-
-      members
-        .map((m) => m.user?.steamId)
-        .filter((id): id is string => Boolean(id))
-        .forEach((m) => {
-          allSteamIds.add(m);
-        });
+      allSteamIds = new Set(
+        members
+          .map((m) => m.user?.steamId)
+          .filter((id): id is string => Boolean(id)),
+      );
+    } else {
+      allSteamIds = new Set();
     }
 
     const [totalMatches, matches] = await Promise.all([

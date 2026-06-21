@@ -7,6 +7,7 @@ import type {
   BombPlantedEventDto,
   KillEventDto,
 } from "@demo-viewer/shared-types";
+import { Paper } from "../../../components/Paper";
 
 type LogAction = {
   onAction: (
@@ -47,10 +48,14 @@ export const EventLog = () => {
   }, []);
 
   return (
-    <Space
-      className="h-full overflow-auto w-full"
+    <Paper
+      as={Space}
+      className="h-full overflow-auto w-full border"
       orientation="vertical"
       size={4}
+      style={{
+        background: token.colorBgContainer,
+      }}
     >
       <Typography className="sticky top-0 px-4 py-2">Event log</Typography>
       <div
@@ -62,7 +67,7 @@ export const EventLog = () => {
         ))}
       </div>
       <div ref={bottomRef} />
-    </Space>
+    </Paper>
   );
 };
 

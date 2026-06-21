@@ -2,6 +2,7 @@ import { useDemoViewerViewModel } from "../../../modules/demo-viewer/viewmodel/D
 import { Space, Typography } from "antd";
 import { useEffect, useState } from "react";
 import type { GameStateDto, ManifestRoundDto } from "@demo-viewer/shared-types";
+import { Paper } from "../../../components/Paper";
 
 interface TickEvent {
   round: ManifestRoundDto | null | undefined;
@@ -22,7 +23,7 @@ export const ScoreOutput = () => {
 
   return (
     <Space orientation="horizontal" className="justify-between">
-      <Space orientation="vertical" size={4}>
+      <Paper className="flex flex-col gap-2 border p-2">
         <Typography>
           Current round: {score?.round?.roundNumber ?? 0} / Total rounds:{" "}
           {matchData.matchManifest.rounds.at(-1)?.roundNumber}
@@ -40,7 +41,7 @@ export const ScoreOutput = () => {
             </>
           )}
         </Typography>
-      </Space>
+      </Paper>
     </Space>
   );
 };

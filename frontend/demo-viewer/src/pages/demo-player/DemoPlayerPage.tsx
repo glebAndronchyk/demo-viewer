@@ -9,14 +9,23 @@ import { PlayersList } from "./components/PlayersList.tsx";
 const DemoPlayerPage = () => {
   return (
     <Layout>
-      <Layout.Header>
+      <Layout.Header
+        style={{
+          background: "none",
+          lineHeight: "1rem",
+          height: "auto",
+          paddingBlock: "0.5rem",
+        }}
+      >
         <ScoreOutput />
       </Layout.Header>
-      <Layout style={{ maxHeight: "50vh", minHeight: "50vh" }}>
+      <Layout
+        style={{ maxHeight: "50vh", minHeight: "50vh", paddingInline: "1rem" }}
+      >
         <Layout.Content>
           <DemoViewer className="[&_canvas]:w-125! [&_canvas]:h-full! [&_div]:flex [&_div]:justify-center" />
         </Layout.Content>
-        <Layout.Sider width="40%">
+        <Layout.Sider width="40%" style={{ background: "transparent" }}>
           <EventLog />
         </Layout.Sider>
       </Layout>

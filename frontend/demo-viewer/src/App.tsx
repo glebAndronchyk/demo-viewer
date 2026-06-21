@@ -21,7 +21,7 @@ import { useGroupDetailViewModel } from "./pages/groups/viewmodel/GroupDetailVie
 const RootLayout = () => (
   <Layout style={{ minHeight: "100vh" }}>
     <AppHeader />
-    <Layout.Content className="pt-16 !min-h-screen !h-screen">
+    <Layout.Content className="pt-[70px] !min-h-screen !h-screen">
       <Outlet />
     </Layout.Content>
   </Layout>

@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
         colorError: "#8b3a2a", // --magenta: burnt sienna
         colorInfo: "#3a5f8a", // --cyan: ink blue
         colorBgLayout: "#f7f3ed", // --bg-void: off-white page
-        colorBgContainer: "#fcfaf7", // --bg-panel
+        colorBgContainer: "#ffffff", // --bg-panel
         colorBgElevated: "#ede7da", // --bg-panel-hi: masthead
         colorBgSpotlight: "#ede0cc", // --bg-inset
         colorText: "#2e2118", // --ink-hi: dark sepia

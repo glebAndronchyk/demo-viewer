@@ -22,8 +22,12 @@ export class AuthRepository implements AuthOutboundPort {
   }
 
   async createUser(steamId: string): Promise<UserRecord> {
-    const user = await UserModel.create({ steam_id: steamId });
-    const entity = toUserEntity(user);
+    const user = await UserModel.findOneAndUpdate(
+      { steam_id: steamId },
+      { $setOnInsert: { steam_id: steamId } },
+      { upsert: true, new: true },
+    );
+    const entity = toUserEntity(user!);
     return { id: entity.id, steam_id: entity.steamId, createdAt: entity.createdAt };
   }
 
