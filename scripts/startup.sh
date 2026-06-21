@@ -6,4 +6,5 @@ if ! command -v bun &> /dev/null; then
 fi
 
 export PATH="$HOME/.bun/bin:$PATH"
-exec API_PORT=$PORT bun /home/site/wwwroot/backend/api/dist/index.js
+export API_PORT=$PORT
+exec bun /home/site/wwwroot/backend/api/dist/index.js
