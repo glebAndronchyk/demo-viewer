@@ -6,4 +6,4 @@ if ! command -v bun &> /dev/null; then
 fi
 
 export PATH="$HOME/.bun/bin:$PATH"
-exec bunx serve . -l tcp://0.0.0.0:$PORT
+exec bunx serve -s . -l tcp://0.0.0.0:$PORT
