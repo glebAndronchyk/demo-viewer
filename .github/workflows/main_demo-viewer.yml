@@ -92,6 +92,9 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.API_URL }}
 
+      - name: Copy startup script into dist
+        run: cp scripts/startup-frontend.sh frontend/demo-viewer/dist/startup-frontend.sh
+
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
@@ -152,5 +155,5 @@ jobs:
         with:
           app-name: 'demo-viewer-ui'
           package: .
-          startup-command: 'npx serve . -l tcp://0.0.0.0:$PORT'
+          startup-command: 'bash /home/site/wwwroot/startup-frontend.sh'
           
