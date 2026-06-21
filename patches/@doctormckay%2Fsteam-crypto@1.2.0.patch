@@ -1,0 +1,12 @@
+diff --git a/index.js b/index.js
+index 42eb87287156da27ce6e603060f3a2b1cad4805d..2c5a8e26aed1123580d79d3f79e7b57ebc72caf5 100644
+--- a/index.js
++++ b/index.js
+@@ -1,6 +1,6 @@
+ var Crypto = require('crypto');
+ 
+-var g_PubkeySystem = require('fs').readFileSync(__dirname + '/system.pem');
++var g_PubkeySystem = "-----BEGIN PUBLIC KEY-----\nMIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQDf7BrWLBBmLBc1OhSwfFkRf53T\n2Ct64+AVzRkeRuh7h3SiGEYxqQMUeYKO6UWiSRKpI2hzic9pobFhRr3Bvr/WARvY\ngdTckPv+T1JzZsuVcNfFjrocejN1oWI0Rrtgt4Bo+hOneoo3S57G9F1fOpn5nsQ6\n6WOiu4gZKODnFMBCiQIBEQ==\n-----END PUBLIC KEY-----\n";
+ 
+ /**
+  * Verifies a signature using the Steam "System" public key.

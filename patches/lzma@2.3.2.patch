@@ -1,0 +1,13 @@
+diff --git a/index.js b/index.js
+index 3ddd619efe1dc757dd4141fc086783ffec44a484..8329e0155c028d7eac1de76768f4667084ef2d98 100644
+--- a/index.js
++++ b/index.js
+@@ -4,7 +4,7 @@ var lzma;
+ 
+ function load_lzma()
+ {
+-    return require(require("path").join(__dirname, "src" ,"lzma_worker.js")).LZMA_WORKER;
++    return require("./src/lzma_worker.js").LZMA_WORKER;
+ }
+ 
+ lzma = load_lzma();

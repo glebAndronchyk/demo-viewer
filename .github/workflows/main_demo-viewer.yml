@@ -124,7 +124,7 @@ jobs:
         with:
           app-name: 'demo-viewer'
           package: .
-          startup-command: 'curl -fsSL https://bun.sh/install | bash && ~/.bun/bin/bun install && API_PORT=$PORT ~/.bun/bin/bun run backend/api/dist/index.js'
+          startup-command: 'API_PORT=$PORT backend/api/dist/api'
 
   deploy-frontend:
     runs-on: ubuntu-latest
