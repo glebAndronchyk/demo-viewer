@@ -44,6 +44,9 @@ jobs:
         run: bun build ./src/index.ts --target bun --outdir ./dist --external steam-user --external steam-session --external globaloffensive
         working-directory: backend/api
 
+      - name: Remove lockfile to prevent Azure Oryx auto-install
+        run: rm -f bun.lock
+
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
