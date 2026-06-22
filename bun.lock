@@ -22,6 +22,7 @@
         "@demo-viewer/demo-composer": "workspace:*",
         "@demo-viewer/domain": "workspace:*",
         "@demo-viewer/shared-types": "workspace:*",
+        "@doctormckay/stdlib": "^1.14.1",
         "@elysia/cors": "^1.4.2",
         "@elysiajs/cron": "^1.4.1",
         "@elysiajs/jwt": "^1.4.1",

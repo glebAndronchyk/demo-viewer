@@ -19,6 +19,7 @@
     "axios": "^1.14.0",
     "csgo-sharecode": "^4.0.0",
     "elysia": "latest",
+    "@doctormckay/stdlib": "^1.14.1",
     "file-manager": "^2.0.1",
     "globaloffensive": "^3.3.0",
     "jose": "latest",
