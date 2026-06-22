@@ -103,6 +103,10 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.STEAM_SOCKS_PROXY || undefined;
   }
 
+  get staticAssetsPath(): string | undefined {
+    return this.env.STATIC_ASSETS_PATH || undefined;
+  }
+
   constructor() {
     this.env = Bun.env;
   }

@@ -131,7 +131,9 @@ const di = new DIContainer()
 
 di.activate();
 const cfg = di.getInstance(EnvConfiguration);
-di.getInstance(TypedApp).listen(cfg.apiPort);
+const app = di.getInstance(TypedApp) as any;
+
+app.listen(cfg.apiPort);
 
 console.log(`Listened on: http://localhost:${cfg.apiPort}`);
 console.log(`Api can be found here: http://localhost:${cfg.apiPort}/openapi`);

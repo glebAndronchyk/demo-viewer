@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "bunx --bun vite",
     "build": "bunx --bun vite build",
+    "build:prod": "bunx --bun vite build --mode production",
     "lint": "eslint .",
     "preview": "bunx --bun vite preview"
   },

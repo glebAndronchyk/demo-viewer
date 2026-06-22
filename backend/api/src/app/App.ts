@@ -17,6 +17,8 @@ import {
 import { EnvConfiguration } from "../configuration/EnvConfiguration";
 import serverTiming from "@elysiajs/server-timing";
 import { cors } from "@elysia/cors";
+import { join } from "node:path";
+import { existsSync } from "node:fs";
 
 export class App {
   constructor(config: EnvConfiguration) {
@@ -40,7 +42,36 @@ export class App {
         CONFLICT: ConflictError,
         SERVICE_UNAVAILABLE: ServiceUnavailableError,
       })
-      .onError({ as: "global" }, ({ error, set }) => {
+      .onError({ as: "global" }, ({ error, set, request, code }) => {
+        // Static file serving / SPA fallback for unmatched routes
+        if (code === "NOT_FOUND" && config.staticAssetsPath) {
+          const url = new URL(request.url);
+          const filePath = join(config.staticAssetsPath, url.pathname);
+          if (existsSync(filePath) && !filePath.endsWith("/")) {
+            const ext = filePath.split(".").pop() ?? "";
+            const mime: Record<string, string> = {
+              js: "application/javascript",
+              css: "text/css",
+              html: "text/html",
+              svg: "image/svg+xml",
+              png: "image/png",
+              jpg: "image/jpeg",
+              jpeg: "image/jpeg",
+              ico: "image/x-icon",
+              woff: "font/woff",
+              woff2: "font/woff2",
+              json: "application/json",
+              webp: "image/webp",
+            };
+            return new Response(Bun.file(filePath), {
+              headers: { "Content-Type": mime[ext] ?? "application/octet-stream" },
+            });
+          }
+          return new Response(Bun.file(join(config.staticAssetsPath, "index.html")), {
+            headers: { "Content-Type": "text/html" },
+          });
+        }
+
         // AppErrors — carry their own HTTP status
         if ("status" in error && typeof error.status === "number") {
           set.status = error.status;
