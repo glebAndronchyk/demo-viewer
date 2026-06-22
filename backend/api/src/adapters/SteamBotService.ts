@@ -71,7 +71,7 @@ export class SteamBotService {
     const bot = new SteamUser({
       autoRelogin: false,
       dataDirectory: configuration.steamAuthDirectory ?? join(homedir(), "auth", "steam"),
-      protocol: EConnectionProtocol.TCP,
+      protocol: EConnectionProtocol.WebSocket,
     });
 
     // Must be created before loggedOn fires so it can hook into the event
