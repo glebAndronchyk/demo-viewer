@@ -1,5 +1,6 @@
 import { ConfigurationInboundPort } from "@demo-viewer/domain/src/ports/inbound/ConfigurationInboundPort";
-import SteamUser, { EConnectionProtocol } from "steam-user";
+import SteamUser from "steam-user";
+const { EConnectionProtocol } = SteamUser;
 import GlobalOffensive from "globaloffensive";
 import { homedir } from "os";
 import { join } from "path";
@@ -73,6 +74,10 @@ export class SteamBotService {
       dataDirectory: configuration.steamAuthDirectory ?? join(homedir(), "auth", "steam"),
       protocol: EConnectionProtocol.TCP,
       ...(configuration.steamSocksProxy ? { socksProxy: configuration.steamSocksProxy } : {}),
+    });
+
+    bot.on("debug", (m: string, ...args: any[]) => {
+      console.log(`[STEAM_BOT] ${m}`, ...args.map((a: any) => a instanceof Error ? `${a.message} (eresult=${(a as any).eresult})` : JSON.stringify(a)));
     });
 
     // Must be created before loggedOn fires so it can hook into the event
@@ -149,10 +154,6 @@ export class SteamBotService {
 
     bot.on("loginKey", () => {
       console.log("[STEAM_BOT] loginKey fired");
-    });
-
-    bot.on("debug", (m: string, ...args: any[]) => {
-      console.log(`[STEAM_BOT] ${m}`, ...args.map((a: any) => a instanceof Error ? `${a.message} (eresult=${(a as any).eresult})` : JSON.stringify(a)));
     });
 
     return promise;

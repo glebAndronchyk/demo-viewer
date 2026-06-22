@@ -1,0 +1,23 @@
+diff --git a/components/classes/CMAuthTransport.js b/components/classes/CMAuthTransport.js
+index 3baae5f1ed289da445f030c154c73f971e028c46..4b6f73deb206487902542bd1a2743cffbdc7f13f 100644
+--- a/components/classes/CMAuthTransport.js
++++ b/components/classes/CMAuthTransport.js
+@@ -18,13 +18,17 @@ class CMAuthTransport {
+ 	 */
+ 	sendRequest(request) {
+ 		return new Promise((resolve) => {
++			const msgType = this._user.steamID ? EMsg.ServiceMethodCallFromClient : EMsg.ServiceMethodCallFromClientNonAuthed;
++			const targetJobName = `${request.apiInterface}.${request.apiMethod}#${request.apiVersion}`;
++			console.log(`[STEAM_DEBUG] CMAuthTransport.sendRequest method=${request.apiMethod} steamID=${this._user.steamID} msgType=${msgType} NonAuthed=${EMsg.ServiceMethodCallFromClientNonAuthed} Authed=${EMsg.ServiceMethodCallFromClient} targetJobName=${targetJobName} requestDataLen=${request.requestData?.length} requestDataType=${request.requestData?.constructor?.name}`);
+ 			this._user._send({
+-				msg: this._user.steamID ? EMsg.ServiceMethodCallFromClient : EMsg.ServiceMethodCallFromClientNonAuthed,
++				msg: msgType,
+ 				proto: {
+ 					target_job_name: `${request.apiInterface}.${request.apiMethod}#${request.apiVersion}`,
+ 					realm: 1
+ 				}
+ 			}, request.requestData, (body, hdr) => {
++				console.log(`[STEAM_DEBUG] CMAuthTransport response method=${request.apiMethod} eresult=${hdr.proto.eresult} error_message=${hdr.proto.error_message}`);
+ 				resolve({
+ 					result: hdr.proto.eresult,
+ 					errorMessage: hdr.proto.error_message,
