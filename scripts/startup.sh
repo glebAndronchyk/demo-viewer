@@ -7,6 +7,5 @@ fi
 
 export PATH="$HOME/.bun/bin:$PATH"
 cd /home/site/wwwroot
-bun install
 export API_PORT=$PORT
 exec bun /home/site/wwwroot/backend/api/dist/index.js
