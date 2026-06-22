@@ -4,7 +4,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --inspect=localhost:6499/demo-parser-api --watch src/index.ts",
-    "build": "bun build ./src/index.ts --target bun --outdir ./dist --external steam-user --external steam-session --external globaloffensive",
+    "build": "bun build ./src/index.ts --target bun --outdir ./dist --external steam-user --external steam-session --external globaloffensive --external file-manager",
     "type-check": "bunx tsc --noEmit"
   },
   "dependencies": {
