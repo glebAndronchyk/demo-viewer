@@ -100,4 +100,5 @@ export interface ConfigurationInboundPort {
    */
   steamGuardCode: string | undefined;
   steamAuthDirectory: string | undefined;
+  steamSocksProxy: string | undefined;
 }

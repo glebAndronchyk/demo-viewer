@@ -99,6 +99,10 @@ export class EnvConfiguration implements ConfigurationInboundPort {
     return this.env.STEAM_AUTH_DIRECTORY || undefined;
   }
 
+  get steamSocksProxy(): string | undefined {
+    return this.env.STEAM_SOCKS_PROXY || undefined;
+  }
+
   constructor() {
     this.env = Bun.env;
   }
